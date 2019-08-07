@@ -13,7 +13,7 @@ chrome.runtime.onInstalled.addListener(function() {
         "id": "open",
         "parentId": "root",
         "title": "Open side-bar",
-        "contexts": ["page"],
+        "contexts": ["all"],
         "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"]
     });
     chrome.contextMenus.create({
@@ -26,7 +26,7 @@ chrome.runtime.onInstalled.addListener(function() {
     chrome.contextMenus.create({
         "id": "details",
         "parentId": "root",
-        "title": "To extension page",
+        "title": "To GitHub Repository",
         "contexts": ["all"]
     });
     chrome.contextMenus.create({
@@ -38,7 +38,7 @@ chrome.runtime.onInstalled.addListener(function() {
     chrome.contextMenus.onClicked.addListener(function(info, tab) {
         if (info.menuItemId === "details") {
             chrome.tabs.create({
-                "url": "chrome://extensions/?id=" + chrome.runtime.id,
+                "url": "https://github.com/LordredstoneNr1/uek",
                 "index": tab.index + 1,
                 "openerTabId": tab.id
             });
@@ -49,11 +49,21 @@ chrome.runtime.onInstalled.addListener(function() {
                 "index": tab.index + 1,
                 "openerTabId": tab.id
             });
-        } else if (Object.keys(unpackedLists).includes(info.menuItemId)) {
+        } else if (info.menuItemId === "open") {
+            chrome.tabs.sendMessage(tab.id, "toggle-panel");
+        } else if (Object.keys(unpackedLists).includes("list:" + info.menuItemId)) {
             var list = unpackedLists[info.menuItemId];
             
         }
     });
+});
+
+chrome.commands.onCommand.addListener( function(command){
+    chrome.tabs.query(
+        {"active": true, "currentWindow": true}, function(currentTab) {
+            chrome.tabs.sendMessage(currentTab[0].id, "toggle-panel");
+        }
+    );
 });
 
 //Setting up data
@@ -136,7 +146,7 @@ function getJSON(url, callback) {
 //make the slug list into a full list & register it in the context menu
 function unpack(list) {
     chrome.contextMenus.create({
-        "id": "test",
+        "id": "list:" + list.displayName,
         "parentId": "listsRoot",
         "title": list.displayName
     });

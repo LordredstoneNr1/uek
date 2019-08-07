@@ -1,3 +1,10 @@
+var open = false;
+
+function changeVisibility() {
+    open = !open;
+    console.log(open);
+};
+
 window.addEventListener("load", function() {
     var navNode = document.getElementById("riotbar-navmenu").lastElementChild;
     var outerDiv = document.createElement("div");
@@ -10,28 +17,21 @@ window.addEventListener("load", function() {
     innerDiv = document.createElement("div");
     var link = document.createElement("a");
     link.setAttribute("class", "riotbar-navmenu-link");
-    link.setAttribute("onclick", 'test()');
+    link.setAttribute("href", "#");
+    link.onclick = function() {changeVisibility()};
     link.innerHTML = "Open sidebar view";
     innerDiv.appendChild(link);
     outerDiv.appendChild(innerDiv);
     navNode.firstElementChild.appendChild(outerDiv);
+    
+    outerDiv = document.createElement("div");
+    outerDiv.setAttribute("id", "uek-main-panel");
+    // add some HTML here depending on the lists
+    
 });
 
-function test() {
-    console.log("Test");
-}
-/*function changeVisibility() {
-    if (div.getAttribute("class") == "hidden") {
-        div.setAttribute("class", "");
-    } else {
-        div.setAttribute("class", "hidden");
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+    if (message === "toggle-panel") {
+        changeVisibility();
     }
-};
-
-
-inject menu point into left sidebar:
-    id="riotbar-navmenu"
-     --> lastChild (div class="riotbar-navmenu-dropdown");
-     
-     --> firstChild.appendChild
-    */
+});
