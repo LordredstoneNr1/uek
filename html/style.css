@@ -1,0 +1,8 @@
+html#min-size {
+     min-height: 150px; 
+     min-width:400px;
+},
+
+h1 {
+    text-align: center;
+}
