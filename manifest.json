@@ -34,5 +34,8 @@
             "css": ["html/style.css"],
             "js": ["scripts/contentScript.js"]
         }
+    ],
+    "web_accessible_resources": [
+        "html/inject.html"
     ]
 }

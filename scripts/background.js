@@ -1,4 +1,5 @@
-var lists = [], unpackedLists = {},storyModules = [];
+var lists = [],storyModules = [];
+var unpackedLists = {};
 
 chrome.runtime.onInstalled.addListener(function() {
     
@@ -22,6 +23,13 @@ chrome.runtime.onInstalled.addListener(function() {
         "title": "Add to list...",
         "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
         "contexts": ["link"]
+    });
+    chrome.contextMenus.create({
+        "id": "separator",
+        "type": "separator",
+        "parentId": "root",
+        "contexts": ["all"],
+        "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"]
     });
     chrome.contextMenus.create({
         "id": "details",
@@ -53,14 +61,15 @@ chrome.runtime.onInstalled.addListener(function() {
             chrome.tabs.sendMessage(tab.id, "toggle-panel");
         } else if (Object.keys(unpackedLists).includes("list:" + info.menuItemId)) {
             var list = unpackedLists[info.menuItemId];
-            
+            // Add to list
         }
     });
 });
 
 chrome.commands.onCommand.addListener( function(command){
     chrome.tabs.query(
-        {"active": true, "currentWindow": true}, function(currentTab) {
+        {"active": true, "currentWindow": true}, 
+        function(currentTab) {
             chrome.tabs.sendMessage(currentTab[0].id, "toggle-panel");
         }
     );
@@ -70,40 +79,13 @@ chrome.commands.onCommand.addListener( function(command){
 getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json', function(status, data){
     data.modules.forEach( function(obj) {
         if (obj.type === "story-preview") {
-            var tags = [];  
-            if (override_tags[obj.title]) {
-                override_tags[obj.title].forEach( function (newTag) {
-                    tags.push(newTag);
-                });
-            } else {
-                obj['featured-champions'].forEach(function(champion) {
-                    tags.push(champion.name)
-                    if (!tags.includes(regions[champions[champion.name]])) {
-                        // Plain text version instead of faction slug
-                        tags.push(regions[champions[champion.name]]);
-                    }
-                });  
-                if (obj.subtitle != null) {
-                    // this will be "by author", so we cut "by ".
-                    tags.push(obj.subtitle.substring(3));
-                } else {
-                    authors[obj.title].forEach( function (author) {
-                        tags.push(author);
-                    });
-                }
-                if (add_tags[obj.title]) {
-                    add_tags[obj.title].forEach( function (newTag) {
-                        tags.push(newTag);
-                    });
-                }
-            }
             storyModules.push( {
                 "url": obj['url'],
                 "title": obj['title'],
                 "timestamp": obj['release-date'],
                 "words": obj['word-count'],
                 "slug": obj['story-slug'],
-                "tags": tags,
+                "tags": getTags(obj),
             });
         }
     });
@@ -111,18 +93,18 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
     //Above sets up the base modules we work with.
     
     //Clear for Debug purposes, do not ship this :D
-    chrome.storage.sync.clear();
+    //chrome.storage.sync.clear();
     
     //Setting up reading list
     //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
     chrome.storage.sync.get(null, function(items) {
-        console.log(items);
         if (!Object.keys(items).includes("firstStartUp_done")) {
             lists.push(createReadingList("all", true));
             chrome.storage.sync.set({"firstStartUp_done": true});
             save();
         } else {
             for (entry in items) {
+                // List.add 
                 console.log(entry);
             };
         }
@@ -131,13 +113,55 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
     });
 });
 
+function getTags(story) {
+    var tags = {"champions": [], "authors": [], "regions":[]};  
+    if (override_tags[story.title]) {
+        tags = override_tags[story.title];
+    } else {
+        story['featured-champions'].forEach(function(champion) {
+            tags.champions.push(champion.name);
+            if (!tags.regions.includes(regions[champions[champion.name]])) {
+                // Plain text version instead of faction slug
+                tags.regions.push(regions[champions[champion.name]]);
+            }
+        });  
+        if (story.subtitle != null) {
+            /* Subtitle is "by author", so we need to cut the first three characters.
+                We also need to get rid of character U+2019 (Single Right Quotation Mark). 
+                This one is for you, John O'Bryan!
+            */
+            tags.authors.push(story.subtitle.substring(3).replace("\u2019","'"));
+        } else {
+            authors[story.title].forEach( function (author) {
+                tags.authors.push(author);
+            });
+        }
+        if (add_tags[story.title] && add_tags[story.title].champions) {
+            add_tags[story.title].champions.forEach( function (newTag) {
+                tags.champions.push(newTag);
+            });
+        }
+        if (add_tags[story.title] && add_tags[story.title].regions) {
+            add_tags[story.title].regions.forEach( function (newTag) {
+                tags.regions.push(newTag);
+            });
+        }
+        if (add_tags[story.title] && add_tags[story.title].authors) {
+            add_tags[story.title].authors.forEach( function (newTag) {
+                tags.authors.push(newTag);
+            });
+        }
+    }
+    return tags;
+}
+
 //Stolen from StackOverflow
 function getJSON(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.responseType = 'json';
     xhr.onload = function() {
-        console.log("XHR Request to \'" + url + "\' finished with status " + xhr.status);
+        console.log("XMLHttpRequest to \'" + url + "\' finished with status " + xhr.status);
         callback(xhr.status, xhr.response);
     };
     xhr.send();
@@ -145,11 +169,11 @@ function getJSON(url, callback) {
 
 //make the slug list into a full list & register it in the context menu
 function unpack(list) {
-    chrome.contextMenus.create({
+    /*chrome.contextMenus.create({
         "id": "list:" + list.displayName,
         "parentId": "listsRoot",
         "title": list.displayName
-    });
+    });*/
     var full = {
         
     }
