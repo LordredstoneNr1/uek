@@ -164,13 +164,13 @@ var champions = {
 };
 
 var override_tags = {
-    "Burning Tides": ["Twisted Fate", "Bilgewater", "Graves","Scott Hawkes", "George Krstic", "Anthony Reynolds", "John O'Bryan"],
-    "Down Among The Dead Men": ["Miss Fortune", "Bilgewater", "Graham McNeill"],
-    "Interview: Inside K/DA":  ["Ahri", "Kai'Sa", "Akali", "Evelynn", "Indu Reddy", "Jared Rosen"],
-    "POP/STARS": ["Ahri", "Kai'Sa", "Akali", "Evelynn", "Jared Rosen"],
-    "Trial of the Masks":  ["Sivir", "Jared Rosen"],
-    "The Lure": ["Kayn", "Sona", "Dan Abnett"],
-    "The Man With the Grinning Shadow": ["Lucian", "Thresh", "Alistar", "Urgot", "Karthus", "Jared Rosen"]
+    "Burning Tides": {"champions": ["Twisted Fate", "Graves"],"regions": ["Bilgewater"], "authors": ["Scott Hawkes", "George Krstic", "Anthony Reynolds", "John O'Bryan"]},
+    "Down Among The Dead Men": {"champions": ["Miss Fortune"], "regions": ["Bilgewater"], "authors": ["Graham McNeill"]},
+    "Interview: Inside K/DA":  {"champions": ["Ahri", "Kai'Sa", "Akali", "Evelynn"], "regions": [], "authors": ["Indu Reddy", "Jared Rosen"]},
+    "POP/STARS": {"champions": ["Ahri", "Kai'Sa", "Akali", "Evelynn"], "regions": [], "authors": ["Jared Rosen"]},
+    "Trial of the Masks": {"champions": ["Sivir"], "regions": [], "authors": ["Jared Rosen"]},
+    "The Lure": {"champions": ["Kayn", "Sona"], "regions": [], "authors": ["Dan Abnett"]},
+    "The Man With the Grinning Shadow": {"champions": ["Lucian", "Thresh", "Alistar", "Urgot", "Karthus"], "regions": [], "authors": ["Jared Rosen"]}
 };
 
 var add_tags = {
@@ -185,7 +185,7 @@ var add_tags = {
     "The Whispering Doodad": ["Draven", "Noxus"],
     "What Once Sailed Free": ["Jarvan IV"],
     "Where Icathia Once Stood": ["Void", "Shurima"],
-}
+};
 
 var authors = {
     "A Sword Without a Sheath": ["Robert Lo", "Joe Lansford"],
@@ -258,4 +258,4 @@ var authors = {
     "Last Rites": ["John O'Bryan"],
     "Protection": ["Graham McNeill"],
     "Meet Zoe":    ["Odin Shafer"],
-};
+}

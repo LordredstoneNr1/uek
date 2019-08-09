@@ -3,6 +3,10 @@ html#min-size {
      min-width:400px;
 },
 
-h1 {
+h1.center {
     text-align: center;
+}
+
+.hidden {
+    display: none !important;
 }
