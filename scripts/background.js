@@ -113,8 +113,8 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
         console.log("Found ", lists.length, " lists in synchronized storage.");
         lists.forEach(function(list) {unpack(list);});
     });
-});
 */
+});
 
 function getTags(story) {
     var tags = {"champions": [], "authors": [], "regions":[]};  
