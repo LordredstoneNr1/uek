@@ -93,18 +93,20 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
     //Above sets up the base modules we work with.
     
     //Clear for Debug purposes, do not ship this :D
-    //chrome.storage.sync.clear();
+    chrome.storage.sync.clear();
     
     //Setting up reading list
     //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
-    chrome.storage.sync.get(null, function(items) {
+    /*chrome.storage.sync.get(null, function(items) {
         if (!Object.keys(items).includes("firstStartUp_done")) {
             lists.push(createReadingList("all", true));
             chrome.storage.sync.set({"firstStartUp_done": true});
             save();
         } else {
             for (entry in items) {
-                // List.add 
+                if () {
+                    lists.push(entry);
+                }
                 console.log(entry);
             };
         }
@@ -112,6 +114,7 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
         lists.forEach(function(list) {unpack(list);});
     });
 });
+*/
 
 function getTags(story) {
     var tags = {"champions": [], "authors": [], "regions":[]};  
