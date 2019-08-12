@@ -1,7 +1,8 @@
 var open = false, showing = false;
-var factorWidth = 0.4, factorHeight = 1;
+var factorWidth = 0.35, factorHeight = 1;
+var constWidth = 200, constHeight = -50;
 var navNode, outerDiv;
-var styleAttributes = " transform: opacity 1s !important; visibility: visible !important; transform: none !important;";
+var styleAttributes = "transform: none !important; visibility: visible !important;";
 var prevAttributes = "";
 
 
@@ -9,8 +10,8 @@ function toggleSidebar() {
     open = !open;
     //update context menu
     if (open) {
-        var w = "width: " + (document.documentElement.scrollWidth * factorWidth) + "px; ";
-        var h = "height: " + (document.documentElement.scrollHeight * factorHeight - 50) + "px; ";
+        var w = "width: " + (document.documentElement.scrollWidth * factorWidth + constWidth) + "px; ";
+        var h = "height: " + (document.documentElement.scrollHeight * factorHeight + constHeight) + "px; ";
         //Somehow Riot extends the window every time I resize it, so we need to subtract 50 to keep it the same height
         prevAttributes = navNode.getAttribute("style");
         navNode.setAttribute("style", w + h + styleAttributes);
@@ -63,7 +64,11 @@ window.addEventListener("load", function() {
 });
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-    if (message === "toggle-panel") {
+    if (message.id === "toggle-panel") {
         toggleSidebar();
+    } else {
+        console.log("Received unknown message with id " + message.id);
+        console.log(message, sender);
+        
     }
 });
