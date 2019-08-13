@@ -64,7 +64,7 @@ class StoryList {
             urlCollection.push(obj.slug);
         });
             
-        list =  {
+        var list =  {
             "data": urlCollection,
             "bool": deleteAfterRead, 
         }
@@ -89,7 +89,7 @@ class StoryList {
     }
     
     static hasUnpacked(list) {
-        
+        return Object.keys(StoryList.unpackedLists).includes(list);
     }
     
     static filterByTag(key, tag) {
@@ -102,6 +102,17 @@ class StoryList {
             });
             return found;
         }); 
+    }
+    
+    add(url) {
+        var unpackedStory = StoryList.storyModules.find(function (story) {
+            console.log(story.slug, url.substring(49, url.length-1));
+            return story.slug === url.substring(49, url.length-1);
+        });
+        console.log(unpackedStory);
+        if (!this.data.includes(unpackedStory)) {
+           this.data.push(unpackedStory);
+        }
     }
     
     save() {
@@ -280,53 +291,71 @@ chrome.runtime.onInstalled.addListener(function() {
         "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
         "contexts": ["link"]
     });
+    chrome.contextMenus.create({
+        "id": "listsNew",
+        "parentId": "listsRoot",
+        "title": "New List...",
+        "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
+        "contexts": ["link"]
+    });
     //Somehow this doesn't work on current chrome. Is it really needed?
   /*  chrome.contextMenus.create({
         "id": "separator",
         "type": "separator",
         "parentId": "root",
-        "contexts": ["page"],
+        "contexts": ["link"],
         "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"]
     }); */ 
     chrome.contextMenus.create({
         "id": "details",
         "parentId": "root",
         "title": "To GitHub Repository",
-        "contexts": ["page"]
+        "contexts": ["page", "browser_action"]
     });
     chrome.contextMenus.create({
         "id": "about",
         "parentId": "root",
         "title": "About...",
-        "contexts": ["page"]
+        "contexts": ["page", "browser_action"]
     });
     chrome.contextMenus.onClicked.addListener(function(info, tab) {
-        if (info.menuItemId === "root") {
-            chrome.tabs.create({
-                "url": "https://universe.leagueoflegends.com/en_US/",
-                "index": tab.index + 1,
-                "openerTabId": tab.id
-            });
-        } else if (info.menuItemId === "details") {
-            chrome.tabs.create({
-                "url": "https://github.com/LordredstoneNr1/uek",
-                "index": tab.index + 1,
-                "openerTabId": tab.id
-            });
-        } else if (info.menuItemId === "about") {
-            chrome.tabs.create({
-                //Replace URL with post
-                "url": "https://boards.na.leagueoflegends.com/en/c/story-art",
-                "index": tab.index + 1,
-                "openerTabId": tab.id
-            });
-        } else if (info.menuItemId === "open") {
-            chrome.tabs.sendMessage(tab.id, {
-                id: "toggle-panel",
-                data: ""
-            });
-        } else if (StoryList.hasUnpacked(info.menuItemId)) {
-            //this is the Add to List X option
+        switch (info.menuItemId)  {
+            case "root":
+                chrome.tabs.create({
+                    "url": "https://universe.leagueoflegends.com/en_US/",
+                    "index": tab.index + 1,
+                    "openerTabId": tab.id
+                });
+                break;
+            case "details": 
+                chrome.tabs.create({
+                    "url": "https://github.com/LordredstoneNr1/uek",
+                    "index": tab.index + 1,
+                    "openerTabId": tab.id
+                });
+                break;
+            case "about":
+                chrome.tabs.create({
+                    //Replace URL with post
+                    "url": "https://boards.na.leagueoflegends.com/en/c/story-art",
+                    "index": tab.index + 1,
+                    "openerTabId": tab.id
+                });
+                break;
+            case "open":
+                chrome.tabs.sendMessage(tab.id, {
+                    id: "toggle-panel",
+                    data: ""
+                });
+                break;
+            case "listsNew":
+                list = new StoryList("New List", {"data":[]});
+                list.add(info.linkUrl);
+                list.save();
+                break;
+        } 
+        if (StoryList.hasUnpacked(info.menuItemId)) {
+           StoryList.unpackedLists[info.menuItemId].add(info.linkUrl);
         }
     });
 });
@@ -361,7 +390,7 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
     chrome.storage.sync.get(null, function(items) {
         //Setting up reading list after first startup
         if (!Object.keys(items).includes("firstStartUp_done")) {
-            createReadingList("all", true);
+            StoryList.createReadingList("all", true);
             chrome.storage.sync.set({"firstStartUp_done": true});
         } else {
             for (entry in items) {

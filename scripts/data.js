@@ -187,7 +187,7 @@ var add_tags = {
     "Where Icathia Once Stood": ["Void", "Shurima"],
 };
 
-var authors = {
+var authors_fallback = {
     "A Sword Without a Sheath": ["Robert Lo", "Joe Lansford"],
     "Greed and Tears": ["Anthony Reynolds"],
     "Twin Dawns": ["Matthew Dunn"],
