@@ -106,10 +106,8 @@ class StoryList {
     
     add(url) {
         var unpackedStory = StoryList.storyModules.find(function (story) {
-            console.log(story.slug, url.substring(49, url.length-1));
             return story.slug === url.substring(49, url.length-1);
         });
-        console.log(unpackedStory);
         if (!this.data.includes(unpackedStory)) {
            this.data.push(unpackedStory);
         }
@@ -371,6 +369,10 @@ chrome.commands.onCommand.addListener( function(command){
             });
         }
     );
+});
+
+chrome.commands.getAll(function (commands) {
+    chrome.storage.sync.set({"shortcut": commands[1].shortcut});
 });
 
 //Setting up data

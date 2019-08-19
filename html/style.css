@@ -8,7 +8,6 @@ html#min-size {
 
 h1#center {
     text-align: center;
-    font-family: Arial, Helvetica, sans-serif;
 }
 
 a.link:link {
@@ -25,6 +24,71 @@ a.link:visited {
     display: none !important;
 }
 
+#uek-base-wrapper {
+    position: fixed;
+    z-index: 8000;
+    left: -500px;
+    top: 100px;
+    height: 80%;
+    width: auto;
+    
+    font-family: Spiegel, Helvetica, sans-serif;
+    color: #a09a8e;
+}
+
+#uek-base-wrapper.open {
+    left: 0px;
+}
+
+#uek-main-page {
+    float: left;
+    width: 500px;
+    height: 100%;
+    background-color: #111111;
+    border: 2px solid #c9aa71;
+}
+
+#uek-base-toggle {
+    margin-left: 20px;
+    float: right;
+    width: 20px;
+    height: 100%;
+}
+
+#uek-toggle-link {
+    position: absolute;
+    width: 20px;
+    height: 60px;
+    top: 50%;
+    right: 0;
+}
+
 div.header {
-    border-bottom: 2px dashed #262626 !important;
+    padding: 10px 10px 0 10px;
+    border-bottom: 2px dotted #262626;
+}
+
+div.header > a {
+    color: #d6bd8f;
+    margin: 0 10px;
+}
+
+div.header > a.activeTab {
+    color: white;
+    border-bottom: 2px solid #c79a3c;
+}
+
+div.header > a.title {
+    color: #f0e6d2;
+
+}
+
+/*Same style as other separators, but we can't use them for this so we just copy it */
+#uek-custom-separator {
+    border-left: 2px solid #262626;
+    display: inline-block;
+    font-size: 14px;
+    height: 25px;
+    margin: -5px 0.25em 5px 0.25em;
+    vertical-align: top;
 }

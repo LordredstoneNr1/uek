@@ -1,47 +1,18 @@
-var open = false, showing = false;
-var factorWidth = 0.35, factorHeight = 1;
-var constWidth = 200, constHeight = -50;
-var navNode, outerDiv;
-var styleAttributes = "transform: none !important; visibility: visible !important;";
-var prevAttributes = "";
-
-
-function toggleSidebar() {
-    open = !open;
-    //update context menu
-    if (open) {
-        var w = "width: " + (document.documentElement.scrollWidth * factorWidth + constWidth) + "px; ";
-        var h = "height: " + (document.documentElement.scrollHeight * factorHeight + constHeight) + "px; ";
-        //Somehow Riot extends the window every time I resize it, so we need to subtract 50 to keep it the same height
-        prevAttributes = navNode.getAttribute("style");
-        navNode.setAttribute("style", w + h + styleAttributes);
-    } else {
-        if (showing) {
-            changeVisibility();
-        }
-        navNode.setAttribute("style", prevAttributes);
-    }
-    console.log(open?"Extended Sidebar":"Small Sidebar");
-};
-
+var open = false;
 function changeVisibility() {
-    showing = !showing;
-    if (showing) {
-        if (!open) {
-            toggleSidebar();
-        }
-    }
-    var toggleList = navNode.children;
-    for (i = 0; i < toggleList.length; i++) {
-        toggleList[i].classList.toggle("hidden");
-    };
-    console.log(showing?"Showing Extension Page":"Showing Riot Menu");
-}
+    open = !open;
+    //update context menu and riotbar entry
+    document.getElementById("uek-base-wrapper").classList.toggle("open");
+    
+    document.getElementById("uek-toggle-open").classList.toggle("hidden");
+    document.getElementById("uek-toggle-close").classList.toggle("hidden");
+    console.log((open?"Showing":"Hiding") + " UEK Extension page");
+};
 
 function readHtmlFile(path, callback) {
     var file = new XMLHttpRequest();
     file.overrideMimeType("text/html");
-    file.open("GET", chrome.extension.getURL(path), true);
+    file.open("GET", chrome.runtime.getURL(path), true);
     file.onreadystatechange = function() {
         if (file.readyState === 4 && file.status == "200") {
             callback(file.responseText);
@@ -51,21 +22,29 @@ function readHtmlFile(path, callback) {
 }
 
 window.addEventListener("load", function() {
-    navNode = document.getElementById("riotbar-navmenu").lastElementChild;
     readHtmlFile("html/inject.html", function (element) {
         var injectDoc = new DOMParser().parseFromString(element, "text/html");
-        navNode.firstElementChild.appendChild(injectDoc.getElementById("uek-link-element"));
-        navNode.appendChild(injectDoc.getElementById("uek-main"));
-        //somehow injectDoc.getElementById returns null here, but document.getElementById works.
+        
+        // Inject link in the menu
+        document.getElementById("riotbar-navmenu").lastElementChild.firstElementChild.appendChild(injectDoc.getElementById("uek-link-element"));
+        // Link in the Riot Menu
         document.getElementById("uek-link-open").onclick = function () { changeVisibility();};
-        document.getElementById("uek-link-back").onclick = function () { changeVisibility();};
+        chrome.storage.sync.get("shortcut", function(item) {
+            document.getElementById("uek-link-open").firstElementChild.innerHTML = item.shortcut;
+        });
+        
+        // Inject Main Extension div
+        document.getElementsByTagName("body")[0].appendChild(injectDoc.getElementById("uek-base-wrapper"));
+        // Link in the extension div
+        document.getElementById("uek-toggle-link").onclick = function() { changeVisibility();};
+        document.getElementById("uek-toggle-open").src = chrome.runtime.getURL("images/arrow-right.png");
+        document.getElementById("uek-toggle-close").src = chrome.runtime.getURL("images/arrow-left.png");
     });
-    
 });
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (message.id === "toggle-panel") {
-        toggleSidebar();
+        changeVisibility();
     } else {
         console.log("Received unknown message with id " + message.id);
         console.log(message, sender);
