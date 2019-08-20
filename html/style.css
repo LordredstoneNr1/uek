@@ -28,8 +28,8 @@ a.link:visited {
     position: fixed;
     z-index: 8000;
     left: -500px;
-    top: 100px;
-    height: 80%;
+    top: 150px;
+    height: 70%;
     width: auto;
     
     font-family: Spiegel, Helvetica, sans-serif;

@@ -18,7 +18,7 @@
                 "default": "Ctrl+Shift+L",
                 "mac": "Command+Shift+L"
             },
-            "description": "Toggles the sidebar on all Universe Websites."
+            "description": "Toggles the sidebar on all Universe Websites, if enabled."
         }
     },
     "background": {

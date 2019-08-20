@@ -9,7 +9,7 @@ document.getElementById("changeLink").onclick = function() {
                 "url": "chrome://extensions/shortcuts",
             });
 };
-chrome.commands.getAll(function(commands){
-    document.getElementById("shortcut").innerHTML = commands[1].shortcut;
+chrome.storage.sync.get("options", function(options){
+    document.getElementById("shortcut").innerHTML = options.shortcut;
 });
 

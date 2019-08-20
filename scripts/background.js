@@ -1,3 +1,4 @@
+var options = {};
 class StoryList {
     
     constructor(name, list) {
@@ -266,6 +267,7 @@ class UnpackedStory {
     }
 }
 
+// Run only once on startup / update
 chrome.runtime.onInstalled.addListener(function() {
     
     //Creating Context Menu
@@ -280,6 +282,7 @@ chrome.runtime.onInstalled.addListener(function() {
         "parentId": "root",
         "title": "Open side-bar",
         "contexts": ["page"],
+        "visible": true,
         "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"]
     });
     chrome.contextMenus.create({
@@ -302,6 +305,7 @@ chrome.runtime.onInstalled.addListener(function() {
         "parentId": "root",
         "title": "Extract image",
         "contexts": ["link"],
+        "visible": true,
         "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"],
         "targetUrlPatterns": [
             "*://universe.leagueoflegends.com/*/story/*", 
@@ -315,6 +319,7 @@ chrome.runtime.onInstalled.addListener(function() {
         "parentId": "root",
         "title": "Extract image",
         "contexts": ["page"],
+        "visible": true,
         "documentUrlPatterns": [
             "*://universe.leagueoflegends.com/*/story/*",
             "*://universe.leagueoflegends.com/*/region/*",
@@ -425,16 +430,12 @@ chrome.commands.onCommand.addListener( function(command){
         function(currentTab) {
             chrome.tabs.sendMessage(currentTab[0].id, 
             {
-                id: "toggle-panel",
-                data: ""
+                id: "toggle-panel"
             });
         }
     );
 });
 
-chrome.commands.getAll(function (commands) {
-    chrome.storage.sync.set({"shortcut": commands[1].shortcut});
-});
 
 //Setting up data
 getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json', function(status, data){
@@ -446,19 +447,25 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
     console.log("Story Modules: ", StoryList.storyModules);
     //Above sets up the base modules we work with.
     
-    //Clear for Debug purposes, do not ship this :D
+    //Clear for Debug purposes, do not ship with this :D
     //chrome.storage.sync.clear();
     
     //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
     chrome.storage.sync.get(null, function(items) {
         //Setting up reading list after first startup
-        if (!Object.keys(items).includes("firstStartUp_done")) {
+        if (!Object.keys(items).includes("options")) {
             StoryList.createReadingList("all", true);
-            chrome.storage.sync.set({"firstStartUp_done": true});
+            chrome.commands.getAll(function (commands) {
+                options.shortcut = commands[1].shortcut;
+            });
+            chrome.storage.sync.set({"options": options});
         } else {
+            console.log("Started UEK, reading data: " + items.length + " items.");
             for (entry in items) {
                 if (entry.startsWith("list: ")) {
                     new StoryList(entry.substring(6), items[entry]);
+                } else if (entry == "options") {
+                    options = entry[options];
                 }
                 console.log(entry);
             };
@@ -468,7 +475,6 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
     });
 });
 
-//Stolen from StackOverflow
 function getJSON(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
