@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "Universe Enhancement Kit",
     "description": "Enhances your League Universe page by adding some functionality.",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "permissions": ["storage", "contextMenus"],
     
     "icons": { 

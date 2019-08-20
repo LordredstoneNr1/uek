@@ -37,7 +37,7 @@ a.link:visited {
 }
 
 #uek-base-wrapper.open {
-    left: 0px;
+    left: 10px;
 }
 
 #uek-main-page {
@@ -49,36 +49,41 @@ a.link:visited {
 }
 
 #uek-base-toggle {
-    margin-left: 20px;
     float: right;
-    width: 20px;
+    width: 30px;
     height: 100%;
 }
 
 #uek-toggle-link {
     position: absolute;
-    width: 20px;
-    height: 60px;
+    width: 30px;
+    height: 70px;
     top: 50%;
     right: 0;
 }
 
-div.header {
+#uek-toggle-link > img {
+    width: 20px;
+    height: 60px;
+    margin: 5px;
+}
+
+#uek-main-header {
     padding: 10px 10px 0 10px;
     border-bottom: 2px dotted #262626;
 }
 
-div.header > a {
+#uek-main-header > a {
     color: #d6bd8f;
     margin: 0 10px;
 }
 
-div.header > a.activeTab {
+#uek-main-header > a.activeTab {
     color: white;
     border-bottom: 2px solid #c79a3c;
 }
 
-div.header > a.title {
+#uek-main-header > a.title {
     color: #f0e6d2;
 
 }

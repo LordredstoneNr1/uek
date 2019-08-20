@@ -296,6 +296,33 @@ chrome.runtime.onInstalled.addListener(function() {
         "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
         "contexts": ["link"]
     });
+    
+    chrome.contextMenus.create({
+        "id": "extractImageLink",
+        "parentId": "root",
+        "title": "Extract image",
+        "contexts": ["link"],
+        "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"],
+        "targetUrlPatterns": [
+            "*://universe.leagueoflegends.com/*/story/*", 
+            "*://universe.leagueoflegends.com/*/region/*",
+            "*://universe.leagueoflegends.com/*/comic/*", 
+            "*://universe.leagueoflegends.com/*/champion/*" 
+        ]
+    });
+    chrome.contextMenus.create({
+        "id": "extractImagePage",
+        "parentId": "root",
+        "title": "Extract image",
+        "contexts": ["page"],
+        "documentUrlPatterns": [
+            "*://universe.leagueoflegends.com/*/story/*",
+            "*://universe.leagueoflegends.com/*/region/*",
+            "*://universe.leagueoflegends.com/*/comic/", 
+            "*://universe.leagueoflegends.com/*/champion/*",
+            "*://universe.leagueoflegends.com/*/race/*" 
+        ]
+    });
     //Somehow this doesn't work on current chrome. Is it really needed?
   /*  chrome.contextMenus.create({
         "id": "separator",
@@ -350,6 +377,40 @@ chrome.runtime.onInstalled.addListener(function() {
                 list = new StoryList("New List", {"data":[]});
                 list.add(info.linkUrl);
                 list.save();
+                break;
+            case "extractImageLink":
+                chrome.tabs.sendMessage(tab.id, {
+                    id: "extract-image",
+                    source: "link",
+                    linkURL: info.linkUrl,
+                    //Send url along just in case
+                    pageURL: info.pageUrl
+                },
+                function (response) {
+                  if (response.id === "extract-image-response" && response.sucess == true) {
+                        chrome.tabs.create({
+                            "url": response.imageURL,
+                            "index": tab.index + 1,
+                            "openerTabId": tab.id
+                        });
+                    }
+                });
+                break;
+            case "extractImagePage":
+                chrome.tabs.sendMessage(tab.id, {
+                    id: "extract-image",
+                    source: "page",
+                    pageURL: info.pageUrl
+                },
+                function (response) {
+                    if (response.id === "extract-image-response" && response.sucess == true) {
+                        chrome.tabs.create({
+                            "url": response.imageURL,
+                            "index": tab.index + 1,
+                            "openerTabId": tab.id
+                        });
+                    }
+                });
                 break;
         } 
         if (StoryList.hasUnpacked(info.menuItemId)) {
