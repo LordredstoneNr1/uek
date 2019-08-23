@@ -4,7 +4,7 @@ class StoryList {
     constructor(name, list) {
         var collection = [];
         list.data.forEach(function (slug) {
-            collection.push(StoryList.findBinSearch(StoryList.storyModules, "slug", slug));
+            collection.push(StoryList.findBinSearch(UnpackedStory.storyModules, "slug", slug));
         });
         
         this.displayName = name;
@@ -34,7 +34,7 @@ class StoryList {
             //Special Tag: All stories
             console.log("Special Tag found: " + tag);
             name = "Reading List";
-            filteredModules = StoryList.storyModules;
+            filteredModules = UnpackedStory.storyModules;
         } else if (Object.values(regions).includes(tag)) {
             
             //Regions
@@ -94,7 +94,7 @@ class StoryList {
     }
     
     static filterByTag(key, tag) {
-       return StoryList.storyModules.filter( function(obj)  {
+       return UnpackedStory.storyModules.filter( function(obj)  {
             var found = false;
             obj.tags[key].forEach(function(givenTag) {
                 if (tag === givenTag) {
@@ -106,7 +106,7 @@ class StoryList {
     }
     
     add(url) {
-        var unpackedStory = StoryList.storyModules.find(function (story) {
+        var unpackedStory = UnpackedStory.storyModules.find(function (story) {
             return story.slug === url.substring(49, url.length-1);
         });
         if (!this.data.includes(unpackedStory)) {
@@ -120,12 +120,9 @@ class StoryList {
         this.data.forEach(function(story) {
             packedData.push(story.slug);
         });
-        // only save this value if true, since it defaults to false if unspecified.
-        if (this.deleteAfterRead) {
-            packedList["list: " + this.displayName] = {"data" : packedData, "bool": this.deleteAfterRead};
-        } else {
-            packedList["list: " + this.displayName] = {"data" : packedData};
-        }
+        // only save this value if true, since it defaults to false if unspecified. -- Actually I don't care, that extra storage space shouldn't make the difference.
+        packedList["list: " + this.displayName] = {"data" : packedData, "bool": this.deleteAfterRead};
+
         chrome.storage.sync.set(packedList);
         chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
             console.log("Saved Data. Total bytes used: ", bytesInUse);
@@ -135,7 +132,6 @@ class StoryList {
 }
 StoryList.authorList = new Array();
 StoryList.unpackedLists = new Object();
-StoryList.storyModules = new Array();
 
 class UnpackedStory {
     
@@ -144,7 +140,7 @@ class UnpackedStory {
         this.title = obj['title'];
         this.words = obj['word-count'];
         this.slug = obj['story-slug'];
-        this.timestamp = new Date(obj['release-date']);
+        this.timestamp = obj['release-date'];
         this.getTags(obj);
     }
     
@@ -266,6 +262,7 @@ class UnpackedStory {
         this.tags = tags;
     }
 }
+UnpackedStory.storyModules = new Array();
 
 // Run only once on startup / update
 chrome.runtime.onInstalled.addListener(function() {
@@ -299,7 +296,6 @@ chrome.runtime.onInstalled.addListener(function() {
         "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
         "contexts": ["link"]
     });
-    
     chrome.contextMenus.create({
         "id": "extractImageLink",
         "parentId": "root",
@@ -328,14 +324,6 @@ chrome.runtime.onInstalled.addListener(function() {
             "*://universe.leagueoflegends.com/*/race/*" 
         ]
     });
-    //Somehow this doesn't work on current chrome. Is it really needed?
-  /*  chrome.contextMenus.create({
-        "id": "separator",
-        "type": "separator",
-        "parentId": "root",
-        "contexts": ["link"],
-        "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"]
-    }); */ 
     chrome.contextMenus.create({
         "id": "details",
         "parentId": "root",
@@ -392,7 +380,7 @@ chrome.runtime.onInstalled.addListener(function() {
                     pageURL: info.pageUrl
                 },
                 function (response) {
-                  if (response.id === "extract-image-response" && response.sucess == true) {
+                  if (response.id === "extract-image-response" && response.success == true) {
                         chrome.tabs.create({
                             "url": response.imageURL,
                             "index": tab.index + 1,
@@ -408,7 +396,7 @@ chrome.runtime.onInstalled.addListener(function() {
                     pageURL: info.pageUrl
                 },
                 function (response) {
-                    if (response.id === "extract-image-response" && response.sucess == true) {
+                    if (response.id === "extract-image-response" && response.success == true) {
                         chrome.tabs.create({
                             "url": response.imageURL,
                             "index": tab.index + 1,
@@ -428,24 +416,35 @@ chrome.commands.onCommand.addListener( function(command){
     chrome.tabs.query(
         {"active": true, "currentWindow": true}, 
         function(currentTab) {
-            chrome.tabs.sendMessage(currentTab[0].id, 
-            {
-                id: "toggle-panel"
-            });
+            chrome.tabs.sendMessage(currentTab[0].id, {id: "toggle-panel"});
         }
     );
 });
 
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    if (request.id === "get-stories") {
+        sendResponse({
+            id: "get-stories-response",
+            success: true,
+            data: UnpackedStory.storyModules
+        });
+        console.log("Sender ", sender, " requested story modules, sending data.");
+    }
+    return true;
+});
 
 //Setting up data
 getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json', function(status, data){
     data.modules.forEach( function(obj) {
         if (obj.type === "story-preview") {
-            StoryList.storyModules.push( new UnpackedStory(obj));
+            UnpackedStory.storyModules.push( new UnpackedStory(obj));
         }
     });
-    console.log("Story Modules: ", StoryList.storyModules);
-    //Above sets up the base modules we work with.
+    console.log("Story Modules: ", UnpackedStory.storyModules);
+    /*Above sets up the base modules we work with. 
+    If more information are needed, add them to the constructor of UnpackedStory. 
+    For now, keep it small, store only the necessary information.
+    */
     
     //Clear for Debug purposes, do not ship with this :D
     //chrome.storage.sync.clear();
@@ -460,7 +459,7 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
             });
             chrome.storage.sync.set({"options": options});
         } else {
-            console.log("Started UEK, reading data: " + items.length + " items.");
+            console.log("Started UEK, reading data: " + Object.keys(items).length + " items.");
             for (entry in items) {
                 if (entry.startsWith("list: ")) {
                     new StoryList(entry.substring(6), items[entry]);

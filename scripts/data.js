@@ -174,17 +174,17 @@ var override_tags = {
 };
 
 var add_tags = {
-    "Of Rats and Cats<br> and Neon Mice": ["Jhin", "Vi", "Vayne"],
-    "The Slumber Party Summoning": ["Lux", "Ezreal", "Miss Fortune", "Soraka", "Poppy", "Lulu", "Janna", "Jinx"],
-    "At The Edge Of The World": ["Zyra", "Noxus"],
-    "The Mountain": ["Mt. Targon", "Leona", "Diana", "Zoe", "Pantheon", "Taric"],
-    "Starfall": ["Lux", "Ezreal", "Miss Fortune", "Soraka", "Poppy", "Lulu", "Janna", "Jinx", "Ahri", "Syndra"],
-    "The Legend of the Darkin": ["Kayn", "Aatrox", "Varus"],
-    "Twilight of the Gods": ["Zoe", "Kayn", "Aatrox", "Varus"],
-    "Bloodline": ["Sivir"],
-    "The Whispering Doodad": ["Draven", "Noxus"],
-    "What Once Sailed Free": ["Jarvan IV"],
-    "Where Icathia Once Stood": ["Void", "Shurima"],
+    "Of Rats and Cats<br> and Neon Mice": {"champions": ["Jhin", "Vi", "Vayne"]},
+    "The Slumber Party Summoning": {"champions": ["Lux", "Ezreal", "Miss Fortune", "Soraka", "Poppy", "Lulu", "Janna", "Jinx"]},
+    "At The Edge Of The World": {"champions": ["Zyra"], "regions":  ["Noxus"]},
+    "The Mountain": {"regions": ["Mt. Targon"], "champions": ["Leona", "Diana", "Zoe", "Pantheon", "Taric"]},
+    "Starfall": {"champions": ["Lux", "Ezreal", "Miss Fortune", "Soraka", "Poppy", "Lulu", "Janna", "Jinx", "Ahri", "Syndra"]},
+    "The Legend of the Darkin": {"champions": ["Kayn", "Aatrox", "Varus"]},
+    "Twilight of the Gods": {"champions": ["Zoe", "Kayn", "Aatrox", "Varus"]},
+    "Bloodline": {"champions": ["Sivir"]},
+    "The Whispering Doodad": {"champions": ["Draven"], "regions": ["Noxus"]},
+    "What Once Sailed Free": {"champions": ["Jarvan IV"]},
+    "Where Icathia Once Stood": {"regions": ["Void", "Shurima"]},
 };
 
 var authors_fallback = {
@@ -258,4 +258,5 @@ var authors_fallback = {
     "Last Rites": ["John O'Bryan"],
     "Protection": ["Graham McNeill"],
     "Meet Zoe":    ["Odin Shafer"],
+    "For Those Who Have Fallen": ["David Slagle"],
 }

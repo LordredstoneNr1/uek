@@ -1,11 +1,22 @@
 var open = false;
+var storyList;
+var width;
+
+//read these from the options eventually
+var widthFactor = 0.4;
+var widthConst = 200;
+
 
 //some functions we'll need.
 function changeVisibility() {
     
     open = !open;
     //update context menu and riotbar entry
-    document.getElementById("uek-base-wrapper").classList.toggle("open");
+    if (!open) {
+        document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px;");
+    } else {
+        document.getElementById("uek-base-wrapper").removeAttribute("style");
+    }
     
     document.getElementById("uek-toggle-open").classList.toggle("hidden");
     document.getElementById("uek-toggle-close").classList.toggle("hidden");
@@ -22,7 +33,10 @@ function readHtmlFile(path, callback) {
     file.send();
 }
 
-// Main logic, handle injection after window is ready
+/* Main logic, handle injection after window is ready 
+this does need to be on load, even though the script SHOULD load after DOM is ready.
+Seems like Riots scripts are too slow in constructing their website. 
+*/
 window.addEventListener("load", function() {
     readHtmlFile("html/inject.html", function (element) {
         
@@ -33,8 +47,55 @@ window.addEventListener("load", function() {
             for (i = 0; i < blocklist.length; i++) {
                blocklist[i].classList.add("hidden");
             }
+            //remove everything and add it back to the things we need.
             document.getElementById("uek-main-link-"+key).classList.add("activeTab");
             document.getElementById("uek-main-block-"+key).classList.remove("hidden");
+        }
+        
+        function parseTR(index, story) {
+            var html = [];
+            html.push(
+            "<td>" + (index+1) + "</td>",
+            "<td>" + story.title + "</td>",
+            "<td>" + story.words + "</td>",
+            "<td>" + story.tags.champions.join(", ") + "</td>",
+            "<td>" + story.tags.regions.join(", ") + "</td>",
+            "<td>" + story.tags.authors.join(", ") + "</td>",
+            "<td>" + new Date(story.timestamp).toLocaleDateString() + "</td>"
+            );
+            return html.join("\n");
+        }
+        
+        //needs to be async because we need to wait for the response.
+        async function generateStoryHTML(object) {
+            if (storyList === undefined) {
+                storyList = await new Promise ((resolve, reject) => {
+                    chrome.runtime.sendMessage({id: "get-stories"}, 
+                    function(response) {
+                        if (response.id === "get-stories-response" && response.success == true) {
+                            resolve(response.data);
+                        } else {
+                            reject("Could not get story data from background script");
+                        }
+                    });
+                });
+            }
+            var currentSelection = storyList;
+            //Apply filters and sort the list;
+            /*
+            if (filter1Active()) {
+                currentSelection = currentSelection.filter();
+            }
+            if () {
+                ...
+            }
+            currentSelection.sort();
+            */
+            for (i = 0; i < currentSelection.length; i++) {
+                var row = document.createElement("tr");
+                row.innerHTML = parseTR(i, currentSelection[i]);
+                object.appendChild(row);
+            }
         }
         
         var injectDoc = new DOMParser().parseFromString(element, "text/html");
@@ -44,10 +105,23 @@ window.addEventListener("load", function() {
         // Link in the Riot Menu
         document.getElementById("uek-link-open").onclick = function () { changeVisibility();};
         chrome.storage.sync.get("options", function(options) {
-        document.getElementById("uek-link-open").firstElementChild.innerHTML = options.shortcut;
+            document.getElementById("uek-link-open").firstElementChild.innerHTML = options.shortcut;
         });
         
         document.getElementsByTagName("body")[0].appendChild(injectDoc.getElementById("uek-base-wrapper"));
+        width = widthConst + widthFactor * window.innerWidth;
+        document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px;");
+        document.getElementById("uek-main-page").setAttribute("style", "width: "+ width +"px;");
+        var baseHeightStr = window.getComputedStyle(document.getElementById("uek-main-body")).getPropertyValue("height");
+        var baseHeight = Number.parseInt(baseHeightStr.substring(0, baseHeightStr.length-2), 10);
+        
+        var filterHeightStr = window.getComputedStyle(document.getElementById("uek-stories-filter")).getPropertyValue("height");
+        var filterHeight = Number.parseInt(filterHeightStr.substring(0, filterHeightStr.length-2), 10);
+        
+        var storyTableBodyHeight = baseHeight - filterHeight;
+        document.getElementById("uek-stories-display").setAttribute("style", "height: " + storyTableBodyHeight + "px;");
+        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (storyTableBodyHeight-40) + "px;");
+        
         // Link in the extension div
         document.getElementById("uek-toggle-link").onclick = function() { changeVisibility();};
         document.getElementById("uek-toggle-open").src = chrome.runtime.getURL("images/arrow-right.png");
@@ -56,18 +130,21 @@ window.addEventListener("load", function() {
         document.getElementById("uek-main-link-stories").onclick = function() {show("stories");};
         document.getElementById("uek-main-link-lists").onclick = function() {show("lists");};
         document.getElementById("uek-main-link-about").onclick = function() {show("about");};
-    
+        
+        generateStoryHTML(document.getElementById("uek-stories-table-body"));
+
     });
 });
-
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     switch (message.id) {
         case "toggle-panel":
+            // only after dom is ready, should put a quick check here.
             changeVisibility();
             break;
         case "extract-image":
         
             var url, div;
+            
             function parseURL(str){
                 if (str.includes("https://am-a.akamaihd.net/image")) {
                    return str.substring(str.indexOf("https", 10), str.indexOf("&resize")).replace(/%3A/g, ":").replace(/%2F/g,"/");
@@ -154,7 +231,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             
             sendResponse({
                 id: "extract-image-response",
-                sucess: (url != undefined),
+                success: (url != undefined),
                 imageURL: url
             });
             break;
