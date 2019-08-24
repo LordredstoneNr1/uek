@@ -6,27 +6,138 @@
     <body>
         <div id="uek-link-element" class="riotbar-navmenu-category">
             <div class="riotbar-category-name">Universe Enhancement Kit</div>
-            <div><a id="uek-link-open" class="riotbar-navmenu-link" href="#">Open overlay<span class="riotbar-link-subtext">Ctrl + Shift + L</span></a></div>
+            <div><a id="uek-link-open" class="riotbar-navmenu-link" href="javascript:void(0)">Open overlay<span class="riotbar-link-subtext">Ctrl + Shift + L</span></a></div>
         </div>
-        <div id="uek-main" class="hidden">
-            <a id="uek-link-back" class="riotbar-back-link">
-            <div></div>
-                Back
-            </a>
-            <h1> I hijacked this website. </h1>
-            <div>
-                "Call it redistribution of magic."<br>
-                "Rightfully mine!"<br>
-                "I'll give it back! Promise!"<br>
-                "Magic cannot be caged!"<br>
-                "Let's level the playing field!"<br>
-                "What's yours is mine!"<br>
-                "I'll make good use of this."<br>
-                "Give it up!"<br>
-                "Share and share alike."<br>
-                "Let's see what you're made of!"<br>
-                "Cheers!"
-            </div>  
+        <div id="uek-base-wrapper"> 
+            <div id="uek-main-page">
+                <div id="uek-main-header">
+                    <a id="uek-main-title" class="title" href="https://boards.na.leagueoflegends.com/en/c/story-art">Universe Enhancement Kit </a>
+                    <span class="uek-custom-separator"></span>
+                    <a id="uek-main-link-stories" class="activeTab" href="javascript:void(0)">Stories </a>
+                    <a id="uek-main-link-lists" href="javascript:void(0)">Lists </a>
+                    <a id="uek-main-link-about" href="javascript:void(0)">About </a>
+                </div>
+                <div id="uek-main-body">
+                    <div id="uek-main-block-stories">
+                        <form id="uek-stories-filter"><h1> This is still a test version! </h1>
+                        Filtering and Sorting should work, but it's not polished yet. Lists will come later.
+                            <p>Filter: 
+                            Title (includes text)
+                            Champions (text with separator ";" or ",": list of champions, check if ALL are present)
+                            Regions / Authors (Dropdown or Text field? Also no reason to include the nr of regions/ authors)
+                            Exclude AU stories (checkbox, filter out stories with NO associated region)
+                            Is / isn't color story (check URL for "color" + handle Nami/Rengar?)
+                            Words and Nr of Champions (2 ints, check if value is between them)
+                            </p>
+                            <p>Sort: 
+                            Title (lexic. asc/desc)
+                            Nr of Words (asc/desc)
+                            Authors, Champions (lexic. asc/desc, sorts internal lists first if applicable)
+                            Region (lexic. asc/desc)
+                            Release Date (desc/asc should work, if not go lexic. desc/asc instead. Desc first is important here, we want to start with the new ones.</p>
+                            </p>
+                            <ul>Notes:
+                                <li>I can't guarantee <b> any </b> data presented here is accurate. Pls don't sue me. </li>
+                                <li>Regions are based on the champions from the story, not on the place the story takes place. 
+                                Might fix this in the future.</li>
+                                <li>The filter for color stories excludes "First Steps" (Nami) and "Prey" (Rengar).
+                                Might fix this in the future.</li>
+                            </ul>
+                            <input id="uek-filter-title" type="checkbox">
+                            <label for="uek-filter-title">Filter by story title: </label>
+                            <input id="uek-filter-title-text" type="search" placeholder="Title"><br>
+                            
+                            <input id="uek-filter-champions" type="checkbox">
+                            <label for="uek-filter-champions">Filter by champion names: </label>
+                            <input id="uek-filter-champions-text" type="search" size="25" placeholder="Champion 1, Champion 2, ..."><br>
+                            
+                            <input id="uek-filter-regions" type="checkbox">
+                            <label for="uek-filter-regions">Filter by champion region: </label>
+                            <select id="uek-filter-regions-dropdown">
+                                <option value="" selected disabled>All regions </option>
+                            </select><br>
+                            
+                            <input id="uek-filter-authors" type="checkbox">
+                            <label for="uek-filter-authors">Filter by author: </label>
+                            <select id="uek-filter-authors-dropdown">
+                                <option value="" selected disabled>All authors </option>
+                            </select><br>
+                            
+                            <input id="uek-filter-type" type="checkbox">
+                            <label for="uek-filter-type">Filter by story type: </label>
+                            <select id="uek-filter-type-universe-dropdown">
+                                <option value="all">All stories</option>
+                                <option value="main-universe">Main Universe only</option>
+                                <option value="alternate-universes">Alternate Universes only</option>
+                            </select>
+                            <select id="uek-filter-type-type-dropdown">
+                                <option value="all">All story types</option>
+                                <option value="color-stories">Color stories only</option>
+                                <option value="long-stories">Long stories only</option>
+                            </select>
+                            <br>
+                            
+                            <input id="uek-filter-words" type="checkbox">
+                            <label for="uek-filter-words">Filter by story length: </label>
+                            Must have between <input type="number" id="uek-filter-words-min"  min="0" step="50" max="20000" value="1000"> and <input type="number" id="uek-filter-words-max"  min="0" step="50" max="20000" value="5000"> words.<br>
+                            
+                            <input id="uek-filter-date" type="checkbox">
+                            <label for="uek-filter-words">Filter by release date: </label>
+                            Must have been released after <input type="date" id="uek-filter-date-min" min="2014-01-01" max="2020-12-31" value="2016-06-01"> , but before <input type="date" id="uek-filter-date-max"min="2014-01-01" max="2020-12-31" value="2017-01-01"> .<br>
+                                                        
+                            <button id="uek-filter-apply" type="button"><div><h6>Apply</h6><div></div></div></button>
+                            <button id="uek-filter-save" type="button"><div><h6>Save</h6><div></div></div></button>
+                            <button id="uek-filter-reset" type="reset"><div><h6>Reset</h6><div></div></div></button>
+                            
+                        </form>
+                        <table id="uek-stories-display">
+                            <thead id="uek-stories-table-heading">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Title</th>
+                                    <th>Length</th>
+                                    <th>Champions</th>
+                                    <th>Regions</th>
+                                    <th>Author</th>
+                                    <th>Release Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="uek-stories-table-body"> 
+                            
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td>#</td>
+                                    <td>Title</td>
+                                    <td>Length</td>
+                                    <td>Champions</td>
+                                    <td>Regions</td>
+                                    <td>Author</td>
+                                    <td>Release Date</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        
+                    </div>
+                    
+                    <div id="uek-main-block-lists">
+                    
+                    </div>
+                    
+                    <div id="uek-main-block-about">
+                    
+                    </div>
+                </div>  
+            </div>
+            <div id="uek-base-toggle">
+                <a id="uek-toggle-link" href="javascript:void(0)">
+                    <img id="uek-toggle-close" src="" class="hidden">
+                    <img id="uek-toggle-open" src="">
+                </a>
+            </div>
         </div>
+        <!-- translation?
+        <script src="../scripts/translate.js" type="text/javascript"></script>
+         -->
     </body>
 </html>

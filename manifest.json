@@ -2,15 +2,15 @@
     "manifest_version": 2,
     "name": "Universe Enhancement Kit",
     "description": "Enhances your League Universe page by adding some functionality.",
-    "version": "0.5.0",
+    "version": "0.7.0",
     "permissions": ["storage", "contextMenus"],
     
     "icons": { 
-        "16": "images/16.png",
-        "32": "images/32.png",
-        "48": "images/32.png",
-        "64": "images/32.png",
-        "128": "images/128.png"
+        "16": "images/icons/16.png",
+        "32": "images/icons/32.png",
+        "48": "images/icons/32.png",
+        "64": "images/icons/32.png",
+        "128": "images/icons/128.png"
         },
     "commands": {
         "toggle-panel": {
@@ -18,7 +18,7 @@
                 "default": "Ctrl+Shift+L",
                 "mac": "Command+Shift+L"
             },
-            "description": "Toggles the sidebar on all Universe Websites."
+            "description": "Toggles the sidebar on all Universe Websites, if enabled."
         }
     },
     "background": {
@@ -36,6 +36,7 @@
         }
     ],
     "web_accessible_resources": [
-        "html/inject.html"
+        "html/inject.html",
+        "images/*.png"
     ]
 }

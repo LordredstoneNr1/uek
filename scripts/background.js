@@ -1,6 +1,213 @@
-var lists = [],storyModules = [];
-var unpackedLists = {};
+var options = {};
+class StoryList {
+    
+    constructor(name, list) {
+        var collection = [];
+        list.data.forEach(function (slug) {
+            collection.push(StoryList.findBinSearch(UnpackedStory.storyModules, "slug", slug));
+        });
+        
+        this.displayName = name;
+        this.data = collection;
+        if (Object.keys(list).includes("bool")) {
+            this.deleteAfterRead = list.bool;
+        } else {
+            this.deleteAfterRead = false;
+        }
+        
+        StoryList.unpackedLists[this.displayName] = this;
+        
+        chrome.contextMenus.create({
+            "id": name,
+            "parentId": "listsRoot",
+            "title": name,
+            "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
+            "contexts": ["link"]
+        }); 
+    }
+    
+    static createReadingList(tag, deleteAfterRead) {
+        var filteredModules = [];
+        var name;
+        console.log("Setting up list for tag: " + tag);
+        if (tag==="all") {
+            //Special Tag: All stories
+            console.log("Special Tag found: " + tag);
+            name = "Reading List";
+            filteredModules = UnpackedStory.storyModules;
+        } else if (Object.values(regions).includes(tag)) {
+            
+            //Regions
+            console.log("Region found: " + tag);
+            name = "Region: " + tag;
+            filteredModules = filterByTag("regions", tag);
+        } else if (Object.keys(champions).includes(tag)) {
+            
+            //Champions
+            console.log("Champion found: " + tag);
+            name = "Champion: " + tag;
+            filteredModules = filterByTag("champions", tag);
+        } else if (StoryList.authorList.includes(tag)) {
+            
+            //Authors
+            console.log("Author found: " + tag);
+            name = "Author: " + tag;
+            filteredModules = filterByTag("authors", tag);
+        } else {
+            
+            //???
+            console.log("Tag not found.");
+            return null;
+        }
+        var urlCollection = [];
+        console.log(filteredModules);
+        filteredModules.forEach(function(obj) {
+            urlCollection.push(obj.slug);
+        });
+            
+        var list =  {
+            "data": urlCollection,
+            "bool": deleteAfterRead, 
+        }
+        new StoryList(name, list).save();
+    }
+    
+    static findBinSearch(list, key, item) {
+        function findBinRec(start, end) {
+            var middle = Math.floor((start + end) / 2);
+            var result = list[middle][key].localeCompare(item);
+            //console.log(start, middle, end);
+            //console.log(list[middle][key], item, result);
+            if (result == 0) {
+                return list[middle];
+            } else if (result > 0) {
+                return findBinRec(start, middle-1);
+            } else {
+                return findBinRec(middle+1, end);
+            }
+        };
+        return findBinRec(0, list.length);
+    }
+    
+    static hasUnpacked(list) {
+        return Object.keys(StoryList.unpackedLists).includes(list);
+    }
+    
+    static filterByTag(key, tag) {
+       return UnpackedStory.storyModules.filter( function(obj)  {
+            var found = false;
+            obj.tags[key].forEach(function(givenTag) {
+                if (tag === givenTag) {
+                    found = true;
+                } 
+            });
+            return found;
+        }); 
+    }
+    
+    add(url) {
+        var unpackedStory = UnpackedStory.storyModules.find(function (story) {
+            return story.slug === url.substring(49, url.length-1);
+        });
+        if (!this.data.includes(unpackedStory)) {
+           this.data.push(unpackedStory);
+        }
+    }
+    
+    save() {
+        var packedList = {};
+        var packedData = [];
+        this.data.forEach(function(story) {
+            packedData.push(story.slug);
+        });
+        // only save this value if true, since it defaults to false if unspecified. -- Actually I don't care, that extra storage space shouldn't make the difference.
+        packedList["list: " + this.displayName] = {"data" : packedData, "bool": this.deleteAfterRead};
 
+        chrome.storage.sync.set(packedList);
+        chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
+            console.log("Saved Data. Total bytes used: ", bytesInUse);
+        });
+    }
+    
+}
+StoryList.authorList = new Array();
+StoryList.unpackedLists = new Object();
+
+class UnpackedStory {
+    
+    constructor(obj) {
+        this.url = obj['url'];
+        this.title = obj['title'];
+        this.words = obj['word-count'];
+        this.slug = obj['story-slug'];
+        this.timestamp = obj['release-date'];
+        this.getTags(obj);
+    }
+    
+    getTags(obj) {
+        var tags = {"champions": [], "authors": [], "regions":[]};  
+        
+        //Override in case I don't like something
+        if (override_tags[this.title]) {
+            tags = override_tags[this.title];
+        } else {
+            //regular tags created from the champions and subtitle of the story
+            obj['featured-champions'].forEach(function(champion) {
+                tags.champions.push(champion.name);
+                if (!tags.regions.includes(champions[champion.name])) {
+                    // Plain text version instead of faction slug
+                    tags.regions.push(champions[champion.name]);
+                }
+            });  
+            if (obj.subtitle != null) {
+                /* Subtitle is "by author", so we need to cut the first three characters.
+                    We also need to get rid of character U+2019 (Single Right Quotation Mark). 
+                    This one is for you, John O'Bryan!
+                */
+                tags.authors.push(obj.subtitle.substring(3).replace("\u2019","'"));
+            } else {
+                //Lookup list in case the subtitle is not defined.
+                authors_fallback[this.title].forEach( function (author) {
+                    tags.authors.push(author);
+                });
+            }
+            
+            //Adding tags as defined in data.js (if present)
+            if (add_tags[this.title]) {
+                
+                if (add_tags[this.title].champions) {
+                    add_tags[this.title].champions.forEach( function (newTag) {
+                        tags.champions.push(newTag);
+                    });
+                }
+                if (add_tags[this.title].regions) {
+                    add_tags[this.title].regions.forEach( function (newTag) {
+                        tags.regions.push(newTag);
+                    });
+                }
+                if (add_tags[this.title].authors) {
+                    add_tags[this.title].authors.forEach( function (newTag) {
+                        tags.authors.push(newTag);
+                    });
+                }
+            }
+            
+            tags.authors.forEach(function(author){
+                if (!StoryList.authorList.includes(author)) {
+                    StoryList.authorList.push(author);
+                }
+            });
+            
+        }
+        tags.authors.sort();
+        tags.champions.sort();
+        tags.regions.sort();
+        this.tags = tags;
+    }
+}
+UnpackedStory.storyModules = new Array();
+
+// Run only once on startup / update
 chrome.runtime.onInstalled.addListener(function() {
     
     //Creating Context Menu
@@ -14,7 +221,8 @@ chrome.runtime.onInstalled.addListener(function() {
         "id": "open",
         "parentId": "root",
         "title": "Open side-bar",
-        "contexts": ["all"],
+        "contexts": ["page"],
+        "visible": true,
         "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"]
     });
     chrome.contextMenus.create({
@@ -25,43 +233,124 @@ chrome.runtime.onInstalled.addListener(function() {
         "contexts": ["link"]
     });
     chrome.contextMenus.create({
-        "id": "separator",
-        "type": "separator",
+        "id": "listsNew",
+        "parentId": "listsRoot",
+        "title": "New List...",
+        "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
+        "contexts": ["link"]
+    });
+    chrome.contextMenus.create({
+        "id": "extractImageLink",
         "parentId": "root",
-        "contexts": ["all"],
-        "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"]
+        "title": "Extract image",
+        "contexts": ["link"],
+        "visible": true,
+        "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"],
+        "targetUrlPatterns": [
+            "*://universe.leagueoflegends.com/*/story/*", 
+            "*://universe.leagueoflegends.com/*/region/*",
+            "*://universe.leagueoflegends.com/*/comic/*", 
+            "*://universe.leagueoflegends.com/*/champion/*" 
+        ]
+    });
+    chrome.contextMenus.create({
+        "id": "extractImagePage",
+        "parentId": "root",
+        "title": "Extract image",
+        "contexts": ["page"],
+        "visible": true,
+        "documentUrlPatterns": [
+            "*://universe.leagueoflegends.com/*/story/*",
+            "*://universe.leagueoflegends.com/*/region/*",
+            "*://universe.leagueoflegends.com/*/comic/", 
+            "*://universe.leagueoflegends.com/*/champion/*",
+            "*://universe.leagueoflegends.com/*/race/*" 
+        ]
     });
     chrome.contextMenus.create({
         "id": "details",
         "parentId": "root",
         "title": "To GitHub Repository",
-        "contexts": ["all"]
+        "contexts": ["page", "browser_action"]
     });
     chrome.contextMenus.create({
         "id": "about",
         "parentId": "root",
         "title": "About...",
-        "contexts": ["all"]
+        "contexts": ["page", "browser_action"]
     });
     chrome.contextMenus.onClicked.addListener(function(info, tab) {
-        if (info.menuItemId === "details") {
-            chrome.tabs.create({
-                "url": "https://github.com/LordredstoneNr1/uek",
-                "index": tab.index + 1,
-                "openerTabId": tab.id
-            });
-        } else if (info.menuItemId === "about") {
-            chrome.tabs.create({
-                //Replace URL with post
-                "url": "https://boards.na.leagueoflegends.com/en/c/story-art",
-                "index": tab.index + 1,
-                "openerTabId": tab.id
-            });
-        } else if (info.menuItemId === "open") {
-            chrome.tabs.sendMessage(tab.id, "toggle-panel");
-        } else if (Object.keys(unpackedLists).includes("list:" + info.menuItemId)) {
-            var list = unpackedLists[info.menuItemId];
-            // Add to list
+        switch (info.menuItemId)  {
+            case "root":
+                chrome.tabs.create({
+                    "url": "https://universe.leagueoflegends.com/en_US/",
+                    "index": tab.index + 1,
+                    "openerTabId": tab.id
+                });
+                break;
+            case "details": 
+                chrome.tabs.create({
+                    "url": "https://github.com/LordredstoneNr1/uek",
+                    "index": tab.index + 1,
+                    "openerTabId": tab.id
+                });
+                break;
+            case "about":
+                chrome.tabs.create({
+                    //Replace URL with post
+                    "url": "https://boards.na.leagueoflegends.com/en/c/story-art",
+                    "index": tab.index + 1,
+                    "openerTabId": tab.id
+                });
+                break;
+            case "open":
+                chrome.tabs.sendMessage(tab.id, {
+                    id: "toggle-panel",
+                    data: ""
+                });
+                break;
+            case "listsNew":
+                list = new StoryList("New List", {"data":[]});
+                list.add(info.linkUrl);
+                list.save();
+                break;
+            case "extractImageLink":
+                chrome.tabs.sendMessage(tab.id, {
+                    id: "extract-image",
+                    source: "link",
+                    linkURL: info.linkUrl,
+                    //Send url along just in case
+                    pageURL: info.pageUrl
+                },
+                function (response) {
+                  if (response.id === "extract-image-response" && response.success == true) {
+                        chrome.tabs.create({
+                            "url": response.imageURL,
+                            "index": tab.index + 1,
+                            "openerTabId": tab.id
+                        });
+                    }
+                });
+                break;
+            case "extractImagePage":
+                chrome.tabs.sendMessage(tab.id, {
+                    id: "extract-image",
+                    source: "page",
+                    pageURL: info.pageUrl
+                },
+                function (response) {
+                    if (response.id === "extract-image-response" && response.success == true) {
+                        chrome.tabs.create({
+                            "url": response.imageURL,
+                            "index": tab.index + 1,
+                            "openerTabId": tab.id
+                        });
+                    }
+                });
+                break;
+        } 
+        if (StoryList.hasUnpacked(info.menuItemId)) {
+           StoryList.unpackedLists[info.menuItemId].add(info.linkUrl);
         }
     });
 });
@@ -70,95 +359,66 @@ chrome.commands.onCommand.addListener( function(command){
     chrome.tabs.query(
         {"active": true, "currentWindow": true}, 
         function(currentTab) {
-            chrome.tabs.sendMessage(currentTab[0].id, "toggle-panel");
+            chrome.tabs.sendMessage(currentTab[0].id, {id: "toggle-panel"});
         }
     );
+});
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    if (request.id === "get-stories") {
+        sendResponse({
+            id: "get-stories-response",
+            success: true,
+            stories: UnpackedStory.storyModules,
+            authors: StoryList.authorList,
+            champions: champions
+        });
+        console.log("Sender ", sender, " requested story modules, sending data.");
+    }
+    return true;
 });
 
 //Setting up data
 getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json', function(status, data){
     data.modules.forEach( function(obj) {
         if (obj.type === "story-preview") {
-            storyModules.push( {
-                "url": obj['url'],
-                "title": obj['title'],
-                "timestamp": obj['release-date'],
-                "words": obj['word-count'],
-                "slug": obj['story-slug'],
-                "tags": getTags(obj),
-            });
+            UnpackedStory.storyModules.push( new UnpackedStory(obj));
         }
     });
-    console.log("Story Modules: ", storyModules);
-    //Above sets up the base modules we work with.
+    console.log("Story Modules: ", UnpackedStory.storyModules);
+    /*Above sets up the base modules we work with. 
+    If more information are needed, add them to the constructor of UnpackedStory. 
+    For now, keep it small, store only the necessary information.
+    */
     
-    //Clear for Debug purposes, do not ship this :D
-    chrome.storage.sync.clear();
+    //Clear for Debug purposes, do not ship with this :D
+    //chrome.storage.sync.clear();
     
-    //Setting up reading list
     //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
-    /*chrome.storage.sync.get(null, function(items) {
-        if (!Object.keys(items).includes("firstStartUp_done")) {
-            lists.push(createReadingList("all", true));
-            chrome.storage.sync.set({"firstStartUp_done": true});
-            save();
+    chrome.storage.sync.get(null, function(items) {
+        //Setting up reading list after first startup
+        if (!Object.keys(items).includes("options")) {
+            StoryList.createReadingList("all", true);
+            chrome.commands.getAll(function (commands) {
+                options.shortcut = commands[1].shortcut;
+            });
+            chrome.storage.sync.set({"options": options});
         } else {
+            console.log("Started UEK, reading data: " + Object.keys(items).length + " items.");
             for (entry in items) {
-                if () {
-                    lists.push(entry);
+                if (entry.startsWith("list: ")) {
+                    new StoryList(entry.substring(6), items[entry]);
+                } else if (entry == "options") {
+                    options = entry[options];
                 }
                 console.log(entry);
             };
         }
-        console.log("Found ", lists.length, " lists in synchronized storage.");
-        lists.forEach(function(list) {unpack(list);});
+        console.log("Found", Object.keys(StoryList.unpackedLists).length, "lists in synchronized storage.");
+        console.log(StoryList.unpackedLists);
     });
-*/
 });
 
-function getTags(story) {
-    var tags = {"champions": [], "authors": [], "regions":[]};  
-    if (override_tags[story.title]) {
-        tags = override_tags[story.title];
-    } else {
-        story['featured-champions'].forEach(function(champion) {
-            tags.champions.push(champion.name);
-            if (!tags.regions.includes(regions[champions[champion.name]])) {
-                // Plain text version instead of faction slug
-                tags.regions.push(regions[champions[champion.name]]);
-            }
-        });  
-        if (story.subtitle != null) {
-            /* Subtitle is "by author", so we need to cut the first three characters.
-                We also need to get rid of character U+2019 (Single Right Quotation Mark). 
-                This one is for you, John O'Bryan!
-            */
-            tags.authors.push(story.subtitle.substring(3).replace("\u2019","'"));
-        } else {
-            authors[story.title].forEach( function (author) {
-                tags.authors.push(author);
-            });
-        }
-        if (add_tags[story.title] && add_tags[story.title].champions) {
-            add_tags[story.title].champions.forEach( function (newTag) {
-                tags.champions.push(newTag);
-            });
-        }
-        if (add_tags[story.title] && add_tags[story.title].regions) {
-            add_tags[story.title].regions.forEach( function (newTag) {
-                tags.regions.push(newTag);
-            });
-        }
-        if (add_tags[story.title] && add_tags[story.title].authors) {
-            add_tags[story.title].authors.forEach( function (newTag) {
-                tags.authors.push(newTag);
-            });
-        }
-    }
-    return tags;
-}
-
-//Stolen from StackOverflow
 function getJSON(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
@@ -169,79 +429,3 @@ function getJSON(url, callback) {
     };
     xhr.send();
 };
-
-//make the slug list into a full list & register it in the context menu
-function unpack(list) {
-    /*chrome.contextMenus.create({
-        "id": "list:" + list.displayName,
-        "parentId": "listsRoot",
-        "title": list.displayName
-    });*/
-    var full = {
-        
-    }
-    unpackedLists[full.name] = full;
-};
-
-function save() {
-    lists.forEach(function (list){
-        var packedList = {};
-        packedList[list.displayName] = {"data" : list.data, "bool": list.deleteAfterRead};
-        chrome.storage.sync.set(packedList);
-    });
-    chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
-        console.log("Saved Data. Total bytes used: ", bytesInUse);
-    });
-}
-
-function createReadingList(tag, deleteAfterRead) {
-    var filteredModules = [];
-    var name;
-    console.log("Setting up list for tag: "+tag);
-    if (tag==="all") {
-        //Special Tag: All stories
-        console.log("Special Tag found: " + tag);
-        name = "Reading List";
-        filteredModules = storyModules;
-    } else if (Object.values(champions).includes(tag)) {
-        //Regions
-        console.log("Region found: " + tag);
-        name = regions[tag];
-        filteredModules = storyModules.filter(  function(obj)  {
-            var found = false;
-            obj['tags'].forEach( function(givenTag) {
-                if (regions[tag] === givenTag) {
-                    found = true;
-                } 
-            });
-            return found;
-        });
-    } else if (Object.keys(champions).includes(tag)) {
-        //Champions
-        console.log("Champion found: " + tag);
-        name = tag;
-        filteredModules = storyModules.filter( function(obj)  {
-            var found = false;
-            obj['tags'].forEach(function(givenTag) {
-                if (tag === givenTag) {
-                    found = true;
-                } 
-            });
-            return found;
-        });
-    } else {
-        console.log("Tag not found.");
-        return null;
-    }
-    var urlCollection = [];
-    console.log(filteredModules);
-    filteredModules.forEach(function(obj) {
-        urlCollection.push(obj.slug);
-    });
-        
-    return {
-        "displayName": name, 
-        "data": urlCollection,
-        "deleteAfterRead": deleteAfterRead, 
-    }
-}
