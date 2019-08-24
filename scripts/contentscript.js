@@ -1,11 +1,12 @@
 var open = false;
-var storyList;
+var storyList, championList, authorList, regionList;
 var width;
 
 //read these from the options eventually
 var widthFactor = 0.4;
 var widthConst = 200;
 
+var sortKey = "title";
 
 //some functions we'll need.
 function changeVisibility() {
@@ -66,39 +67,168 @@ window.addEventListener("load", function() {
             return html.join("\n");
         }
         
+        function compareStories(a, b, key) {
+            switch (key) {
+                // Use title instead of slug because slugs are x-color-story: Unexpected results while sorting
+                case "title": 
+                    return a.title.localeCompare(b.title);
+                    break;
+                    
+                case "words":
+                    //Default from high to low here
+                    return b.words - a.words;
+                    break;
+                    
+                case "release":
+                    return b.timestamp - a.timestamp;
+                    break;
+                
+                case "authors":
+                    var maxIndex = Math.min(a.authors.length, b.authors.length);
+                    for (i = 0; i < maxIndex; i++) {
+                        if (a.authors[i].localeCompare(b.authors[i]) != 0) {
+                            return a.authors[i].localeCompare(b.authors[i]);
+                            break;
+                        }
+                    }
+                    return a.authors.length - b.authors.length;
+                    break;
+                
+                case "champions":
+                    var maxIndex = Math.min(a.champions.length, b.champions.length);
+                    for (i = 0; i < maxIndex; i++) {
+                        if (a.champions[i].localeCompare(b.champions[i]) != 0) {
+                            return a.champions[i].localeCompare(b.champions[i]);
+                            break;
+                        }
+                    }
+                    return a.champions.length - b.champions.length;
+                    break;
+                
+                case "regions":
+                    var maxIndex = Math.min(a.regions.length, b.regions.length);
+                    for (i = 0; i < maxIndex; i++) {
+                        if (a.regions[i].localeCompare(b.regions[i]) != 0) {
+                            return a.regions[i].localeCompare(b.regions[i]);
+                            break;
+                        }
+                    }
+                    return a.regions.length - b.regions.length;
+                    break;
+                    
+                default: 
+                    return 0;
+                    break;
+            }
+        }
+        
         //needs to be async because we need to wait for the response.
         async function generateStoryHTML(object) {
+            object.innerHTML = "";
             if (storyList === undefined) {
-                storyList = await new Promise ((resolve, reject) => {
+                console.log(await new Promise ((resolve, reject) => {
                     chrome.runtime.sendMessage({id: "get-stories"}, 
                     function(response) {
                         if (response.id === "get-stories-response" && response.success == true) {
-                            resolve(response.data);
+                            
+                            storyList = response.stories;
+                            
+                            regionsList = Object.values(response.champions).filter((v, i, s) => s.indexOf(v) === i); //fast filter for duplicates.
+                            regionsList.forEach(function (region) {
+                                const element = document.createElement("option");
+                                element.value = region;
+                                element.innerHTML = region;
+                                document.getElementById("uek-filter-regions-dropdown").appendChild(element);
+                            });
+                            
+                            authorList = response.authors;
+                            authorList.forEach(function (region) {
+                                const element = document.createElement("option");
+                                element.value = region;
+                                element.innerHTML = region;
+                                document.getElementById("uek-filter-authors-dropdown").appendChild(element);
+                            });
+                            resolve("Data parsed successfully");
                         } else {
                             reject("Could not get story data from background script");
                         }
                     });
+                }));
+            }
+            var currentSelection = Array.from(storyList);
+            //Apply filters and sort the list;
+            if (document.getElementById("uek-filter-title").checked) {
+                const title = document.getElementById("uek-filter-title-text").value;
+                currentSelection = currentSelection.filter(a => new RegExp(title, "i").test(a.title));
+            }
+            if (document.getElementById("uek-filter-champions").checked) {
+                currentSelection = currentSelection.filter(function (story) {
+                    const championSlugs = document.getElementById("uek-filter-champions-text").value.split(",");
+                    const championString = story.tags.champions.join(", ");
+                    for (i = 0; i < championSlugs.length; i++) {
+                        if (!new RegExp(championSlugs[i].trim(), "i").test(championString)) {
+                            return false;
+                        }
+                    }
+                    return true;
                 });
             }
-            var currentSelection = storyList;
-            //Apply filters and sort the list;
-            /*
-            if (filter1Active()) {
-                currentSelection = currentSelection.filter();
+            if (document.getElementById("uek-filter-regions").checked) {
+                const region = document.getElementById("uek-filter-regions-dropdown").value;
+                if (region != "") {
+                    currentSelection = currentSelection.filter(a => a.tags.regions.includes(region));
+                }
             }
-            if () {
-                ...
+            if (document.getElementById("uek-filter-authors").checked) {
+                const author = document.getElementById("uek-filter-regions-dropdown").value;
+                if (author != "") {
+                    currentSelection = currentSelection.filter(a => a.tags.authors.includes(author));
+                }
             }
-            currentSelection.sort();
-            */
+            if (document.getElementById("uek-filter-type").checked) {
+                const universe = document.getElementById("uek-filter-type-universe-dropdown").value;
+                const type = document.getElementById("uek-filter-type-type-dropdown").value;
+                if (universe === "main-universe") {
+                    currentSelection = currentSelection.filter(a=> a.tags.regions.length > 0);
+                } else if (universe === "alternate-universes")  {
+                    currentSelection = currentSelection.filter(a=> a.tags.regions.length == 0);
+                }
+                
+                const excludes = ["nami-first-steps", "rengar-prey"];
+                
+                if (type === "color-stories") {
+                    currentSelection = currentSelection.filter(a=> a.slug.includes("color") || excludes.includes(a.slug));
+                } else if (type === "long-stories") {
+                    currentSelection = currentSelection.filter(a=> !(a.slug.includes("color") || excludes.includes(a.slug)));
+                }
+            }
+            if (document.getElementById("uek-filter-words").checked) {
+                const min = document.getElementById("uek-filter-words-min").value;
+                const max = document.getElementById("uek-filter-words-max").value;
+                if (min !== "") {currentSelection = currentSelection.filter(a=> a.words >= min);}
+                if (max !== "") {currentSelection = currentSelection.filter(a=> a.words <= max);}
+            }
+            if (document.getElementById("uek-filter-date").checked) {
+                const min = document.getElementById("uek-filter-date-min").value;
+                const max = document.getElementById("uek-filter-date-max").value;
+                if (min !== "") {currentSelection = currentSelection.filter(a => a.timestamp >= min);}
+                if (max !== "") {currentSelection = currentSelection.filter(a => a.timestamp <= max);}
+            }
+            //slice returns a copy because split would modify it, this only modifies the copy.
+            currentSelection.sort((a,b) => compareStories(a,b, sortKey.slice().split("-")[0]));
+            if (sortKey.endsWith("reverse")) {
+                currentSelection.reverse();
+            }
+            console.log("Displaying current selection, sorted by: ", sortKey, currentSelection);
+            
             for (i = 0; i < currentSelection.length; i++) {
-                var row = document.createElement("tr");
+                const row = document.createElement("tr");
                 row.innerHTML = parseTR(i, currentSelection[i]);
                 object.appendChild(row);
             }
         }
         
-        var injectDoc = new DOMParser().parseFromString(element, "text/html");
+        const injectDoc = new DOMParser().parseFromString(element, "text/html");
 
         // Inject link in the menu
         document.getElementById("riotbar-navmenu").lastElementChild.firstElementChild.appendChild(injectDoc.getElementById("uek-link-element"));
@@ -112,15 +242,16 @@ window.addEventListener("load", function() {
         width = widthConst + widthFactor * window.innerWidth;
         document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px;");
         document.getElementById("uek-main-page").setAttribute("style", "width: "+ width +"px;");
-        var baseHeightStr = window.getComputedStyle(document.getElementById("uek-main-body")).getPropertyValue("height");
-        var baseHeight = Number.parseInt(baseHeightStr.substring(0, baseHeightStr.length-2), 10);
+        const baseHeightStr = window.getComputedStyle(document.getElementById("uek-main-body")).getPropertyValue("height");
+        const baseHeight = Number.parseInt(baseHeightStr.substring(0, baseHeightStr.length-2), 10);
         
-        var filterHeightStr = window.getComputedStyle(document.getElementById("uek-stories-filter")).getPropertyValue("height");
-        var filterHeight = Number.parseInt(filterHeightStr.substring(0, filterHeightStr.length-2), 10);
+        const filterHeightStr = window.getComputedStyle(document.getElementById("uek-stories-filter")).getPropertyValue("height");
+        const filterHeight = Number.parseInt(filterHeightStr.substring(0, filterHeightStr.length-2), 10);
         
-        var storyTableBodyHeight = baseHeight - filterHeight;
+        const storyTableBodyHeight = baseHeight - filterHeight;
         document.getElementById("uek-stories-display").setAttribute("style", "height: " + storyTableBodyHeight + "px;");
         document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (storyTableBodyHeight-40) + "px;");
+        
         
         // Link in the extension div
         document.getElementById("uek-toggle-link").onclick = function() { changeVisibility();};
@@ -131,8 +262,27 @@ window.addEventListener("load", function() {
         document.getElementById("uek-main-link-lists").onclick = function() {show("lists");};
         document.getElementById("uek-main-link-about").onclick = function() {show("about");};
         
+        
+        //Story filter
         generateStoryHTML(document.getElementById("uek-stories-table-body"));
-
+        document.getElementById("uek-filter-apply").onclick = function() {generateStoryHTML(document.getElementById("uek-stories-table-body"))};
+        document.getElementById("uek-filter-save").onclick = function() {alert("Doesn't work yet: There are no stories to save this selection to.")};
+    
+        //short version to assign the correct keyword to the table heading
+        ["", "title", "words", "champions", "regions", "authors", "release" ].forEach(function(key, i) {
+            document.getElementById("uek-stories-table-heading").firstElementChild.children[i].onclick = function() {
+                if (sortKey === key && key != "") {
+                    sortKey = key + "-reverse";
+                } else {
+                    // no extra check if it was reversed before: this returns it to its original state!
+                    sortKey = key;
+                }
+                
+                generateStoryHTML(document.getElementById("uek-stories-table-body"));
+            }
+        });
+        
+        
     });
 });
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {

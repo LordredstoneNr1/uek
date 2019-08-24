@@ -53,11 +53,15 @@
                             
                             <input id="uek-filter-regions" type="checkbox">
                             <label for="uek-filter-regions">Filter by champion region: </label>
-                            <select id="uek-filter-regions-dropdown"></select><br>
+                            <select id="uek-filter-regions-dropdown">
+                                <option value="" selected disabled>All regions </option>
+                            </select><br>
                             
                             <input id="uek-filter-authors" type="checkbox">
                             <label for="uek-filter-authors">Filter by author: </label>
-                            <select id="uek-filter-authors-dropdown"></select><br>
+                            <select id="uek-filter-authors-dropdown">
+                                <option value="" selected disabled>All authors </option>
+                            </select><br>
                             
                             <input id="uek-filter-type" type="checkbox">
                             <label for="uek-filter-type">Filter by story type: </label>
@@ -68,8 +72,8 @@
                             </select>
                             <select id="uek-filter-type-type-dropdown">
                                 <option value="all">All story types</option>
-                                <option value="main-universe">Color stories only</option>
-                                <option value="alternate-universes">Long stories only</option>
+                                <option value="color-stories">Color stories only</option>
+                                <option value="long-stories">Long stories only</option>
                             </select>
                             <br>
                             

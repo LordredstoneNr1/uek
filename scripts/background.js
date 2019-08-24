@@ -144,63 +144,6 @@ class UnpackedStory {
         this.getTags(obj);
     }
     
-    
-    //Usage: StoryArray.sort((a, b) => a.compareTo(b, key));
-    compareTo(other, key) {
-        switch (key) {
-            // Use title instead of slug because slugs are x-color-story: Unexpected results while sorting
-            case "title": 
-                return this.title.localeCompare(other.title);
-                break;
-                
-            case "words":
-                //Default from high to low here
-                return other.words - this.words;
-                break;
-                
-            case "release":
-                return other.timestamp - this.timestamp;
-                break;
-            
-            case "authors":
-                var maxIndex = Math.min(this.authors.length, other.authors.length);
-                for (i = 0; i < maxIndex; i++) {
-                    if (this.authors[i].localeCompare(other.authors[i]) != 0) {
-                        return this.authors[i].localeCompare(other.authors[i]);
-                        break;
-                    }
-                }
-                return this.authors.length - other.authors.length;
-                break;
-            
-            case "champions":
-                var maxIndex = Math.min(this.champions.length, other.champions.length);
-                for (i = 0; i < maxIndex; i++) {
-                    if (this.champions[i].localeCompare(other.champions[i]) != 0) {
-                        return this.champions[i].localeCompare(other.champions[i]);
-                        break;
-                    }
-                }
-                return this.champions.length - other.champions.length;
-                break;
-            
-            case "regions":
-                var maxIndex = Math.min(this.regions.length, other.regions.length);
-                for (i = 0; i < maxIndex; i++) {
-                    if (this.regions[i].localeCompare(other.regions[i]) != 0) {
-                        return this.regions[i].localeCompare(other.regions[i]);
-                        break;
-                    }
-                }
-                return this.regions.length - other.regions.length;
-                break;
-                
-            default: 
-                return 0;
-                break;
-        }
-    }
-    
     getTags(obj) {
         var tags = {"champions": [], "authors": [], "regions":[]};  
         
@@ -426,7 +369,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         sendResponse({
             id: "get-stories-response",
             success: true,
-            data: UnpackedStory.storyModules
+            stories: UnpackedStory.storyModules,
+            authors: StoryList.authorList,
+            champions: champions
         });
         console.log("Sender ", sender, " requested story modules, sending data.");
     }

@@ -1,4 +1,4 @@
-var regions = {
+const regions = {
     "bandle-city": "Bandle City",
     "bilgewater": "Bilgewater",
     "demacia": "Demacia",
@@ -15,7 +15,7 @@ var regions = {
     "zaun": "Zaun",
 }
 
-var champions = {
+const champions = {
     "Aatrox": "Runeterra",
     "Ahri": "Ionia",
     "Akali": "Ionia",
@@ -163,7 +163,7 @@ var champions = {
     "Zyra": "Ixtal",
 };
 
-var override_tags = {
+const override_tags = {
     "Burning Tides": {"champions": ["Twisted Fate", "Graves"],"regions": ["Bilgewater"], "authors": ["Scott Hawkes", "George Krstic", "Anthony Reynolds", "John O'Bryan"]},
     "Down Among The Dead Men": {"champions": ["Miss Fortune"], "regions": ["Bilgewater"], "authors": ["Graham McNeill"]},
     "Interview: Inside K/DA":  {"champions": ["Ahri", "Kai'Sa", "Akali", "Evelynn"], "regions": [], "authors": ["Indu Reddy", "Jared Rosen"]},
@@ -173,7 +173,7 @@ var override_tags = {
     "The Man With the Grinning Shadow": {"champions": ["Lucian", "Thresh", "Alistar", "Urgot", "Karthus"], "regions": [], "authors": ["Jared Rosen"]}
 };
 
-var add_tags = {
+const add_tags = {
     "Of Rats and Cats<br> and Neon Mice": {"champions": ["Jhin", "Vi", "Vayne"]},
     "The Slumber Party Summoning": {"champions": ["Lux", "Ezreal", "Miss Fortune", "Soraka", "Poppy", "Lulu", "Janna", "Jinx"]},
     "At The Edge Of The World": {"champions": ["Zyra"], "regions":  ["Noxus"]},
@@ -187,7 +187,7 @@ var add_tags = {
     "Where Icathia Once Stood": {"regions": ["Void", "Shurima"]},
 };
 
-var authors_fallback = {
+const authors_fallback = {
     "A Sword Without a Sheath": ["Robert Lo", "Joe Lansford"],
     "Greed and Tears": ["Anthony Reynolds"],
     "Twin Dawns": ["Matthew Dunn"],
