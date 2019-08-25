@@ -84,36 +84,36 @@ window.addEventListener("load", function() {
                     break;
                 
                 case "authors":
-                    var maxIndex = Math.min(a.authors.length, b.authors.length);
+                    var maxIndex = Math.min(a.tags.authors.length, b.tags.authors.length);
                     for (i = 0; i < maxIndex; i++) {
-                        if (a.authors[i].localeCompare(b.authors[i]) != 0) {
-                            return a.authors[i].localeCompare(b.authors[i]);
+                        if (a.tags.authors[i].localeCompare(b.tags.authors[i]) != 0) {
+                            return a.tags.authors[i].localeCompare(b.tags.authors[i]);
                             break;
                         }
                     }
-                    return a.authors.length - b.authors.length;
+                    return a.tags.authors.length - b.tags.authors.length;
                     break;
                 
                 case "champions":
-                    var maxIndex = Math.min(a.champions.length, b.champions.length);
+                    var maxIndex = Math.min(a.tags.champions.length, b.tags.champions.length);
                     for (i = 0; i < maxIndex; i++) {
-                        if (a.champions[i].localeCompare(b.champions[i]) != 0) {
-                            return a.champions[i].localeCompare(b.champions[i]);
+                        if (a.tags.champions[i].localeCompare(b.tags.champions[i]) != 0) {
+                            return a.tags.champions[i].localeCompare(b.tags.champions[i]);
                             break;
                         }
                     }
-                    return a.champions.length - b.champions.length;
+                    return a.tags.champions.length - b.tags.champions.length;
                     break;
                 
                 case "regions":
-                    var maxIndex = Math.min(a.regions.length, b.regions.length);
+                    var maxIndex = Math.min(a.tags.regions.length, b.tags.regions.length);
                     for (i = 0; i < maxIndex; i++) {
-                        if (a.regions[i].localeCompare(b.regions[i]) != 0) {
-                            return a.regions[i].localeCompare(b.regions[i]);
+                        if (a.tags.regions[i].localeCompare(b.tags.regions[i]) != 0) {
+                            return a.tags.regions[i].localeCompare(b.tags.regions[i]);
                             break;
                         }
                     }
-                    return a.regions.length - b.regions.length;
+                    return a.tags.regions.length - b.tags.regions.length;
                     break;
                     
                 default: 
@@ -180,7 +180,7 @@ window.addEventListener("load", function() {
                 }
             }
             if (document.getElementById("uek-filter-authors").checked) {
-                const author = document.getElementById("uek-filter-regions-dropdown").value;
+                const author = document.getElementById("uek-filter-authors-dropdown").value;
                 if (author != "") {
                     currentSelection = currentSelection.filter(a => a.tags.authors.includes(author));
                 }
