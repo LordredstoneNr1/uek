@@ -80,7 +80,9 @@ window.addEventListener("load", function() {
                     break;
                     
                 case "release":
-                    return b.timestamp - a.timestamp;
+                    if (b.timestamp == null) return -1;
+                    if (a.timestamp == null) return 1;
+                    return b.timestamp.localeCompare(a.timestamp);
                     break;
                 
                 case "authors":
