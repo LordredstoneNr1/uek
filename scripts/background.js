@@ -161,8 +161,10 @@ class UnpackedStory {
             });  
             if (obj.subtitle != null) {
                 /* Subtitle is "by author", so we need to cut the first three characters.
+                
                     We also need to get rid of character U+2019 (Single Right Quotation Mark). 
                     This one is for you, John O'Bryan!
+                    
                 */
                 tags.authors.push(obj.subtitle.substring(3).replace("\u2019","'"));
             } else {
@@ -369,9 +371,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         sendResponse({
             id: "get-stories-response",
             success: true,
-            stories: UnpackedStory.storyModules,
-            authors: StoryList.authorList,
-            champions: champions
+            stories: UnpackedStory.storyModules
         });
         console.log("Sender ", sender, " requested story modules, sending data.");
     }

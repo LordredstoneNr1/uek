@@ -1,5 +1,5 @@
 var open = false;
-var storyList, championList, authorList, regionList;
+var storyList, championList = [], authorList = [], regionList = [];
 var width;
 
 //read these from the options eventually
@@ -97,6 +97,8 @@ window.addEventListener("load", function() {
                     break;
                 
                 case "champions":
+                    if (b.tags.champions.length == 0) return -1;
+                    if (a.tags.champions.length == 0) return 1;
                     var maxIndex = Math.min(a.tags.champions.length, b.tags.champions.length);
                     for (i = 0; i < maxIndex; i++) {
                         if (a.tags.champions[i].localeCompare(b.tags.champions[i]) != 0) {
@@ -108,6 +110,8 @@ window.addEventListener("load", function() {
                     break;
                 
                 case "regions":
+                    if (b.tags.regions.length == 0) return -1;
+                    if (a.tags.regions.length == 0) return 1;
                     var maxIndex = Math.min(a.tags.regions.length, b.tags.regions.length);
                     for (i = 0; i < maxIndex; i++) {
                         if (a.tags.regions[i].localeCompare(b.tags.regions[i]) != 0) {
@@ -135,15 +139,43 @@ window.addEventListener("load", function() {
                             
                             storyList = response.stories;
                             
-                            regionsList = Object.values(response.champions).filter((v, i, s) => s.indexOf(v) === i); //fast filter for duplicates.
-                            regionsList.forEach(function (region) {
+                            storyList.forEach(function (story) {
+                                championList.push(story.tags.champions);
+                                authorList.push(story.tags.authors);
+                                regionList.push(story.tags.regions);
+                            });
+                            
+                            //remove duplicates & sort
+                            championList = [...new Set(championList.flat())].sort();
+                            
+                            regionList = regionList.flat().reduce(function (cumultativeRegions, newRegion) {
+                                const index = cumultativeRegions.findIndex(a => a.name === newRegion);
+                                if (index === -1) {
+                                    cumultativeRegions.push({"name": newRegion, "nr":1});
+                                } else {
+                                    cumultativeRegions[index].nr++;
+                                }
+                                return cumultativeRegions;
+                            }, []).sort((a,b) => b.nr - a.nr).map(a => a.name);
+                            
+                            //removes duplicates & sort by number of times they appear (=> number of stories)
+                            authorList = authorList.flat().reduce(function (cumultativeAuthors, newAuthor) {
+                                const index = cumultativeAuthors.findIndex(a => a.name === newAuthor);
+                                if (index === -1) {
+                                    cumultativeAuthors.push({"name": newAuthor, "nr":1});
+                                } else {
+                                    cumultativeAuthors[index].nr++;
+                                }
+                                return cumultativeAuthors;
+                            }, []).sort((a,b) => b.nr - a.nr).map(a => a.name);
+                                                        
+                            regionList.forEach(function (region) {
                                 const element = document.createElement("option");
                                 element.value = region;
                                 element.innerHTML = region;
                                 document.getElementById("uek-filter-regions-dropdown").appendChild(element);
                             });
                             
-                            authorList = response.authors;
                             authorList.forEach(function (region) {
                                 const element = document.createElement("option");
                                 element.value = region;
@@ -216,10 +248,21 @@ window.addEventListener("load", function() {
                 if (min !== "") {currentSelection = currentSelection.filter(a => a.timestamp >= min);}
                 if (max !== "") {currentSelection = currentSelection.filter(a => a.timestamp <= max);}
             }
-            //slice returns a copy because split would modify it, this only modifies the copy.
-            currentSelection.sort((a,b) => compareStories(a,b, sortKey.slice().split("-")[0]));
             if (sortKey.endsWith("reverse")) {
-                currentSelection.reverse();
+                storyList.forEach(function (story) {
+                    story.tags.champions.sort().reverse();
+                    story.tags.regions.sort().reverse();
+                    story.tags.authors.sort().reverse();
+                });
+                
+                currentSelection.sort((a,b) => compareStories(a,b, sortKey.substring(0, sortKey.indexOf("-reverse")))).reverse();
+            } else {
+                storyList.forEach(function (story) {
+                    story.tags.champions.sort();
+                    story.tags.regions.sort();
+                    story.tags.authors.sort();
+                });
+                currentSelection.sort((a,b) => compareStories(a,b, sortKey));
             }
             console.log("Displaying current selection, sorted by: ", sortKey, currentSelection);
             
@@ -288,108 +331,109 @@ window.addEventListener("load", function() {
     });
 });
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-    switch (message.id) {
-        case "toggle-panel":
-            // only after dom is ready, should put a quick check here.
-            changeVisibility();
-            break;
-        case "extract-image":
-        
-            var url, div;
+    if (document.readyState == "complete") {
+        switch (message.id) {
+            case "toggle-panel":
+                changeVisibility();
+                break;
+            case "extract-image":
             
-            function parseURL(str){
-                if (str.includes("https://am-a.akamaihd.net/image")) {
-                   return str.substring(str.indexOf("https", 10), str.indexOf("&resize")).replace(/%3A/g, ":").replace(/%2F/g,"/");
-                } else {
-                    return str.substring(5, str.length-2);
-                }
-            };
-            
-            if (message.source == "page") {
-                // possible page sources are the story, race, champion and region pages.
-                if (message.pageURL.includes("race")) {
-                    div = document.getElementById("Content").firstElementChild.firstElementChild.nextElementSibling
-                    .firstElementChild.firstElementChild.firstElementChild.firstElementChild;
-                    url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
-                    
-                } else if (message.pageURL.includes("region")) {
-                    url = document.getElementById("Content").getElementsByTagName("video")[0].src;
-                    
-                } else if (message.pageURL.includes("comic")) {
-                    div = document.getElementById("Content").firstElementChild.firstElementChild.firstElementChild;
-                    url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
-                    
-                } else if (message.pageURL.includes("champion")) {
-                    //Champions can have a video background or image background. Simply check for the first video tag.
-                    if (document.getElementsByTagName("video").length != 0) {
-                        url = document.getElementsByTagName("video")[0].src;
-                    } else {
-                        div = document.getElementById("Content").firstElementChild.firstElementChild.nextElementSibling.nextElementSibling
-                        .firstElementChild.firstElementChild.firstElementChild.firstElementChild;
-                        
-                        url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
-                    }
-                    
-                } else if (message.pageURL.includes("story")) {
-                    div = document.getElementById("Content").firstElementChild.firstElementChild.firstElementChild.nextElementSibling;
-                    url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
-                }
+                var url, div;
                 
-            } else if (message.source == "link") {
-                var list = document.getElementById("Content").getElementsByTagName("a");
-                for (i = 0; i < list.length; i++) {
-                    if (list[i].href == message.linkURL) {
+                function parseURL(str){
+                    if (str.includes("https://am-a.akamaihd.net/image")) {
+                       return str.substring(str.indexOf("https", 10), str.indexOf("&resize")).replace(/%3A/g, ":").replace(/%2F/g,"/");
+                    } else {
+                        return str.substring(5, str.length-2);
+                    }
+                };
+                
+                if (message.source == "page") {
+                    // possible page sources are the story, race, champion and region pages.
+                    if (message.pageURL.includes("race")) {
+                        div = document.getElementById("Content").firstElementChild.firstElementChild.nextElementSibling
+                        .firstElementChild.firstElementChild.firstElementChild.firstElementChild;
+                        url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
                         
-                        if (message.linkURL.includes("region")) {
-                            if (message.pageURL.includes("regions/")) {
-                                div = list[i].firstElementChild.firstElementChild.firstElementChild;
-                            } else {
-                                div = list[i].firstElementChild;
-                            }
-                            url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
+                    } else if (message.pageURL.includes("region")) {
+                        url = document.getElementById("Content").getElementsByTagName("video")[0].src;
+                        
+                    } else if (message.pageURL.includes("comic")) {
+                        div = document.getElementById("Content").firstElementChild.firstElementChild.firstElementChild;
+                        url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
+                        
+                    } else if (message.pageURL.includes("champion")) {
+                        //Champions can have a video background or image background. Simply check for the first video tag.
+                        if (document.getElementsByTagName("video").length != 0) {
+                            url = document.getElementsByTagName("video")[0].src;
+                        } else {
+                            div = document.getElementById("Content").firstElementChild.firstElementChild.nextElementSibling.nextElementSibling
+                            .firstElementChild.firstElementChild.firstElementChild.firstElementChild;
                             
-                        } else if (message.linkURL.includes("comic")) {
-                            if (message.pageURL.includes("newest/")) {
-                                div = list[i].firstElementChild;
-                            } else {
-                                div = list[i].firstElementChild.firstElementChild.firstElementChild;
-                            }
-                            url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
-                            
-                        } else if (message.linkURL.includes("story")) {
-                            if (message.pageURL.includes("newest/")) {
-                                div = list[i].firstElementChild;
-                                url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
-                            } else {
-                                div = list[i].parentElement.nextElementSibling;
-                                // null check is required here because of biographies
-                                if (div != null) {
-                                    url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
-                                }
-                            }
-                            
-                        } else if (message.linkURL.includes("champion")) {
-                            if (message.pageURL.includes("champions/")) {
-                                div = list[i].firstElementChild.firstElementChild;
-                            } else {    
-                                div = list[i].firstElementChild.firstElementChild.firstElementChild;
-                            }
                             url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
                         }
                         
+                    } else if (message.pageURL.includes("story")) {
+                        div = document.getElementById("Content").firstElementChild.firstElementChild.firstElementChild.nextElementSibling;
+                        url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
+                    }
+                    
+                } else if (message.source == "link") {
+                    var list = document.getElementById("Content").getElementsByTagName("a");
+                    for (i = 0; i < list.length; i++) {
+                        if (list[i].href == message.linkURL) {
+                            
+                            if (message.linkURL.includes("region")) {
+                                if (message.pageURL.includes("regions/")) {
+                                    div = list[i].firstElementChild.firstElementChild.firstElementChild;
+                                } else {
+                                    div = list[i].firstElementChild;
+                                }
+                                url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
+                                
+                            } else if (message.linkURL.includes("comic")) {
+                                if (message.pageURL.includes("newest/")) {
+                                    div = list[i].firstElementChild;
+                                } else {
+                                    div = list[i].firstElementChild.firstElementChild.firstElementChild;
+                                }
+                                url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
+                                
+                            } else if (message.linkURL.includes("story")) {
+                                if (message.pageURL.includes("newest/")) {
+                                    div = list[i].firstElementChild;
+                                    url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
+                                } else {
+                                    div = list[i].parentElement.nextElementSibling;
+                                    // null check is required here because of biographies
+                                    if (div != null) {
+                                        url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
+                                    }
+                                }
+                                
+                            } else if (message.linkURL.includes("champion")) {
+                                if (message.pageURL.includes("champions/")) {
+                                    div = list[i].firstElementChild.firstElementChild;
+                                } else {    
+                                    div = list[i].firstElementChild.firstElementChild.firstElementChild;
+                                }
+                                url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
+                            }
+                            
+                        }
                     }
                 }
-            }
-            
-            sendResponse({
-                id: "extract-image-response",
-                success: (url != undefined),
-                imageURL: url
-            });
-            break;
-        default:
-            console.log("Received unknown message with id " + message.id);
-            console.log(message, sender);
-            break;
+                
+                sendResponse({
+                    id: "extract-image-response",
+                    success: (url != undefined),
+                    imageURL: url
+                });
+                break;
+            default:
+                console.log("Received unknown message with id " + message.id);
+                console.log(message, sender);
+                break;
+        }
     }
 });

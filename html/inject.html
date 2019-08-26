@@ -21,21 +21,7 @@
                     <div id="uek-main-block-stories">
                         <form id="uek-stories-filter"><h1> This is still a test version! </h1>
                         Filtering and Sorting should work, but it's not polished yet. Lists will come later.
-                            <p>Filter: 
-                            Title (includes text)
-                            Champions (text with separator ";" or ",": list of champions, check if ALL are present)
-                            Regions / Authors (Dropdown or Text field? Also no reason to include the nr of regions/ authors)
-                            Exclude AU stories (checkbox, filter out stories with NO associated region)
-                            Is / isn't color story (check URL for "color" + handle Nami/Rengar?)
-                            Words and Nr of Champions (2 ints, check if value is between them)
-                            </p>
-                            <p>Sort: 
-                            Title (lexic. asc/desc)
-                            Nr of Words (asc/desc)
-                            Authors, Champions (lexic. asc/desc, sorts internal lists first if applicable)
-                            Region (lexic. asc/desc)
-                            Release Date (desc/asc should work, if not go lexic. desc/asc instead. Desc first is important here, we want to start with the new ones.</p>
-                            </p>
+                            
                             <ul>Notes:
                                 <li>I can't guarantee <b> any </b> data presented here is accurate. Pls don't sue me. </li>
                                 <li>Regions are based on the champions from the story, not on the place the story takes place. 
@@ -49,18 +35,21 @@
                             
                             <input id="uek-filter-champions" type="checkbox">
                             <label for="uek-filter-champions">Filter by champion names: </label>
-                            <input id="uek-filter-champions-text" type="search" size="25" placeholder="Champion 1, Champion 2, ..."><br>
+                            <!-- <datalist id="uek-filter-champions-list"> -->
+                            
+                            <!-- </datalist> -->
+                            <input id="uek-filter-champions-text" type="search" list="uek-filter-champions-list" size="25" placeholder="Champion 1, Champion 2, ..."><br>
                             
                             <input id="uek-filter-regions" type="checkbox">
                             <label for="uek-filter-regions">Filter by champion region: </label>
                             <select id="uek-filter-regions-dropdown">
-                                <option value="" selected disabled>All regions </option>
+                                <option value="" selected>All regions </option>
                             </select><br>
                             
                             <input id="uek-filter-authors" type="checkbox">
                             <label for="uek-filter-authors">Filter by author: </label>
                             <select id="uek-filter-authors-dropdown">
-                                <option value="" selected disabled>All authors </option>
+                                <option value="" selected>All authors </option>
                             </select><br>
                             
                             <input id="uek-filter-type" type="checkbox">
@@ -82,7 +71,7 @@
                             Must have between <input type="number" id="uek-filter-words-min"  min="0" step="50" max="20000" value="1000"> and <input type="number" id="uek-filter-words-max"  min="0" step="50" max="20000" value="5000"> words.<br>
                             
                             <input id="uek-filter-date" type="checkbox">
-                            <label for="uek-filter-words">Filter by release date: </label>
+                            <label for="uek-filter-date">Filter by release date: </label>
                             Must have been released after <input type="date" id="uek-filter-date-min" min="2014-01-01" max="2020-12-31" value="2016-06-01"> , but before <input type="date" id="uek-filter-date-max"min="2014-01-01" max="2020-12-31" value="2017-01-01"> .<br>
                                                         
                             <button id="uek-filter-apply" type="button"><div><h6>Apply</h6><div></div></div></button>
@@ -94,7 +83,7 @@
                             <thead id="uek-stories-table-heading">
                                 <tr>
                                     <th>#</th>
-                                    <th>Title</th>
+                                    <th class="active">Title</th>
                                     <th>Length</th>
                                     <th>Champions</th>
                                     <th>Regions</th>
