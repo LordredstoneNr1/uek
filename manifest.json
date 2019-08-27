@@ -8,9 +8,8 @@
     "icons": { 
         "16": "images/icons/16.png",
         "32": "images/icons/32.png",
-        "48": "images/icons/32.png",
-        "64": "images/icons/32.png",
-        "128": "images/icons/128.png"
+        "48": "images/icons/48.png",
+        "128": "images/icons/128_new.png"
         },
     "commands": {
         "toggle-panel": {
@@ -18,7 +17,7 @@
                 "default": "Ctrl+Shift+L",
                 "mac": "Command+Shift+L"
             },
-            "description": "Toggles the sidebar on all Universe Websites, if enabled."
+            "description": "Toggles the sidebar on all Universe Websites"
         }
     },
     "background": {
