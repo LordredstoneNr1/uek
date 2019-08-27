@@ -98,11 +98,13 @@ div#uek-main-body {
     height: 95%;
 }
 
-/* Story form */
-form#uek-stories-filter {
-    padding: 20px;
-    line-height: 1.3;
+div#uek-main-body > div {
+    height: 100%; 
+    width: 100%;
+    padding: 20px 0 20px 20px;
 }
+
+/* Story form */
 
 form#uek-stories-filter > button {
     margin: 20px 15px 10px 25px;
@@ -167,6 +169,7 @@ button > div > h6 {
 
 /* Table body */
 tbody#uek-stories-table-body {
+    padding-top: 20px;
     display: block;
     overflow-y: scroll;
     padding-left: 20px;
@@ -244,6 +247,9 @@ th + th + th + th + th + th + th {
     text-align: center;
 }
 
+/* Lists */
+
+/* About */
 
 /*Same style as other separators, but we can't use them here (inheritance) so we just copy it */
 .uek-custom-separator {

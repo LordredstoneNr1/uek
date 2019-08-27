@@ -24,6 +24,17 @@ function changeVisibility() {
     console.log((open?"Showing":"Hiding") + " UEK Extension page");
 };
 
+function show(key) {
+    document.getElementsByClassName("activeTab")[0].classList.remove("activeTab");
+    var blocklist = document.getElementById("uek-main-body").children;
+    for (i = 0; i < blocklist.length; i++) {
+       blocklist[i].classList.add("hidden");
+    }
+    //remove everything and add it back to the things we need.
+    document.getElementById("uek-main-link-"+key).classList.add("activeTab");
+    document.getElementById("uek-main-block-"+key).classList.remove("hidden");
+}
+
 function readHtmlFile(path, callback) {
     var file = new XMLHttpRequest();
     file.overrideMimeType("text/html");
@@ -36,22 +47,10 @@ function readHtmlFile(path, callback) {
 
 /* Main logic, handle injection after window is ready 
 this does need to be on load, even though the script SHOULD load after DOM is ready.
-Seems like Riots scripts are too slow in constructing their website. 
+Seems like Riots scripts are too slow in constructing their website. (Or are mine just too fast?)
 */
 window.addEventListener("load", function() {
     readHtmlFile("html/inject.html", function (element) {
-        
-        function show(key) {
-            document.getElementsByClassName("activeTab")[0].classList.remove("activeTab");
-            var blocklist = document.getElementById("uek-main-body").children;
-            //forEach / for in does not work for some reason idk. Should be the same in performance and readability so idc either.
-            for (i = 0; i < blocklist.length; i++) {
-               blocklist[i].classList.add("hidden");
-            }
-            //remove everything and add it back to the things we need.
-            document.getElementById("uek-main-link-"+key).classList.add("activeTab");
-            document.getElementById("uek-main-block-"+key).classList.remove("hidden");
-        }
         
         function parseTR(index, story) {
             var html = [];
@@ -138,7 +137,6 @@ window.addEventListener("load", function() {
                         if (response.id === "get-stories-response" && response.success == true) {
                             
                             storyList = response.stories;
-                            
                             storyList.forEach(function (story) {
                                 championList.push(story.tags.champions);
                                 authorList.push(story.tags.authors);
@@ -176,10 +174,10 @@ window.addEventListener("load", function() {
                                 document.getElementById("uek-filter-regions-dropdown").appendChild(element);
                             });
                             
-                            authorList.forEach(function (region) {
+                            authorList.forEach(function (author) {
                                 const element = document.createElement("option");
-                                element.value = region;
-                                element.innerHTML = region;
+                                element.value = author;
+                                element.innerHTML = author;
                                 document.getElementById("uek-filter-authors-dropdown").appendChild(element);
                             });
                             resolve("Data parsed successfully");
@@ -283,7 +281,7 @@ window.addEventListener("load", function() {
             document.getElementById("uek-link-open").firstElementChild.innerHTML = options.shortcut;
         });
         
-        document.getElementsByTagName("body")[0].appendChild(injectDoc.getElementById("uek-base-wrapper"));
+        document.body.appendChild(injectDoc.getElementById("uek-base-wrapper"));
         width = widthConst + widthFactor * window.innerWidth;
         document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px;");
         document.getElementById("uek-main-page").setAttribute("style", "width: "+ width +"px;");
@@ -295,7 +293,7 @@ window.addEventListener("load", function() {
         
         const storyTableBodyHeight = baseHeight - filterHeight;
         document.getElementById("uek-stories-display").setAttribute("style", "height: " + storyTableBodyHeight + "px;");
-        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (storyTableBodyHeight-40) + "px;");
+        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (storyTableBodyHeight-50) + "px;");
         
         
         // Link in the extension div
@@ -310,9 +308,17 @@ window.addEventListener("load", function() {
         
         //Story filter
         generateStoryHTML(document.getElementById("uek-stories-table-body"));
-        document.getElementById("uek-filter-apply").onclick = function() {generateStoryHTML(document.getElementById("uek-stories-table-body"))};
-        document.getElementById("uek-filter-save").onclick = function() {alert("Doesn't work yet: There are no stories to save this selection to.")};
+        document.getElementById("uek-filter-apply").onclick = function() {
+            generateStoryHTML(document.getElementById("uek-stories-table-body"));
+        };
+        
+        document.getElementById("uek-filter-save").onclick = function() {
+            
+        };
     
+        //No need to set onclick for reset because that will reset the form by default
+        
+        
         //short version to assign the correct keyword to the table heading
         ["", "title", "words", "champions", "regions", "authors", "release" ].forEach(function(key, i) {
             document.getElementById("uek-stories-table-heading").firstElementChild.children[i].onclick = function() {

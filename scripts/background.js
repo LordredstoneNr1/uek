@@ -148,49 +148,56 @@ class UnpackedStory {
         var tags = {"champions": [], "authors": [], "regions":[]};  
         
         //Override in case I don't like something
-        if (override_tags[this.title]) {
-            tags = override_tags[this.title];
+        if (override_tags[this.slug]) {
+            tags.champions = override_tags[this.slug].champions.map(a => champions[a].name);
+            tags.regions = override_tags[this.slug].regions.map(a => regions[a]);
+            tags.authors = override_tags[this.slug].authors;
         } else {
             //regular tags created from the champions and subtitle of the story
             obj['featured-champions'].forEach(function(champion) {
                 tags.champions.push(champion.name);
-                if (!tags.regions.includes(champions[champion.name])) {
+                if (!tags.regions.includes(regions[champions[champion.slug].regionSlug])) {
                     // Plain text version instead of faction slug
-                    tags.regions.push(champions[champion.name]);
+                    tags.regions.push(regions[champions[champion.slug].regionSlug]);
                 }
             });  
-            if (obj.subtitle != null) {
-                /* Subtitle is "by author", so we need to cut the first three characters.
+            if (obj.subtitle != null && (obj.subtitle.startsWith("by") || obj.subtitle.startsWith("By")) ) {
+                 
+                var author = obj.subtitle.substring("by".length+1);
                 
-                    We also need to get rid of character U+2019 (Single Right Quotation Mark). 
+                //Transform Ian St Martin into Ian St. Martin.
+                if (author === "Ian St Martin") {
+                    author = "Ian St. Martin";
+                }
+                
+                /*  We also need to get rid of character U+2019 (Single Right Quotation Mark). 
                     This one is for you, John O'Bryan!
-                    
                 */
-                tags.authors.push(obj.subtitle.substring(3).replace("\u2019","'"));
+                if (author.includes("\\u+2019")) {
+                    author = author.replace("\\u+2019", "'");
+                }
+                
+                // These are all edge cases we need to handle - I think?
+                tags.authors.push(author);
             } else {
                 //Lookup list in case the subtitle is not defined.
-                authors_fallback[this.title].forEach( function (author) {
-                    tags.authors.push(author);
-                });
+                if(authors_fallback[this.slug]) {
+                    tags.authors = authors_fallback[this.slug];
+                }
             }
             
             //Adding tags as defined in data.js (if present)
-            if (add_tags[this.title]) {
+            if (add_tags[this.slug]) {
                 
-                if (add_tags[this.title].champions) {
-                    add_tags[this.title].champions.forEach( function (newTag) {
-                        tags.champions.push(newTag);
-                    });
+                if (add_tags[this.slug].champions) {
+                    // Duplicate protection by transforming into a set and back
+                    tags.champions = [...new Set(tags.champions.concat(add_tags[this.slug].champions.map(a => champions[a].name)))];
                 }
-                if (add_tags[this.title].regions) {
-                    add_tags[this.title].regions.forEach( function (newTag) {
-                        tags.regions.push(newTag);
-                    });
+                if (add_tags[this.slug].regions) {
+                    tags.regions = [...new Set(tags.regions.concat(add_tags[this.slug].regions.map(a => regions[a])))];
                 }
-                if (add_tags[this.title].authors) {
-                    add_tags[this.title].authors.forEach( function (newTag) {
-                        tags.authors.push(newTag);
-                    });
+                if (add_tags[this.slug].authors) {
+                    tags.authors = [...new Set(tags.authors.concat(add_tags[this.slug].authors))];
                 }
             }
             
@@ -392,7 +399,7 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
     */
     
     //Clear for Debug purposes, do not ship with this :D
-    //chrome.storage.sync.clear();
+    chrome.storage.sync.clear();
     
     //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
     chrome.storage.sync.get(null, function(items) {

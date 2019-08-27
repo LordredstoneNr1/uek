@@ -10,6 +10,12 @@ document.getElementById("changeLink").onclick = function() {
             });
 };
 chrome.storage.sync.get("options", function(options){
-    document.getElementById("shortcut").innerHTML = options.shortcut;
+    if (options.shortcut) {
+        document.getElementById("shortcut").innerHTML = options.shortcut;
+    } else {
+        chrome.commands.getAll(function (commands) {
+            document.getElementById("shortcut").innerHTML = commands[1].shortcut;
+        });
+    }
 });
 
