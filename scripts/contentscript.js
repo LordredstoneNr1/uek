@@ -115,6 +115,10 @@ window.addEventListener("load", function() {
                     for (i = 0; i < maxIndex; i++) {
                         if (a.tags.regions[i].localeCompare(b.tags.regions[i]) != 0) {
                             return a.tags.regions[i].localeCompare(b.tags.regions[i]);
+                    var maxIndex = Math.min(a.tags.regions.length, b.tags.regions.length);
+                    for (i = 0; i < maxIndex; i++) {
+                        if (a.tags.regions[i].localeCompare(b.tags.regions[i]) != 0) {
+                            return a.regions[i].localeCompare(b.tags.regions[i]);
                             break;
                         }
                     }
