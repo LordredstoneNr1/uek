@@ -149,16 +149,16 @@ class UnpackedStory {
         
         //Override in case I don't like something
         if (override_tags[this.slug]) {
-            tags.champions = override_tags[this.slug].champions.map(a => champions[a].name);
-            tags.regions = override_tags[this.slug].regions.map(a => regions[a]);
+            tags.champions = override_tags[this.slug].champions.map(a => chrome.i18n.getMessage("champion_" + a));
+            tags.regions = override_tags[this.slug].regions.map(a => chrome.i18n.getMessage("region_" + a));
             tags.authors = override_tags[this.slug].authors;
         } else {
             //regular tags created from the champions and subtitle of the story
             obj['featured-champions'].forEach(function(champion) {
                 tags.champions.push(champion.name);
-                if (!tags.regions.includes(regions[champions[champion.slug].regionSlug])) {
+                if (!tags.regions.includes(chrome.i18n.getMessage("region_" + champions_base[champion.slug]))) {
                     // Plain text version instead of faction slug
-                    tags.regions.push(regions[champions[champion.slug].regionSlug]);
+                    tags.regions.push(chrome.i18n.getMessage("region_" + champions_base[champion.slug]));
                 }
             });  
             if (obj.subtitle != null && (obj.subtitle.startsWith("by") || obj.subtitle.startsWith("By")) ) {
@@ -191,10 +191,10 @@ class UnpackedStory {
                 
                 if (add_tags[this.slug].champions) {
                     // Duplicate protection by transforming into a set and back
-                    tags.champions = [...new Set(tags.champions.concat(add_tags[this.slug].champions.map(a => champions[a].name)))];
+                    tags.champions = [...new Set(tags.champions.concat(add_tags[this.slug].champions.map(a => chrome.i18n.getMessage("champion_" + a))))];
                 }
                 if (add_tags[this.slug].regions) {
-                    tags.regions = [...new Set(tags.regions.concat(add_tags[this.slug].regions.map(a => regions[a])))];
+                    tags.regions = [...new Set(tags.regions.concat(add_tags[this.slug].regions.map(a => chrome.i18n.getMessage("region_" + a))))];
                 }
                 if (add_tags[this.slug].authors) {
                     tags.authors = [...new Set(tags.authors.concat(add_tags[this.slug].authors))];
@@ -381,6 +381,20 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             stories: UnpackedStory.storyModules
         });
         console.log("Sender ", sender, " requested story modules, sending data.");
+    } else if (request.id === "query-stories") {
+        getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json', function(status, data){
+            data.modules.forEach( function(obj) {
+                if (obj.type === "story-preview") {
+                    UnpackedStory.storyModules.push( new UnpackedStory(obj));
+                }
+            });
+            console.log("Story Modules: ", UnpackedStory.storyModules);
+            sendResponse({
+                id: "query-stories-response",
+                success: true,
+                stories: UnpackedStory.storyModules
+            });
+        });
     }
     return true;
 });
@@ -393,13 +407,14 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
         }
     });
     console.log("Story Modules: ", UnpackedStory.storyModules);
+    
     /*Above sets up the base modules we work with. 
     If more information are needed, add them to the constructor of UnpackedStory. 
     For now, keep it small, store only the necessary information.
     */
     
     //Clear for Debug purposes, do not ship with this :D
-    chrome.storage.sync.clear();
+    //chrome.storage.sync.clear();
     
     //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
     chrome.storage.sync.get(null, function(items) {

@@ -127,9 +127,66 @@ window.addEventListener("load", function() {
             }
         }
         
+        function parseData() {
+            
+            championList = [], authorList = [], regionList = [];
+            storyList.forEach(function (story) {
+                championList.push(story.tags.champions);
+                authorList.push(story.tags.authors);
+                regionList.push(story.tags.regions);
+            });
+            
+            //remove duplicates & sort
+            championList = [...new Set(championList.flat())].sort();
+            
+            regionList = regionList.flat().reduce(function (cumultativeRegions, newRegion) {
+                const index = cumultativeRegions.findIndex(a => a.name === newRegion);
+                if (index === -1) {
+                    cumultativeRegions.push({"name": newRegion, "nr":1});
+                } else {
+                    cumultativeRegions[index].nr++;
+                }
+                return cumultativeRegions;
+            }, []).sort((a,b) => b.nr - a.nr).map(a => a.name);
+            
+            //removes duplicates & sort by number of times they appear (=> number of stories)
+            authorList = authorList.flat().reduce(function (cumultativeAuthors, newAuthor) {
+                const index = cumultativeAuthors.findIndex(a => a.name === newAuthor);
+                if (index === -1) {
+                    cumultativeAuthors.push({"name": newAuthor, "nr":1});
+                } else {
+                    cumultativeAuthors[index].nr++;
+                }
+                return cumultativeAuthors;
+            }, []).sort((a,b) => b.nr - a.nr).map(a => a.name);
+            
+             championList.forEach(function (champion) {
+                const element = document.createElement("option");
+                element.value = champion;
+                element.innerHTML = champion;
+                document.getElementById("uek-filter-champions-list").appendChild(element);
+            });          
+            
+            regionList.forEach(function (region) {
+                const element = document.createElement("option");
+                element.value = region;
+                element.innerHTML = region;
+                document.getElementById("uek-filter-regions-dropdown").appendChild(element);
+            });
+            
+            authorList.forEach(function (author) {
+                const element = document.createElement("option");
+                element.value = author;
+                element.innerHTML = author;
+                document.getElementById("uek-filter-authors-dropdown").appendChild(element);
+            });
+            
+        }
+        
         //needs to be async because we need to wait for the response.
-        async function generateStoryHTML(object) {
-            object.innerHTML = "";
+        async function generateStoryHTML() {
+            const target = document.getElementById("uek-stories-table-body");
+            target.innerHTML = "";
             if (storyList === undefined) {
                 console.log(await new Promise ((resolve, reject) => {
                     chrome.runtime.sendMessage({id: "get-stories"}, 
@@ -137,49 +194,7 @@ window.addEventListener("load", function() {
                         if (response.id === "get-stories-response" && response.success == true) {
                             
                             storyList = response.stories;
-                            storyList.forEach(function (story) {
-                                championList.push(story.tags.champions);
-                                authorList.push(story.tags.authors);
-                                regionList.push(story.tags.regions);
-                            });
-                            
-                            //remove duplicates & sort
-                            championList = [...new Set(championList.flat())].sort();
-                            
-                            regionList = regionList.flat().reduce(function (cumultativeRegions, newRegion) {
-                                const index = cumultativeRegions.findIndex(a => a.name === newRegion);
-                                if (index === -1) {
-                                    cumultativeRegions.push({"name": newRegion, "nr":1});
-                                } else {
-                                    cumultativeRegions[index].nr++;
-                                }
-                                return cumultativeRegions;
-                            }, []).sort((a,b) => b.nr - a.nr).map(a => a.name);
-                            
-                            //removes duplicates & sort by number of times they appear (=> number of stories)
-                            authorList = authorList.flat().reduce(function (cumultativeAuthors, newAuthor) {
-                                const index = cumultativeAuthors.findIndex(a => a.name === newAuthor);
-                                if (index === -1) {
-                                    cumultativeAuthors.push({"name": newAuthor, "nr":1});
-                                } else {
-                                    cumultativeAuthors[index].nr++;
-                                }
-                                return cumultativeAuthors;
-                            }, []).sort((a,b) => b.nr - a.nr).map(a => a.name);
-                                                        
-                            regionList.forEach(function (region) {
-                                const element = document.createElement("option");
-                                element.value = region;
-                                element.innerHTML = region;
-                                document.getElementById("uek-filter-regions-dropdown").appendChild(element);
-                            });
-                            
-                            authorList.forEach(function (author) {
-                                const element = document.createElement("option");
-                                element.value = author;
-                                element.innerHTML = author;
-                                document.getElementById("uek-filter-authors-dropdown").appendChild(element);
-                            });
+                            parseData();
                             resolve("Data parsed successfully");
                         } else {
                             reject("Could not get story data from background script");
@@ -267,7 +282,7 @@ window.addEventListener("load", function() {
             for (i = 0; i < currentSelection.length; i++) {
                 const row = document.createElement("tr");
                 row.innerHTML = parseTR(i, currentSelection[i]);
-                object.appendChild(row);
+                target.appendChild(row);
             }
         }
         
@@ -281,7 +296,92 @@ window.addEventListener("load", function() {
             document.getElementById("uek-link-open").firstElementChild.innerHTML = options.shortcut;
         });
         
+        // window setup
         document.body.appendChild(injectDoc.getElementById("uek-base-wrapper"));
+        
+        {       //Translation starts here
+            var element;
+            console.log("Starting translation for locale ", chrome.i18n.getUILanguage());
+            
+            { // Riot sidebar
+                document.getElementById("uek-link-element").firstElementChild.innerHTML = chrome.i18n.getMessage("info_title");
+                document.getElementById("uek-link-open").innerHTML = chrome.i18n.getMessage("info_open") + '<span class="riotbar-link-subtext">Ctrl + Shift + L</span>';
+            }
+           
+            { // Extension heading
+                document.getElementById("uek-main-title").innerHTML = chrome.i18n.getMessage("info_title_version", [chrome.runtime.getManifest().version]);
+                document.getElementById("uek-main-link-stories").innerHTML = chrome.i18n.getMessage("heading_stories");
+                document.getElementById("uek-main-link-lists").innerHTML = chrome.i18n.getMessage("heading_lists");
+                document.getElementById("uek-main-link-options").innerHTML = chrome.i18n.getMessage("heading_options");
+                document.getElementById("uek-main-link-about").innerHTML = chrome.i18n.getMessage("heading_about");
+            }
+            
+            { // Story Tab 
+                document.getElementById("uek-stories-text").innerHTML = chrome.i18n.getMessage("stories_text");
+                
+                { // Filter form
+                    document.getElementById("uek-filter-title").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_title");
+                    document.getElementById("uek-filter-title-text").placeholder = chrome.i18n.getMessage("stories_placeholder_title");
+
+                    document.getElementById("uek-filter-champions").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_champions");
+                    document.getElementById("uek-filter-champions-text").placeholder = chrome.i18n.getMessage("stories_placeholder_champions");
+
+                    document.getElementById("uek-filter-regions").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_regions");
+                    element = document.createElement("option");
+                    element.value = "";
+                    element.selected = true;
+                    element.innerHTML = chrome.i18n.getMessage("stories_placeholder_regions");
+                    document.getElementById("uek-filter-regions-dropdown").appendChild(element);
+
+                    document.getElementById("uek-filter-authors").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_authors");
+                    element = document.createElement("option");
+                    element.value = "";
+                    element.selected = true;
+                    element.innerHTML = chrome.i18n.getMessage("stories_placeholder_authors");
+                    document.getElementById("uek-filter-authors-dropdown").appendChild(element);
+
+                    document.getElementById("uek-filter-type").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_type");
+                    element = document.createElement("option");
+                    element.value = "all";
+                    element.selected = true;
+                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_alluniverses");
+                    document.getElementById("uek-filter-type-universe-dropdown").appendChild(element);
+                    element = document.createElement("option");
+                    element.value = "main-universe";
+                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_mainuniverse");
+                    document.getElementById("uek-filter-type-universe-dropdown").appendChild(element);
+                    element = document.createElement("option");
+                    element.value = "alternate-universes";
+                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_alternateuniverses");
+                    document.getElementById("uek-filter-type-universe-dropdown").appendChild(element);
+                    element = document.createElement("option");
+                    element.value = "all";
+                    element.selected = true;
+                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_allstories");
+                    document.getElementById("uek-filter-type-type-dropdown").appendChild(element);
+                    element = document.createElement("option");
+                    element.value = "color-stories";
+                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_colorstories");
+                    document.getElementById("uek-filter-type-type-dropdown").appendChild(element);
+                    element = document.createElement("option");
+                    element.value = "long-stories";
+                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_longstories");
+                    document.getElementById("uek-filter-type-type-dropdown").appendChild(element);
+
+                    document.getElementById("uek-filter-words").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_words");
+                    document.getElementById("uek-filter-words-text").innerHTML = chrome.i18n.getMessage("stories_filter_words_text", ['<input type="number" id="uek-filter-words-min"  min="0" step="50" max="20000" value="1000">', '<input type="number" id="uek-filter-words-max"  min="0" step="50" max="20000" value="5000">']) + "<br>";
+
+                    document.getElementById("uek-filter-date").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_words");
+                    document.getElementById("uek-filter-date-text").innerHTML = chrome.i18n.getMessage("stories_filter_date_text", ['<input type="date" id="uek-filter-date-min" min="2014-01-01" max="2020-12-31" value="2016-06-01">', '<input type="date" id="uek-filter-date-max" min="2014-01-01" max="2020-12-31" value="2017-01-01">']) + "<br>";
+                }
+                
+                document.getElementById("uek-filter-apply").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("stories_button_apply");
+                document.getElementById("uek-filter-save").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("stories_button_save");
+                document.getElementById("uek-filter-reset").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("stories_button_reset");
+                document.getElementById("uek-filter-reload").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("stories_button_reload");
+            }
+        }
+        
         width = widthConst + widthFactor * window.innerWidth;
         document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px;");
         document.getElementById("uek-main-page").setAttribute("style", "width: "+ width +"px;");
@@ -304,10 +404,9 @@ window.addEventListener("load", function() {
         document.getElementById("uek-main-link-stories").onclick = function() {show("stories");};
         document.getElementById("uek-main-link-lists").onclick = function() {show("lists");};
         document.getElementById("uek-main-link-about").onclick = function() {show("about");};
-        
-        
+                
         //Story filter
-        generateStoryHTML(document.getElementById("uek-stories-table-body"));
+        generateStoryHTML();
         document.getElementById("uek-filter-apply").onclick = function() {
             generateStoryHTML(document.getElementById("uek-stories-table-body"));
         };
@@ -318,6 +417,17 @@ window.addEventListener("load", function() {
     
         //No need to set onclick for reset because that will reset the form by default
         
+        document.getElementById("uek-filter-reload").onclick = function() {
+            chrome.runtime.sendMessage({id: "query-stories"}, 
+                function(response) {
+                    if (response.id === "get-stories-response" && response.success == true) {
+                        storyList = response.stories;
+                        parseData();
+                        generateStoryHTML();
+                    }
+                }
+            );
+        };
         
         //short version to assign the correct keyword to the table heading
         ["", "title", "words", "champions", "regions", "authors", "release" ].forEach(function(key, i) {
@@ -332,7 +442,6 @@ window.addEventListener("load", function() {
                 generateStoryHTML(document.getElementById("uek-stories-table-body"));
             }
         });
-        
         
     });
 });

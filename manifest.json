@@ -1,6 +1,9 @@
 {
     "manifest_version": 2,
     "name": "Universe Enhancement Kit",
+    "short_name": "UEK",
+    "default_locale": "en_US",
+    "current_locale": "en_US",
     "description": "Enhances your League Universe page by adding some functionality.",
     "version": "0.7.5",
     "permissions": ["storage", "contextMenus"],
@@ -9,7 +12,7 @@
         "16": "images/icons/16.png",
         "32": "images/icons/32.png",
         "48": "images/icons/48.png",
-        "128": "images/icons/128_new.png"
+        "128": "images/icons/128.png"
         },
     "commands": {
         "toggle-panel": {
