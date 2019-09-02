@@ -159,7 +159,7 @@ const add_tags = {
     "project-of-rats-and-cats-and-neon-mice": {"champions": ["jhin", "vi", "vayne"]},
     "pajama-party": {"champions": ["lux", "ezreal", "missfortune", "soraka", "poppy", "lulu", "janna", "jinx"]},
     "at-the-edge-of-the-world": {"champions": ["zyra"], "regions":  ["noxus"]},
-    "mount-targon-story": {"regions": ["mount-targon"], "champions": ["leona", "diana", "zoe", "pantheon", "taric"], "authors": ["Graham McNeill"]},
+    "mount-targon-story": {"regions": ["mount_targon"], "champions": ["leona", "diana", "zoe", "pantheon", "taric"], "authors": ["Graham McNeill"]},
     "star-guardian-starfall": {"champions": ["lux", "ezreal", "missfortune", "soraka", "poppy", "lulu", "janna", "jinx", "ahri", "syndra"]},
     "the-legend-of-the-darkin": {"champions": ["kayn", "aatrox", "varus"], "authors": ["Graham McNeill"]},
     "twilight-of-the-gods": {"champions": ["zoe", "kayn", "aatrox", "varus"]},

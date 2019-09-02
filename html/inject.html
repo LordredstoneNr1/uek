@@ -6,17 +6,17 @@
     <body>
         <div id="uek-link-element" class="riotbar-navmenu-category">
             <div class="riotbar-category-name"></div>
-            <div><a id="uek-link-open" class="riotbar-navmenu-link" href="javascript:void(0)"><span class="riotbar-link-subtext">Ctrl + Shift + L</span></a></div>
+            <div><a id="uek-link-open" class="riotbar-navmenu-link" href="javascript:void(0)"><span class="riotbar-link-subtext"></span></a></div>
         </div>
         <div id="uek-base-wrapper"> 
             <div id="uek-main-page">
                 <div id="uek-main-header">
                     <a id="uek-main-title" class="title" href="https://boards.na.leagueoflegends.com/en/c/story-art"></a>
                     <span class="uek-custom-separator"></span>
-                    <a id="uek-main-link-stories" class="activeTab" href="javascript:void(0)">Stories </a>
-                    <a id="uek-main-link-lists" href="javascript:void(0)">Lists </a>
-                    <a id="uek-main-link-options" href="javascript:void(0)">Options </a>
-                    <a id="uek-main-link-about" href="javascript:void(0)">About </a>
+                    <a id="uek-main-link-stories" class="activeTab" href="javascript:void(0)"></a>
+                    <a id="uek-main-link-lists" href="javascript:void(0)"></a>
+                    <a id="uek-main-link-options" href="javascript:void(0)"></a>
+                    <a id="uek-main-link-about" href="javascript:void(0)"></a>
                 </div>
                 <div id="uek-main-body">
                     <div id="uek-main-block-stories">
@@ -28,10 +28,7 @@
                             
                             <input id="uek-filter-champions" type="checkbox">
                             <label for="uek-filter-champions"></label>
-                            <datalist id="uek-filter-champions-list">
-                            
-                            </datalist>
-                            <input id="uek-filter-champions-text" type="search" list="uek-filter-champions-list" size="25"><br>
+                            <input id="uek-filter-champions-text" type="search" size="25"><br>
                             
                             <input id="uek-filter-regions" type="checkbox">
                             <label for="uek-filter-regions"></label>
@@ -48,54 +45,73 @@
                             
                             <input id="uek-filter-words" type="checkbox">
                             <label for="uek-filter-words"></label>
-                            <p id="uek-filter-words-text"></p>
+                            <input type="number" id="uek-filter-words-min"  min="0" step="50" max="20000" value="1000">
+                            <input type="number" id="uek-filter-words-max"  min="0" step="50" max="20000" value="5000">
                             
                             <input id="uek-filter-date" type="checkbox">
                             <label for="uek-filter-date"></label>
-                            <p id="uek-filter-date-text"></p>
-                                                        
-                            <button id="uek-filter-apply" type="button"><div><h6></h6><div></div></div></button>
-                            <button id="uek-filter-save" type="button"><div><h6></h6><div></div></div></button>
-                            <button id="uek-filter-reset" type="reset"><div><h6></h6><div></div></div></button>
-                            <button id="uek-filter-reload" type="reset"><div><h6></h6><div></div></div></button>
+                            <input type="date" id="uek-filter-date-min" min="2014-01-01" max="2020-12-31" value="2016-06-01">
+                            <input type="date" id="uek-filter-date-max" min="2014-01-01" max="2020-12-31" value="2017-01-01">
+                            
+                            <button id="uek-filter-apply" type="button" class="icon-confirm"><div><h6></h6><div></div></div></button>
+                            <button id="uek-filter-save" type="button" class="icon-open"><div><h6></h6><div></div></div></button>
+                            <button id="uek-filter-reset" type="reset" class="icon-options"><div><h6></h6><div></div></div></button>
+                            <button id="uek-filter-reload" type="reset" class="icon-reload"><div><h6></h6><div></div></div></button>
                             
                         </form>
                         <table id="uek-stories-display">
                             <thead id="uek-stories-table-heading">
                                 <tr>
-                                    <th>#</th>
-                                    <th class="active">Title</th>
-                                    <th>Length</th>
-                                    <th>Champions</th>
-                                    <th>Regions</th>
-                                    <th>Author</th>
-                                    <th>Release Date</th>
                                 </tr>
                             </thead>
                             <tbody id="uek-stories-table-body"> 
                             
                             </tbody>
-                            <!-- <tfoot>
-                                <tr>
-                                    <td>#</td>
-                                    <td>Title</td>
-                                    <td>Length</td>
-                                    <td>Champions</td>
-                                    <td>Regions</td>
-                                    <td>Author</td>
-                                    <td>Release Date</td>
-                                </tr>
-                            </tfoot> -->
                         </table>
                         
                     </div>
                     
                     <div id="uek-main-block-lists" class="hidden">
-                    
+                        <form id="uek-lists-form">
+                            <select id=""> 
+                                <option>Option 1 </option>
+                                <option>Option 2 </option>
+                                <option>Option 3 </option>
+                            </select>
+                        </form>
                     </div>
                     
                     <div id="uek-main-block-options" class="hidden">
-                    
+                        <form id="uek-options-form">
+                            <label for="uek-options-locale">Select the language you want to use Universe in: </label>
+                            <select id="uek-options-locale"> 
+                            </select><br>
+                            
+                            <label for="uek-options-heightconst">Frame height (as percentage of screen height)</label>
+                            <input type="number" id="uek-options-heightconst">
+                            
+                            <label for="uek-options-heightfactor"></label>
+                            <input type="number" id="uek-options-heightfactor">
+                            
+                            <label for="uek-options-widthconst"></label>
+                            <input type="number" id="uek-options-widthconst">
+                            
+                            <label for="uek-options-widthfactor"></label>
+                            <input type="number" id="uek-options-widthfactor">
+                            
+                            Window width: 50% + 200px
+                            Window height: 70% + 0px
+                            
+                            <p id="uek-options-text">Changes are only applied after the page has been refreshed.</p>
+                            <button type="button" id="uek-options-confirm" class="icon-confirm"><div><h6>Save</h6><div></div></div></button>
+                            <button type="button"  id="uek-options-reload" class="icon-reload"><div><h6>Refresh</h6><div></div></div></button><br>
+                            
+                            <button type="button" id="uek-options-delete" class="no-icon" ><div><h6>Delete all data</h6></div></button>
+                            <label for="uek-options-delete-confirm" class="hidden"> Type "delete" to delete all of your user data. This can not be reversed. </label>
+                            <input type="text" id="uek-options-delete-confirm" class="hidden"><br>
+                            
+                            
+                        </form>
                     </div>
                     
                     <div id="uek-main-block-about" class="hidden">
@@ -110,7 +126,6 @@
                     <img id="uek-toggle-open" src="">
                 </a>
             </div>
-        <script src="../scripts/translate.js" type="text/javascript"></script> 
         </div>
     </body>
 </html>

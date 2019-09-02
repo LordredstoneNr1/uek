@@ -1,11 +1,10 @@
 {
     "manifest_version": 2,
-    "name": "Universe Enhancement Kit",
-    "short_name": "UEK",
-    "default_locale": "en_US",
-    "current_locale": "en_US",
-    "description": "Enhances your League Universe page by adding some functionality.",
-    "version": "0.7.5",
+    "name": "__MSG_info_title__",
+    "short_name": "__MSG_info_title_short__",
+    "default_locale": "en",
+    "description": "__MSG_info_description__",
+    "version": "0.8.0",
     "permissions": ["storage", "contextMenus"],
     
     "icons": { 
@@ -33,8 +32,8 @@
     "content_scripts": [
         {
             "matches": ["*://universe.leagueoflegends.com/*"],
-            "css": ["html/style.css"],
-            "js": ["scripts/contentScript.js"]
+            "css": ["css/main.css", "css/stories.css", "css/lists.css", "css/options.css", "css/about.css"],
+            "js": ["scripts/contentScript.js", "scripts/translate.js"]
         }
     ],
     "web_accessible_resources": [

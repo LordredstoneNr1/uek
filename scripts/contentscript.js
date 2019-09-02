@@ -1,39 +1,27 @@
+const universeLanguages = ["cs-CZ", "de-DE", "el-GR", "en-AU", "en-GB", "en-PH", "en-PL", "en-SG", "en-US", 
+    "es-AR", "es-ES", "es-MX", "fr-FR", "hu-HU", "id-ID", "it-IT", "ja-JP", "ko-KR", "ms-MY", 
+    "pl-PL", "pt-BR", "ro-RO", "ru-RU", "th-TH", "tr-TR", "vn-VN", "zh_cn", "zh_tw"];
+    
 var open = false;
-var storyList, championList = [], authorList = [], regionList = [];
-var width;
+var championList = [], authorList = [], regionList = [];
+var height, width, storyList; 
+var stories_sortKey = "title";
 
-//read these from the options eventually
-var widthFactor = 0.4;
-var widthConst = 200;
-
-var sortKey = "title";
-
-//some functions we'll need.
+//some functions we'll need. These need to be acessible outside of main
 function changeVisibility() {
     
     open = !open;
     //update context menu and riotbar entry
     if (!open) {
-        document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px;");
+        document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px; height: " + height + "px;");
     } else {
-        document.getElementById("uek-base-wrapper").removeAttribute("style");
+        document.getElementById("uek-base-wrapper").setAttribute("style", "height: " + height + "px;");
     }
     
     document.getElementById("uek-toggle-open").classList.toggle("hidden");
     document.getElementById("uek-toggle-close").classList.toggle("hidden");
     console.log((open?"Showing":"Hiding") + " UEK Extension page");
 };
-
-function show(key) {
-    document.getElementsByClassName("activeTab")[0].classList.remove("activeTab");
-    var blocklist = document.getElementById("uek-main-body").children;
-    for (i = 0; i < blocklist.length; i++) {
-       blocklist[i].classList.add("hidden");
-    }
-    //remove everything and add it back to the things we need.
-    document.getElementById("uek-main-link-"+key).classList.add("activeTab");
-    document.getElementById("uek-main-block-"+key).classList.remove("hidden");
-}
 
 function readHtmlFile(path, callback) {
     var file = new XMLHttpRequest();
@@ -45,372 +33,285 @@ function readHtmlFile(path, callback) {
     file.send();
 }
 
-/* Main logic, handle injection after window is ready 
-this does need to be on load, even though the script SHOULD load after DOM is ready.
-Seems like Riots scripts are too slow in constructing their website. (Or are mine just too fast?)
-*/
-window.addEventListener("load", function() {
-    readHtmlFile("html/inject.html", function (element) {
-        
-        function parseTR(index, story) {
-            var html = [];
-            html.push(
-            "<td>" + (index+1) + "</td>",
-            "<td>" + story.title + "</td>",
-            "<td>" + story.words + "</td>",
-            "<td>" + story.tags.champions.join(", ") + "</td>",
-            "<td>" + story.tags.regions.join(", ") + "</td>",
-            "<td>" + story.tags.authors.join(", ") + "</td>",
-            "<td>" + new Date(story.timestamp).toLocaleDateString() + "</td>"
-            );
-            return html.join("\n");
+function main(inject) {
+    // Some function definitions, I'd rather have them here if possible. only changeVisibility and readHtmlFile need to be outside.
+    function show(key) {
+        document.getElementsByClassName("activeTab")[0].classList.remove("activeTab");
+        var blocklist = document.getElementById("uek-main-body").children;
+        for (i = 0; i < blocklist.length; i++) {
+           blocklist[i].classList.add("hidden");
         }
-        
-        function compareStories(a, b, key) {
-            switch (key) {
-                // Use title instead of slug because slugs are x-color-story: Unexpected results while sorting
-                case "title": 
-                    return a.title.localeCompare(b.title);
-                    break;
-                    
-                case "words":
-                    //Default from high to low here
-                    return b.words - a.words;
-                    break;
-                    
-                case "release":
-                    if (b.timestamp == null) return -1;
-                    if (a.timestamp == null) return 1;
-                    return b.timestamp.localeCompare(a.timestamp);
-                    break;
+        //remove everything and add it back to the things we need.
+        document.getElementById("uek-main-link-"+key).classList.add("activeTab");
+        document.getElementById("uek-main-block-"+key).classList.remove("hidden");
+    }
+    
+    function parseTR(index, story) {
+        var html = [];
+        html.push(
+        "<td>" + (index+1) + "</td>",
+        "<td>" + story.title + "</td>",
+        "<td>" + story.words + "</td>",
+        "<td>" + story.tags.champions.join(", ") + "</td>",
+        "<td>" + story.tags.regions.join(", ") + "</td>",
+        "<td>" + story.tags.authors.join(", ") + "</td>",
+        "<td>" + new Date(story.timestamp).toLocaleDateString() + "</td>"
+        );
+        return html.join("\n");
+    }
+    
+    function compareStories(a, b, key) {
+        switch (key) {
+            // Use title instead of slug because slugs are x-color-story: Unexpected results while sorting
+            case "title": 
+                if (b.title == null) return -1;
+                if (a.title == null) return 1;
+                return a.title.localeCompare(b.title);
+                break;
                 
-                case "authors":
-                    var maxIndex = Math.min(a.tags.authors.length, b.tags.authors.length);
-                    for (i = 0; i < maxIndex; i++) {
-                        if (a.tags.authors[i].localeCompare(b.tags.authors[i]) != 0) {
-                            return a.tags.authors[i].localeCompare(b.tags.authors[i]);
-                            break;
-                        }
-                    }
-                    return a.tags.authors.length - b.tags.authors.length;
-                    break;
+            case "words":
+                //Default from high to low here
+                return b.words - a.words;
+                break;
                 
-                case "champions":
-                    if (b.tags.champions.length == 0) return -1;
-                    if (a.tags.champions.length == 0) return 1;
-                    var maxIndex = Math.min(a.tags.champions.length, b.tags.champions.length);
-                    for (i = 0; i < maxIndex; i++) {
-                        if (a.tags.champions[i].localeCompare(b.tags.champions[i]) != 0) {
-                            return a.tags.champions[i].localeCompare(b.tags.champions[i]);
-                            break;
-                        }
+            case "release":
+                if (b.timestamp == null) return -1;
+                if (a.timestamp == null) return 1;
+                return b.timestamp.localeCompare(a.timestamp);
+                break;
+            
+            case "authors":
+                var maxIndex = Math.min(a.tags.authors.length, b.tags.authors.length);
+                for (i = 0; i < maxIndex; i++) {
+                    if (a.tags.authors[i].localeCompare(b.tags.authors[i]) != 0) {
+                        return a.tags.authors[i].localeCompare(b.tags.authors[i]);
+                        break;
                     }
-                    return a.tags.champions.length - b.tags.champions.length;
-                    break;
+                }
+                return a.tags.authors.length - b.tags.authors.length;
+                break;
+            
+            case "champions":
+                if (b.tags.champions.length == 0) return -1;
+                if (a.tags.champions.length == 0) return 1;
+                var maxIndex = Math.min(a.tags.champions.length, b.tags.champions.length);
+                for (i = 0; i < maxIndex; i++) {
+                    if (a.tags.champions[i].localeCompare(b.tags.champions[i]) != 0) {
+                        return a.tags.champions[i].localeCompare(b.tags.champions[i]);
+                        break;
+                    }
+                }
+                return a.tags.champions.length - b.tags.champions.length;
+                break;
+            
+            case "regions":
+                if (b.tags.regions.length == 0) return -1;
+                if (a.tags.regions.length == 0) return 1;
+                var maxIndex = Math.min(a.tags.regions.length, b.tags.regions.length);
+                for (i = 0; i < maxIndex; i++) {
+                    if (a.tags.regions[i].localeCompare(b.tags.regions[i]) != 0) {
+                        return a.tags.regions[i].localeCompare(b.tags.regions[i]);
+                    }
+                }
+                return a.tags.regions.length - b.tags.regions.length;
+                break;
                 
-                case "regions":
-                    if (b.tags.regions.length == 0) return -1;
-                    if (a.tags.regions.length == 0) return 1;
-                    var maxIndex = Math.min(a.tags.regions.length, b.tags.regions.length);
-                    for (i = 0; i < maxIndex; i++) {
-                        if (a.tags.regions[i].localeCompare(b.tags.regions[i]) != 0) {
-                            return a.tags.regions[i].localeCompare(b.tags.regions[i]);
-                    var maxIndex = Math.min(a.tags.regions.length, b.tags.regions.length);
-                    for (i = 0; i < maxIndex; i++) {
-                        if (a.tags.regions[i].localeCompare(b.tags.regions[i]) != 0) {
-                            return a.regions[i].localeCompare(b.tags.regions[i]);
-                            break;
-                        }
-                    }
-                    return a.tags.regions.length - b.tags.regions.length;
-                    break;
-                    
-                default: 
-                    return 0;
-                    break;
-            }
+            default: 
+                return 0;
+                break;
         }
+    }
+    
+    function parseData() {
         
-        function parseData() {
-            
-            championList = [], authorList = [], regionList = [];
-            storyList.forEach(function (story) {
-                championList.push(story.tags.champions);
-                authorList.push(story.tags.authors);
-                regionList.push(story.tags.regions);
-            });
-            
-            //remove duplicates & sort
-            championList = [...new Set(championList.flat())].sort();
-            
-            regionList = regionList.flat().reduce(function (cumultativeRegions, newRegion) {
-                const index = cumultativeRegions.findIndex(a => a.name === newRegion);
-                if (index === -1) {
-                    cumultativeRegions.push({"name": newRegion, "nr":1});
-                } else {
-                    cumultativeRegions[index].nr++;
-                }
-                return cumultativeRegions;
-            }, []).sort((a,b) => b.nr - a.nr).map(a => a.name);
-            
-            //removes duplicates & sort by number of times they appear (=> number of stories)
-            authorList = authorList.flat().reduce(function (cumultativeAuthors, newAuthor) {
-                const index = cumultativeAuthors.findIndex(a => a.name === newAuthor);
-                if (index === -1) {
-                    cumultativeAuthors.push({"name": newAuthor, "nr":1});
-                } else {
-                    cumultativeAuthors[index].nr++;
-                }
-                return cumultativeAuthors;
-            }, []).sort((a,b) => b.nr - a.nr).map(a => a.name);
-            
-             championList.forEach(function (champion) {
-                const element = document.createElement("option");
-                element.value = champion;
-                element.innerHTML = champion;
-                document.getElementById("uek-filter-champions-list").appendChild(element);
-            });          
-            
-            regionList.forEach(function (region) {
-                const element = document.createElement("option");
-                element.value = region;
-                element.innerHTML = region;
-                document.getElementById("uek-filter-regions-dropdown").appendChild(element);
-            });
-            
-            authorList.forEach(function (author) {
-                const element = document.createElement("option");
-                element.value = author;
-                element.innerHTML = author;
-                document.getElementById("uek-filter-authors-dropdown").appendChild(element);
-            });
-            
-        }
-        
-        //needs to be async because we need to wait for the response.
-        async function generateStoryHTML() {
-            const target = document.getElementById("uek-stories-table-body");
-            target.innerHTML = "";
-            if (storyList === undefined) {
-                console.log(await new Promise ((resolve, reject) => {
-                    chrome.runtime.sendMessage({id: "get-stories"}, 
-                    function(response) {
-                        if (response.id === "get-stories-response" && response.success == true) {
-                            
-                            storyList = response.stories;
-                            parseData();
-                            resolve("Data parsed successfully");
-                        } else {
-                            reject("Could not get story data from background script");
-                        }
-                    });
-                }));
-            }
-            var currentSelection = Array.from(storyList);
-            //Apply filters and sort the list;
-            if (document.getElementById("uek-filter-title").checked) {
-                const title = document.getElementById("uek-filter-title-text").value;
-                currentSelection = currentSelection.filter(a => new RegExp(title, "i").test(a.title));
-            }
-            if (document.getElementById("uek-filter-champions").checked) {
-                currentSelection = currentSelection.filter(function (story) {
-                    const championSlugs = document.getElementById("uek-filter-champions-text").value.split(",");
-                    const championString = story.tags.champions.join(", ");
-                    for (i = 0; i < championSlugs.length; i++) {
-                        if (!new RegExp(championSlugs[i].trim(), "i").test(championString)) {
-                            return false;
-                        }
-                    }
-                    return true;
-                });
-            }
-            if (document.getElementById("uek-filter-regions").checked) {
-                const region = document.getElementById("uek-filter-regions-dropdown").value;
-                if (region != "") {
-                    currentSelection = currentSelection.filter(a => a.tags.regions.includes(region));
-                }
-            }
-            if (document.getElementById("uek-filter-authors").checked) {
-                const author = document.getElementById("uek-filter-authors-dropdown").value;
-                if (author != "") {
-                    currentSelection = currentSelection.filter(a => a.tags.authors.includes(author));
-                }
-            }
-            if (document.getElementById("uek-filter-type").checked) {
-                const universe = document.getElementById("uek-filter-type-universe-dropdown").value;
-                const type = document.getElementById("uek-filter-type-type-dropdown").value;
-                if (universe === "main-universe") {
-                    currentSelection = currentSelection.filter(a=> a.tags.regions.length > 0);
-                } else if (universe === "alternate-universes")  {
-                    currentSelection = currentSelection.filter(a=> a.tags.regions.length == 0);
-                }
-                
-                const excludes = ["nami-first-steps", "rengar-prey"];
-                
-                if (type === "color-stories") {
-                    currentSelection = currentSelection.filter(a=> a.slug.includes("color") || excludes.includes(a.slug));
-                } else if (type === "long-stories") {
-                    currentSelection = currentSelection.filter(a=> !(a.slug.includes("color") || excludes.includes(a.slug)));
-                }
-            }
-            if (document.getElementById("uek-filter-words").checked) {
-                const min = document.getElementById("uek-filter-words-min").value;
-                const max = document.getElementById("uek-filter-words-max").value;
-                if (min !== "") {currentSelection = currentSelection.filter(a=> a.words >= min);}
-                if (max !== "") {currentSelection = currentSelection.filter(a=> a.words <= max);}
-            }
-            if (document.getElementById("uek-filter-date").checked) {
-                const min = document.getElementById("uek-filter-date-min").value;
-                const max = document.getElementById("uek-filter-date-max").value;
-                if (min !== "") {currentSelection = currentSelection.filter(a => a.timestamp >= min);}
-                if (max !== "") {currentSelection = currentSelection.filter(a => a.timestamp <= max);}
-            }
-            if (sortKey.endsWith("reverse")) {
-                storyList.forEach(function (story) {
-                    story.tags.champions.sort().reverse();
-                    story.tags.regions.sort().reverse();
-                    story.tags.authors.sort().reverse();
-                });
-                
-                currentSelection.sort((a,b) => compareStories(a,b, sortKey.substring(0, sortKey.indexOf("-reverse")))).reverse();
-            } else {
-                storyList.forEach(function (story) {
-                    story.tags.champions.sort();
-                    story.tags.regions.sort();
-                    story.tags.authors.sort();
-                });
-                currentSelection.sort((a,b) => compareStories(a,b, sortKey));
-            }
-            console.log("Displaying current selection, sorted by: ", sortKey, currentSelection);
-            
-            for (i = 0; i < currentSelection.length; i++) {
-                const row = document.createElement("tr");
-                row.innerHTML = parseTR(i, currentSelection[i]);
-                target.appendChild(row);
-            }
-        }
-        
-        const injectDoc = new DOMParser().parseFromString(element, "text/html");
-
-        // Inject link in the menu
-        document.getElementById("riotbar-navmenu").lastElementChild.firstElementChild.appendChild(injectDoc.getElementById("uek-link-element"));
-        // Link in the Riot Menu
-        document.getElementById("uek-link-open").onclick = function () { changeVisibility();};
-        chrome.storage.sync.get("options", function(options) {
-            document.getElementById("uek-link-open").firstElementChild.innerHTML = options.shortcut;
+        championList = [], authorList = [], regionList = [];
+        storyList.forEach(function (story) {
+            championList.push(story.tags.champions);
+            authorList.push(story.tags.authors);
+            regionList.push(story.tags.regions);
         });
         
-        // window setup
-        document.body.appendChild(injectDoc.getElementById("uek-base-wrapper"));
+        //remove duplicates & sort
+        championList = [...new Set(championList.flat())].sort();
         
-        {       //Translation starts here
-            var element;
-            console.log("Starting translation for locale ", chrome.i18n.getUILanguage());
-            
-            { // Riot sidebar
-                document.getElementById("uek-link-element").firstElementChild.innerHTML = chrome.i18n.getMessage("info_title");
-                document.getElementById("uek-link-open").innerHTML = chrome.i18n.getMessage("info_open") + '<span class="riotbar-link-subtext">Ctrl + Shift + L</span>';
+        regionList = regionList.flat().reduce(function (cumultativeRegions, newRegion) {
+            const index = cumultativeRegions.findIndex(a => a.name === newRegion);
+            if (index === -1) {
+                cumultativeRegions.push({"name": newRegion, "nr":1});
+            } else {
+                cumultativeRegions[index].nr++;
             }
-           
-            { // Extension heading
-                document.getElementById("uek-main-title").innerHTML = chrome.i18n.getMessage("info_title_version", [chrome.runtime.getManifest().version]);
-                document.getElementById("uek-main-link-stories").innerHTML = chrome.i18n.getMessage("heading_stories");
-                document.getElementById("uek-main-link-lists").innerHTML = chrome.i18n.getMessage("heading_lists");
-                document.getElementById("uek-main-link-options").innerHTML = chrome.i18n.getMessage("heading_options");
-                document.getElementById("uek-main-link-about").innerHTML = chrome.i18n.getMessage("heading_about");
+            return cumultativeRegions;
+        }, []).sort((a,b) => b.nr - a.nr).map(a => a.name);
+        
+        //removes duplicates & sort by number of times they appear (=> number of stories)
+        authorList = authorList.flat().reduce(function (cumultativeAuthors, newAuthor) {
+            const index = cumultativeAuthors.findIndex(a => a.name === newAuthor);
+            if (index === -1) {
+                cumultativeAuthors.push({"name": newAuthor, "nr":1});
+            } else {
+                cumultativeAuthors[index].nr++;
             }
-            
-            { // Story Tab 
-                document.getElementById("uek-stories-text").innerHTML = chrome.i18n.getMessage("stories_text");
-                
-                { // Filter form
-                    document.getElementById("uek-filter-title").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_title");
-                    document.getElementById("uek-filter-title-text").placeholder = chrome.i18n.getMessage("stories_placeholder_title");
-
-                    document.getElementById("uek-filter-champions").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_champions");
-                    document.getElementById("uek-filter-champions-text").placeholder = chrome.i18n.getMessage("stories_placeholder_champions");
-
-                    document.getElementById("uek-filter-regions").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_regions");
-                    element = document.createElement("option");
-                    element.value = "";
-                    element.selected = true;
-                    element.innerHTML = chrome.i18n.getMessage("stories_placeholder_regions");
-                    document.getElementById("uek-filter-regions-dropdown").appendChild(element);
-
-                    document.getElementById("uek-filter-authors").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_authors");
-                    element = document.createElement("option");
-                    element.value = "";
-                    element.selected = true;
-                    element.innerHTML = chrome.i18n.getMessage("stories_placeholder_authors");
-                    document.getElementById("uek-filter-authors-dropdown").appendChild(element);
-
-                    document.getElementById("uek-filter-type").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_type");
-                    element = document.createElement("option");
-                    element.value = "all";
-                    element.selected = true;
-                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_alluniverses");
-                    document.getElementById("uek-filter-type-universe-dropdown").appendChild(element);
-                    element = document.createElement("option");
-                    element.value = "main-universe";
-                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_mainuniverse");
-                    document.getElementById("uek-filter-type-universe-dropdown").appendChild(element);
-                    element = document.createElement("option");
-                    element.value = "alternate-universes";
-                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_alternateuniverses");
-                    document.getElementById("uek-filter-type-universe-dropdown").appendChild(element);
-                    element = document.createElement("option");
-                    element.value = "all";
-                    element.selected = true;
-                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_allstories");
-                    document.getElementById("uek-filter-type-type-dropdown").appendChild(element);
-                    element = document.createElement("option");
-                    element.value = "color-stories";
-                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_colorstories");
-                    document.getElementById("uek-filter-type-type-dropdown").appendChild(element);
-                    element = document.createElement("option");
-                    element.value = "long-stories";
-                    element.innerHTML = chrome.i18n.getMessage("stories_dropdown_longstories");
-                    document.getElementById("uek-filter-type-type-dropdown").appendChild(element);
-
-                    document.getElementById("uek-filter-words").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_words");
-                    document.getElementById("uek-filter-words-text").innerHTML = chrome.i18n.getMessage("stories_filter_words_text", ['<input type="number" id="uek-filter-words-min"  min="0" step="50" max="20000" value="1000">', '<input type="number" id="uek-filter-words-max"  min="0" step="50" max="20000" value="5000">']) + "<br>";
-
-                    document.getElementById("uek-filter-date").nextElementSibling.innerHTML = chrome.i18n.getMessage("stories_filter_words");
-                    document.getElementById("uek-filter-date-text").innerHTML = chrome.i18n.getMessage("stories_filter_date_text", ['<input type="date" id="uek-filter-date-min" min="2014-01-01" max="2020-12-31" value="2016-06-01">', '<input type="date" id="uek-filter-date-max" min="2014-01-01" max="2020-12-31" value="2017-01-01">']) + "<br>";
+            return cumultativeAuthors;
+        }, []).sort((a,b) => b.nr - a.nr).map(a => a.name);
+        
+        regionList.forEach(function (region) {
+            const element = document.createElement("option");
+            element.value = region;
+            element.innerHTML = region;
+            document.getElementById("uek-filter-regions-dropdown").appendChild(element);
+        });
+        
+        authorList.forEach(function (author) {
+            const element = document.createElement("option");
+            element.value = author;
+            element.innerHTML = author;
+            document.getElementById("uek-filter-authors-dropdown").appendChild(element);
+        });
+        
+    }
+    
+    //needs to be async because we need to wait for the response.
+    async function generateStoryHTML() {
+        const target = document.getElementById("uek-stories-table-body");
+        target.innerHTML = "";
+        if (storyList === undefined) {
+            console.log(await new Promise ((resolve, reject) => {
+                chrome.runtime.sendMessage({id: "get-stories"}, 
+                function(response) {
+                    if (response.id === "get-stories-response" && response.success == true) {
+                        
+                        storyList = response.stories;
+                        parseData();
+                        resolve("Data parsed successfully");
+                    } else {
+                        reject("Could not get story data from background script");
+                    }
+                });
+            }));
+        }
+        var currentSelection = Array.from(storyList);
+        //Apply filters and sort the list;
+        if (document.getElementById("uek-filter-title").checked) {
+            const title = document.getElementById("uek-filter-title-text").value;
+            currentSelection = currentSelection.filter(a => new RegExp(title, "i").test(a.title));
+        }
+        if (document.getElementById("uek-filter-champions").checked) {
+            currentSelection = currentSelection.filter(function (story) {
+                const championSlugs = document.getElementById("uek-filter-champions-text").value.split(",");
+                const championString = story.tags.champions.join(", ");
+                for (i = 0; i < championSlugs.length; i++) {
+                    if (!new RegExp(championSlugs[i].trim(), "i").test(championString)) {
+                        return false;
+                    }
                 }
-                
-                document.getElementById("uek-filter-apply").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("stories_button_apply");
-                document.getElementById("uek-filter-save").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("stories_button_save");
-                document.getElementById("uek-filter-reset").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("stories_button_reset");
-                document.getElementById("uek-filter-reload").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("stories_button_reload");
+                return true;
+            });
+        }
+        if (document.getElementById("uek-filter-regions").checked) {
+            const region = document.getElementById("uek-filter-regions-dropdown").value;
+            if (region != "") {
+                currentSelection = currentSelection.filter(a => a.tags.regions.includes(region));
             }
         }
+        if (document.getElementById("uek-filter-authors").checked) {
+            const author = document.getElementById("uek-filter-authors-dropdown").value;
+            if (author != "") {
+                currentSelection = currentSelection.filter(a => a.tags.authors.includes(author));
+            }
+        }
+        if (document.getElementById("uek-filter-type").checked) {
+            const universe = document.getElementById("uek-filter-type-universe-dropdown").value;
+            const type = document.getElementById("uek-filter-type-type-dropdown").value;
+            if (universe === "main-universe") {
+                currentSelection = currentSelection.filter(a=> a.tags.regions.length > 0);
+            } else if (universe === "alternate-universes")  {
+                currentSelection = currentSelection.filter(a=> a.tags.regions.length == 0);
+            }
+            
+            const excludes = ["nami-first-steps", "rengar-prey"];
+            
+            if (type === "color-stories") {
+                currentSelection = currentSelection.filter(a=> a.slug.includes("color") || excludes.includes(a.slug));
+            } else if (type === "long-stories") {
+                currentSelection = currentSelection.filter(a=> !(a.slug.includes("color") || excludes.includes(a.slug)));
+            }
+        }
+        if (document.getElementById("uek-filter-words").checked) {
+            const min = document.getElementById("uek-filter-words-min").value;
+            const max = document.getElementById("uek-filter-words-max").value;
+            if (min !== "") {currentSelection = currentSelection.filter(a=> a.words >= min);}
+            if (max !== "") {currentSelection = currentSelection.filter(a=> a.words <= max);}
+        }
+        if (document.getElementById("uek-filter-date").checked) {
+            const min = document.getElementById("uek-filter-date-min").value;
+            const max = document.getElementById("uek-filter-date-max").value;
+            if (min !== "") {currentSelection = currentSelection.filter(a => a.timestamp >= min);}
+            if (max !== "") {currentSelection = currentSelection.filter(a => a.timestamp <= max);}
+        }
+        if (stories_sortKey.endsWith("reverse")) {
+            storyList.forEach(function (story) {
+                story.tags.champions.sort().reverse();
+                story.tags.regions.sort().reverse();
+                story.tags.authors.sort().reverse();
+            });
+            
+            currentSelection.sort((a,b) => compareStories(a,b, stories_sortKey.substring(0, stories_sortKey.indexOf("-reverse")))).reverse();
+        } else {
+            storyList.forEach(function (story) {
+                story.tags.champions.sort();
+                story.tags.regions.sort();
+                story.tags.authors.sort();
+            });
+            currentSelection.sort((a,b) => compareStories(a,b, stories_sortKey));
+        }
+        console.log("Displaying current selection, sorted by: ", stories_sortKey, currentSelection);
         
-        width = widthConst + widthFactor * window.innerWidth;
-        document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px;");
+        for (i = 0; i < currentSelection.length; i++) {
+            const row = document.createElement("tr");
+            row.innerHTML = parseTR(i, currentSelection[i]);
+            target.appendChild(row);
+        }
+    }
+    
+    // Injection and logic
+    const injectDoc = new DOMParser().parseFromString(inject, "text/html");
+            
+    document.getElementById("riotbar-navmenu").lastElementChild.firstElementChild.appendChild(injectDoc.getElementById("uek-link-element"));
+    document.getElementById("uek-link-open").onclick = function () { changeVisibility();};
+    
+    document.body.appendChild(injectDoc.getElementById("uek-base-wrapper"));
+    translate();
+    
+    //Window layout
+    chrome.storage.sync.get("options", function(items) {
+        width = items.options.widthConst + (items.options.widthFactor * window.innerWidth);
+        height = items.options.heightConst + (items.options.heightFactor * window.innerHeight);
+        document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px; height: " + height + "px;");
         document.getElementById("uek-main-page").setAttribute("style", "width: "+ width +"px;");
-        const baseHeightStr = window.getComputedStyle(document.getElementById("uek-main-body")).getPropertyValue("height");
-        const baseHeight = Number.parseInt(baseHeightStr.substring(0, baseHeightStr.length-2), 10);
-        
+                        
         const filterHeightStr = window.getComputedStyle(document.getElementById("uek-stories-filter")).getPropertyValue("height");
         const filterHeight = Number.parseInt(filterHeightStr.substring(0, filterHeightStr.length-2), 10);
         
-        const storyTableBodyHeight = baseHeight - filterHeight;
-        document.getElementById("uek-stories-display").setAttribute("style", "height: " + storyTableBodyHeight + "px;");
-        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (storyTableBodyHeight-50) + "px;");
+        const baseHeightStr = window.getComputedStyle(document.getElementById("uek-main-block-stories")).getPropertyValue("height");
+        const baseHeight = Number.parseInt(baseHeightStr.substring(0, baseHeightStr.length-2), 10);
         
-        
-        // Link in the extension div
+        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (baseHeight - filterHeight - 40) + "px;");
+    });
+      
+    { // Header and link
         document.getElementById("uek-toggle-link").onclick = function() { changeVisibility();};
         document.getElementById("uek-toggle-open").src = chrome.runtime.getURL("images/arrow-right.png");
         document.getElementById("uek-toggle-close").src = chrome.runtime.getURL("images/arrow-left.png");
         
         document.getElementById("uek-main-link-stories").onclick = function() {show("stories");};
         document.getElementById("uek-main-link-lists").onclick = function() {show("lists");};
+        document.getElementById("uek-main-link-options").onclick = function() {show("options");};
         document.getElementById("uek-main-link-about").onclick = function() {show("about");};
-                
-        //Story filter
-        generateStoryHTML();
+    }
+   
+    { //Story tab
+    
         document.getElementById("uek-filter-apply").onclick = function() {
             generateStoryHTML(document.getElementById("uek-stories-table-body"));
         };
@@ -421,11 +322,13 @@ window.addEventListener("load", function() {
     
         //No need to set onclick for reset because that will reset the form by default
         
+        //Same, resetting is default, but we also need to ask the background script to reload the stories
         document.getElementById("uek-filter-reload").onclick = function() {
             chrome.runtime.sendMessage({id: "query-stories"}, 
                 function(response) {
                     if (response.id === "get-stories-response" && response.success == true) {
                         storyList = response.stories;
+                        stories_sortKey = "title";
                         parseData();
                         generateStoryHTML();
                     }
@@ -436,19 +339,46 @@ window.addEventListener("load", function() {
         //short version to assign the correct keyword to the table heading
         ["", "title", "words", "champions", "regions", "authors", "release" ].forEach(function(key, i) {
             document.getElementById("uek-stories-table-heading").firstElementChild.children[i].onclick = function() {
-                if (sortKey === key && key != "") {
-                    sortKey = key + "-reverse";
+                if (stories_sortKey === key && key != "") {
+                    stories_sortKey = key + "-reverse";
                 } else {
                     // no extra check if it was reversed before: this returns it to its original state!
-                    sortKey = key;
+                    stories_sortKey = key;
                 }
-                
+                document.getElementsByClassName("activeSort")[0].classList.remove("activeSort");
+                document.getElementById("uek-stories-table-heading").firstElementChild.children[i].classList.add("activeSort");
                 generateStoryHTML(document.getElementById("uek-stories-table-body"));
             }
         });
         
-    });
-});
+        generateStoryHTML();
+    }
+
+    { // Lists tab
+        
+    }
+
+    { // Options tab
+        document.getElementById("uek-options-reload").onclick = function () {
+            console.log("Restarting UEK");
+            document.getElementById("uek-base-wrapper").parentElement.removeChild(document.getElementById("uek-base-wrapper"));
+            open = false;
+            championList = [];
+            authorList = [];
+            regionList = [];
+            height = undefined;
+            width = undefined; 
+            storyList = undefined; 
+            stories_sortKey = "title";
+            main(inject);
+            };
+    }
+    
+    { // About Tab
+        
+    }
+}
+
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (document.readyState == "complete") {
         switch (message.id) {
@@ -556,3 +486,11 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         }
     }
 });
+
+// Execute main logic after Riot set up the window
+new MutationObserver(function(mutationsList, observer) {
+    if (mutationsList.find(a => a.target.id === "riotbar-navmenu") != undefined) {
+        observer.disconnect();
+        readHtmlFile("html/inject.html", main);
+    }
+}).observe(document.body, {childList: true, subtree: true});

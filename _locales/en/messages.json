@@ -31,11 +31,11 @@
     "champion_evelynn": {"message": "Evelynn", "description": "Displayed name for champion Evelynn."},
     "champion_ezreal": {"message": "Ezreal", "description": "Displayed name for champion Ezreal."},
    
-   "champion_fiddlesticks": {"message": "Fiddlesticks", "description": "Displayed name for champion Fiddlesticks."},
+    "champion_fiddlesticks": {"message": "Fiddlesticks", "description": "Displayed name for champion Fiddlesticks."},
     "champion_fiora": {"message": "Fiora", "description": "Displayed name for champion Fiora."},
     "champion_fizz": {"message": "Fizz", "description": "Displayed name for champion Fizz."},
    
-   "champion_galio": {"message": "Galio", "description": "Displayed name for champion Galio."},
+    "champion_galio": {"message": "Galio", "description": "Displayed name for champion Galio."},
     "champion_gangplank": {"message": "Gangplank", "description": "Displayed name for champion Gangplank."},
     "champion_garen": {"message": "Garen", "description": "Displayed name for champion Garen."},
     "champion_gnar": {"message": "Gnar", "description": "Displayed name for champion Gnar."},
@@ -99,14 +99,14 @@
     "champion_orianna": {"message": "Orianna", "description": "Displayed name for champion Orianna."},
     "champion_ornn": {"message": "Ornn", "description": "Displayed name for champion Ornn."},
    
-   "champion_pantheon": {"message": "Pantheon", "description": "Displayed name for champion Pantheon."},
+    "champion_pantheon": {"message": "Pantheon", "description": "Displayed name for champion Pantheon."},
     "champion_poppy": {"message": "Poppy", "description": "Displayed name for champion Poppy."},
     "champion_pyke": {"message": "Pyke", "description": "Displayed name for champion Pyke."},
 
     "champion_qiyana": {"message": "Qiyana", "description": "Displayed name for champion Qiyana."},
     "champion_quinn": {"message": "Quinn", "description": "Displayed name for champion Quinn."},
    
-   "champion_rakan": {"message": "Rakan", "description": "Displayed name for champion Rakan."},
+    "champion_rakan": {"message": "Rakan", "description": "Displayed name for champion Rakan."},
     "champion_rammus": {"message": "Rammus", "description": "Displayed name for champion Rammus."},
     "champion_reksai": {"message": "Rek'Sai", "description": "Displayed name for champion Rek'Sai."},
     "champion_renekton": {"message": "Renekton", "description": "Displayed name for champion Renekton."},
@@ -115,7 +115,7 @@
     "champion_rumble": {"message": "Rumble", "description": "Displayed name for champion Rumble."},
     "champion_ryze": {"message": "Ryze", "description": "Displayed name for champion Ryze."},
    
-   "champion_sejuani": {"message": "Sejuani", "description": "Displayed name for champion Sejuani."},
+    "champion_sejuani": {"message": "Sejuani", "description": "Displayed name for champion Sejuani."},
     "champion_shaco": {"message": "Shaco", "description": "Displayed name for champion Shaco."},
     "champion_shen": {"message": "Shen", "description": "Displayed name for champion Shen."},
     "champion_shyvana": {"message": "Shyvana", "description": "Displayed name for champion Shyvana."},
@@ -177,13 +177,13 @@
     "region_freljord": {"message": "Freljord", "description": "Displayed name for region Freljord."},
     "region_ionia": {"message": "Ionia", "description": "Displayed name for region Ionia."},
     "region_ixtal": {"message": "Ixtal", "description": "Displayed name for region Ixtal."},
-    "region_mount_targon": {"message": "Mt. Targon", "description": "Displayed name for region Mt. Targon."},
+    "region_mount_targon": {"message": "Targon", "description": "Displayed name for region Mt. Targon."},
     "region_noxus": {"message": "Noxus", "description": "Displayed name for region Noxus."},
     "region_piltover": {"message": "Piltover", "description": "Displayed name for region Piltover."},
     "region_runeterra": {"message": "Runeterra", "description": "Displayed name for region Runeterra."},
     "region_shadow_isles": {"message": "Shadow Isles", "description": "Displayed name for region Shadow Isles."},
     "region_shurima": {"message": "Shurima", "description": "Displayed name for region Shurima."},
-    "region_void": {"message": "Void", "description": "Displayed name for region Void."},
+    "region_void": {"message": "The Void", "description": "Displayed name for region Void."},
     "region_zaun": {"message": "Zaun", "description": "Displayed name for region Zaun."},
     
     
@@ -205,10 +205,49 @@
             }
         }
      },
+     "info_description": {
+        "message": "Enhances your League Universe page by adding some functionality.",
+        "description": "Description displayed in the webstore."
+     },
     "info_open": {
         "message": "Open extension",
         "description": "The link in Riot's sidebar to open the extension."
      },
+     "info_subtitle_by": {
+        "message": "by ;By ;BY ",
+        "description": "Variations of the first part of the subtitle, 'by Author'. Include a trailing whitespace. Please check a story on universe to see if it matches!"
+     },
+     "info_universecode": {
+        "message": "en-US",
+        "description": "All lowercase language-code. Always include the region even if translating for languages only. Ex: de -> de_de"
+     },
+     
+     
+    "popup_text": {
+        "message": "Visit the <a id='universeLink' class='link' href='https://universe.leagueoflegends.com/en_US/'>Universe</a> and use one of the following to show the extension page:",
+        "description": "Displayed in the popup. HTML Encouraged, change the link href to your universe page but nothing else. (pls don't break it)"
+    },
+    "popup_change": {
+        "message": "Change",
+        "description": "Displayed in the popup after the shortcut and in brackets like '(change this)'"
+    },
+    "popup_contextmenu": {
+        "message": "<b>Context Menu</b>",
+        "description": "Displayed in the popup. How to open the extension."
+    },
+    "popup_riotmenu": {
+        "message": "<b>Riots Menu</b>",
+        "description": "Displayed in the popup. Another way to open the extension."
+    },
+    "popup_click": {
+        "message": "or just <b>Click the arrow</b>",
+        "description": "Displayed in the popup. Last way to open the extension."
+    },
+    "popup_close": {
+        "message": "Right click on this icon to hide it!",
+        "description": "Displayed in the popup. How to hide the icon."
+    },
+    
     
     "context_menu_": {"message": ""},
         
@@ -315,11 +354,11 @@
         "description": "Text that specifies the filter. Use $min$ and $max$ to specify where the number fields go.",
         "placeholders": {
             "min": {
-                "content": "$1",
+                "content": "&min;",
                 "example": "1000 - An input field for the minimum number of words."
             }, 
             "max": {
-                "content": "$2",
+                "content": "&max;",
                 "example": "5000 - An input field for the maximum number of words."
             }
         }
@@ -334,11 +373,11 @@
         "description": "Text that specifies the filter. Use $min$ and $max$ to specify where the date fields go.",
         "placeholders": {
             "min": {
-                "content": "$1",
+                "content": "&min;",
                 "example": "2016-06-01 - An input field for the first date."
             }, 
             "max": {
-                "content": "$2",
+                "content": "&max;",
                 "example": "2017-01-01 - An input field for the second date."
             }
         }
@@ -359,14 +398,50 @@
     "stories_button_reload": {
         "message": "Reload",
         "description": "Button label. Preferrably one word only."
+    }, 
+    
+    "stories_table_nr": {
+        "message": "#",
+        "description": "Table column heading. Short word or symbol, indicates the number of the story."
+    },  
+    "stories_table_title": {
+        "message": "Title",
+        "description": "Table column heading. Title of the stories in the table below."
+    },  
+    "stories_table_length": {
+        "message": "Length",
+        "description": "Table column heading. Length of the stories in the table below."
+    },   
+    "stories_table_champions": {
+        "message": "Champions",
+        "description": "Table column heading. Champions of the stories in the table below."
+    },   
+    "stories_table_regions": {
+        "message": "Regions",
+        "description": "Table column heading. Regions of the stories in the table below."
+    },  
+    "stories_table_author": {
+        "message": "Author",
+        "description": "Table column heading. Author of the stories in the table below, singular form if possible"
+    },  
+    "stories_table_date": {
+        "message": "Release Date",
+        "description": "Table column heading. Release Date of the stories in the table below."
     },  
     
     
+    
+    
     "lists": {"message": ""},
-    "options": {"message": ""},
-    "about_text": {
-        "message": "The Universe Enhancement Kit was created under Riot Games' <a href='https://www.riotgames.com/en/legal'>'Legal Jibber Jabber' policy</a> using assets owned by Riot Games.  Riot Games does not endorse or sponsor this project.",
-        "description": "Text displayed on the About tab. HTML Encouraged."
+    
+    "options_universelocale": {
+        "message": "Select the language you want to use Universe in: ",
+        "description": ""
+    },
+    
+    "about_legal": {
+        "message": "The Universe Enhancement Kit was created under Riot Games' <a href='https://www.riotgames.com/en/legal' target='_blank'>'Legal Jibber Jabber'</a> policy using assets owned by Riot Games.  Riot Games does not endorse or sponsor this project.",
+        "description": "Text displayed on the About tab. HTML Encouraged. Swap out the link to include your regions page."
     }
     
 }

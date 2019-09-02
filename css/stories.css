@@ -1,0 +1,79 @@
+input#uek-filter-words-min, input#uek-filter-words-max {
+    width: 62px;
+}
+
+tbody#uek-stories-table-body {
+    padding: 20px 5px;
+    display: block;
+    overflow-y: scroll;
+}
+
+tbody#uek-stories-table-body > tr, thead#uek-stories-table-heading > tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+tbody#uek-stories-table-body > tr {
+  border: 2px outset #262626 !important;
+} 
+
+tbody#uek-stories-table-body td {
+    width: 50px;
+    text-align: center;
+}
+
+tbody#uek-stories-table-body td + td {
+    width: 20%;
+    text-align: left;
+}
+
+tbody#uek-stories-table-body td + td + td {
+    width: 60px;
+    text-align: center;
+}
+
+tbody#uek-stories-table-body td + td + td + td {
+    width: auto;
+    text-align: left;
+}
+
+tbody#uek-stories-table-body td + td + td + td + td + td + td {
+    width: 80px;
+    text-align: right;
+}
+
+tfoot {
+    display: none;
+}
+
+thead#uek-stories-table-heading {
+    padding-left: 20px;
+}
+
+thead#uek-stories-table-heading th {
+    width: 50px;
+    text-align: right;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+thead#uek-stories-table-heading th + th {
+    width: 20%;
+    text-align: center;
+}
+
+thead#uek-stories-table-heading th + th + th {
+    width: 60px;
+    text-align: center;
+}
+
+thead#uek-stories-table-heading th + th + th + th {
+    width: auto;
+    text-align: center;
+}
+
+thead#uek-stories-table-heading th + th + th + th + th + th + th {
+    width: 80px;
+    text-align: center;
+}

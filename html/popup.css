@@ -1,0 +1,16 @@
+html#min-size {
+     min-height: 150px; 
+     min-width:400px;
+}
+
+h1#uek-popup-title {
+    text-align: center;
+}
+
+a#changelink:link {
+    color: #0000EE;
+}
+
+a#changelink:visited {
+    color: #0000EE;
+}

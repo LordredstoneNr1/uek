@@ -1,32 +1,53 @@
-var options = {};
+var options = {
+    widthFactor: 0.4,
+    widthConst: 200,
+    heightFactor: 0.7,
+    heightConst: 200,
+    universeOverride: chrome.i18n.getMessage("info_universecode")
+};
+
+function getJSON(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+        console.log("XMLHttpRequest to \'" + url + "\' finished with status " + xhr.status);
+        callback(xhr.status, xhr.response);
+    };
+    xhr.send();
+};
+
 class StoryList {
     
-    constructor(name, list) {
-        var collection = [];
-        list.data.forEach(function (slug) {
-            collection.push(StoryList.findBinSearch(UnpackedStory.storyModules, "slug", slug));
-        });
+    constructor(list, metaData) {
         
-        this.displayName = name;
-        this.data = collection;
-        if (Object.keys(list).includes("bool")) {
-            this.deleteAfterRead = list.bool;
+        this.displayName = metaData[0];
+        this.data = list.map(a => (UnpackedStory.storyModules.find(b => b["slug"] == a)));
+        
+        if (metaData.length > 1 && ["delete", "mark", "keep"].includes(metaData[1])) {
+            this.afterRead = metaData[1];
         } else {
-            this.deleteAfterRead = false;
+            this.afterRead = "keep";
         }
         
+        if (metaData.length > 2) {
+            this.suggest = metaData[2];
+        } else {
+            this.suggest = false;
+        }
+                
         StoryList.unpackedLists[this.displayName] = this;
         
         chrome.contextMenus.create({
             "id": name,
             "parentId": "listsRoot",
-            "title": name,
+            "title": this.displayName,
             "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
             "contexts": ["link"]
         }); 
     }
     
-    static createReadingList(tag, deleteAfterRead) {
+    static createReadingList(tag, afterReadHandler, suggest) {
         var filteredModules = [];
         var name;
         console.log("Setting up list for tag: " + tag);
@@ -35,13 +56,13 @@ class StoryList {
             console.log("Special Tag found: " + tag);
             name = "Reading List";
             filteredModules = UnpackedStory.storyModules;
-        } else if (Object.values(regions).includes(tag)) {
+        } else if (Object.values(champions_base).includes(tag)) {
             
             //Regions
             console.log("Region found: " + tag);
             name = "Region: " + tag;
             filteredModules = filterByTag("regions", tag);
-        } else if (Object.keys(champions).includes(tag)) {
+        } else if (Object.keys(champions_base).includes(tag)) {
             
             //Champions
             console.log("Champion found: " + tag);
@@ -59,40 +80,12 @@ class StoryList {
             console.log("Tag not found.");
             return null;
         }
-        var urlCollection = [];
-        console.log(filteredModules);
-        filteredModules.forEach(function(obj) {
-            urlCollection.push(obj.slug);
-        });
+        
+        //console.log(filteredModules);
             
-        var list =  {
-            "data": urlCollection,
-            "bool": deleteAfterRead, 
-        }
-        new StoryList(name, list).save();
+        new StoryList(filteredModules.map(a => a.slug), [name, afterReadHandler, suggest]).save();
     }
-    
-    static findBinSearch(list, key, item) {
-        function findBinRec(start, end) {
-            var middle = Math.floor((start + end) / 2);
-            var result = list[middle][key].localeCompare(item);
-            //console.log(start, middle, end);
-            //console.log(list[middle][key], item, result);
-            if (result == 0) {
-                return list[middle];
-            } else if (result > 0) {
-                return findBinRec(start, middle-1);
-            } else {
-                return findBinRec(middle+1, end);
-            }
-        };
-        return findBinRec(0, list.length);
-    }
-    
-    static hasUnpacked(list) {
-        return Object.keys(StoryList.unpackedLists).includes(list);
-    }
-    
+          
     static filterByTag(key, tag) {
        return UnpackedStory.storyModules.filter( function(obj)  {
             var found = false;
@@ -115,15 +108,15 @@ class StoryList {
     }
     
     save() {
-        var packedList = {};
-        var packedData = [];
-        this.data.forEach(function(story) {
-            packedData.push(story.slug);
-        });
-        // only save this value if true, since it defaults to false if unspecified. -- Actually I don't care, that extra storage space shouldn't make the difference.
-        packedList["list: " + this.displayName] = {"data" : packedData, "bool": this.deleteAfterRead};
-
-        chrome.storage.sync.set(packedList);
+        const name = "list: " + this.displayName;
+        chrome.storage.sync.set({
+             name : {
+                "data" : this.data.map(a => a.slug), 
+                "afterRead": this.afterRead,
+                "suggest": this.suggest
+                }
+            }
+        );
         chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
             console.log("Saved Data. Total bytes used: ", bytesInUse);
         });
@@ -155,15 +148,19 @@ class UnpackedStory {
         } else {
             //regular tags created from the champions and subtitle of the story
             obj['featured-champions'].forEach(function(champion) {
-                tags.champions.push(champion.name);
+                if (chrome.i18n.getMessage("champion_" + champion.slug) != champion.name) {
+                    //console.log("Champion " + champion.slug + " is translated as \"" + chrome.i18n.getMessage("champion_" + champion.slug) + "\" but the website says \"" + champion.name + "\".");
+                }
+                tags.champions.push(chrome.i18n.getMessage("champion_" + champion.slug));
                 if (!tags.regions.includes(chrome.i18n.getMessage("region_" + champions_base[champion.slug]))) {
                     // Plain text version instead of faction slug
                     tags.regions.push(chrome.i18n.getMessage("region_" + champions_base[champion.slug]));
                 }
             });  
-            if (obj.subtitle != null && (obj.subtitle.startsWith("by") || obj.subtitle.startsWith("By")) ) {
-                 
-                var author = obj.subtitle.substring("by".length+1);
+            const beginnings = chrome.i18n.getMessage("info_subtitle_by").split(";");
+            if (obj.subtitle != null && beginnings.includes(obj.subtitle.substr(0, beginnings[0].length)) ) {
+                
+                var author = obj.subtitle.substring(beginnings[0].length);
                 
                 //Transform Ian St Martin into Ian St. Martin.
                 if (author === "Ian St Martin") {
@@ -183,6 +180,8 @@ class UnpackedStory {
                 //Lookup list in case the subtitle is not defined.
                 if(authors_fallback[this.slug]) {
                     tags.authors = authors_fallback[this.slug];
+                } else {
+                    console.log(obj["story-slug"]);
                 }
             }
             
@@ -358,7 +357,7 @@ chrome.runtime.onInstalled.addListener(function() {
                 });
                 break;
         } 
-        if (StoryList.hasUnpacked(info.menuItemId)) {
+        if (Object.keys(StoryList.unpackedLists).includes(info.menuItemId)) {
            StoryList.unpackedLists[info.menuItemId].add(info.linkUrl);
         }
     });
@@ -382,7 +381,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         });
         console.log("Sender ", sender, " requested story modules, sending data.");
     } else if (request.id === "query-stories") {
-        getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json', function(status, data){
+        getJSON("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json", function(status, data){
+            UnpackedStory.storyModules = [];
             data.modules.forEach( function(obj) {
                 if (obj.type === "story-preview") {
                     UnpackedStory.storyModules.push( new UnpackedStory(obj));
@@ -400,7 +400,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 //Setting up data
-getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json', function(status, data){
+getJSON("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json", function(status, data){
     data.modules.forEach( function(obj) {
         if (obj.type === "story-preview") {
             UnpackedStory.storyModules.push( new UnpackedStory(obj));
@@ -414,40 +414,27 @@ getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json
     */
     
     //Clear for Debug purposes, do not ship with this :D
-    //chrome.storage.sync.clear();
+    chrome.storage.sync.clear();
     
     //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
     chrome.storage.sync.get(null, function(items) {
-        //Setting up reading list after first startup
-        if (!Object.keys(items).includes("options")) {
+        if (!items.options) {
+            console.log("UEK: First Startup");
             StoryList.createReadingList("all", true);
             chrome.commands.getAll(function (commands) {
                 options.shortcut = commands[1].shortcut;
+                chrome.storage.sync.set({"options": options});
             });
-            chrome.storage.sync.set({"options": options});
         } else {
             console.log("Started UEK, reading data: " + Object.keys(items).length + " items.");
             for (entry in items) {
                 if (entry.startsWith("list: ")) {
-                    new StoryList(entry.substring(6), items[entry]);
-                } else if (entry == "options") {
-                    options = entry[options];
-                }
-                console.log(entry);
+                    new StoryList(items[entry].data, [entry.substring(6), items[entry].afterRead, items[entry].suggest]);
+                } 
             };
+            options = items.options;
         }
-        console.log("Found", Object.keys(StoryList.unpackedLists).length, "lists in synchronized storage.");
+        
         console.log(StoryList.unpackedLists);
     });
 });
-
-function getJSON(url, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'json';
-    xhr.onload = function() {
-        console.log("XMLHttpRequest to \'" + url + "\' finished with status " + xhr.status);
-        callback(xhr.status, xhr.response);
-    };
-    xhr.send();
-};
