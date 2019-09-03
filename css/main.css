@@ -6,10 +6,7 @@
 div#uek-base-wrapper {
     position: fixed;
     z-index: 8000;
-    left: 10px;
-    top: 150px;
     width: auto;
-    
     font-family: Spiegel, Helvetica, sans-serif;
     color: #a09a8e;
 }
@@ -52,9 +49,11 @@ div#uek-main-page li {
     margin-left: 30px;
 }
 
-
-th.activeSort {
-    text-decoration-color: #c79a3c;
+div#uek-main-page hr {
+    border: none;
+    border-top: 1px solid #5b5a564d;
+    margin: 20px 20px 10px 0;
+    padding: 0 10% 0 10%;
 }
 
 span.uek-custom-separator {
@@ -163,6 +162,6 @@ button.icon-reload > div > div  {
 }
 
 button.no-icon > div > h6 {
-    border: 2px solic #3c3c41;
+    border-right: 2px solid #3c3c41;
     width: 100px;
 }

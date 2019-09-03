@@ -4,7 +4,8 @@ const universeLanguages = ["cs-CZ", "de-DE", "el-GR", "en-AU", "en-GB", "en-PH",
     
 var open = false;
 var championList = [], authorList = [], regionList = [];
-var height, width, storyList; 
+var height, width, posLeft, posTop;
+var storyList; 
 var stories_sortKey = "title";
 
 //some functions we'll need. These need to be acessible outside of main
@@ -13,9 +14,9 @@ function changeVisibility() {
     open = !open;
     //update context menu and riotbar entry
     if (!open) {
-        document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px; height: " + height + "px;");
+        document.getElementById("uek-base-wrapper").setAttribute("style", "left: -" + width + "px; top: " + posTop + "px; height: " + height + "px;");
     } else {
-        document.getElementById("uek-base-wrapper").setAttribute("style", "height: " + height + "px;");
+        document.getElementById("uek-base-wrapper").setAttribute("style", "left: " + posLeft + "px; top: " + posTop + "px; height: " + height + "px;");
     }
     
     document.getElementById("uek-toggle-open").classList.toggle("hidden");
@@ -35,6 +36,7 @@ function readHtmlFile(path, callback) {
 
 function main(inject) {
     // Some function definitions, I'd rather have them here if possible. only changeVisibility and readHtmlFile need to be outside.
+    
     function show(key) {
         document.getElementsByClassName("activeTab")[0].classList.remove("activeTab");
         var blocklist = document.getElementById("uek-main-body").children;
@@ -50,7 +52,7 @@ function main(inject) {
         var html = [];
         html.push(
         "<td>" + (index+1) + "</td>",
-        "<td>" + story.title + "</td>",
+        "<td> <a href=\"" + story.url + "\">" + story.title + "</a></td>",
         "<td>" + story.words + "</td>",
         "<td>" + story.tags.champions.join(", ") + "</td>",
         "<td>" + story.tags.regions.join(", ") + "</td>",
@@ -274,6 +276,24 @@ function main(inject) {
         }
     }
     
+    function calculateHeight() {
+        const heightConst = document.getElementById("uek-options-heightconst").value;
+        const heightFactor = document.getElementById("uek-options-heightfactor").value;
+        document.getElementById("uek-options-height").value = Math.round(heightFactor / 100 * window.innerHeight + heightConst * 1) + "px";
+    }
+    
+    function calculateWidth() {
+        const widthConst = document.getElementById("uek-options-widthconst").value;
+        const widthFactor = document.getElementById("uek-options-widthfactor").value;
+        document.getElementById("uek-options-width").value = Math.round((widthFactor / 100 * window.innerWidth) + widthConst * 1) + "px";
+    }
+    
+    function calculatePosition() {
+        const posLeft = document.getElementById("uek-options-left").value;
+        const posTop = document.getElementById("uek-options-top").value;
+        document.getElementById("uek-options-position").value = "" + posLeft + " / " + posTop;
+    }
+    
     // Injection and logic
     const injectDoc = new DOMParser().parseFromString(inject, "text/html");
             
@@ -283,20 +303,25 @@ function main(inject) {
     document.body.appendChild(injectDoc.getElementById("uek-base-wrapper"));
     translate();
     
-    //Window layout
+    //Window layout & options callback
     chrome.storage.sync.get("options", function(items) {
-        width = items.options.widthConst + (items.options.widthFactor * window.innerWidth);
-        height = items.options.heightConst + (items.options.heightFactor * window.innerHeight);
-        document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px; height: " + height + "px;");
+        width = items.options.widthConst + (items.options.widthFactor / 100 * window.innerWidth);
+        height = items.options.heightConst + (items.options.heightFactor / 100 * window.innerHeight);
+        posLeft = items.options.posLeft;
+        posTop = items.options.posTop;
+        document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px; top: " + posTop + "px; height: " + height + "px;");
         document.getElementById("uek-main-page").setAttribute("style", "width: "+ width +"px;");
+        document.getElementById("uek-base-wrapper").classList.remove("hidden");
+        
+        document.getElementById("uek-options-heightfactor").value = items.options.heightFactor;
+        document.getElementById("uek-options-heightconst").value = items.options.heightConst;
+        document.getElementById("uek-options-widthfactor").value = items.options.widthFactor;
+        document.getElementById("uek-options-widthconst").value = items.options.widthConst;
+        document.getElementById("uek-options-left").value = posLeft;
+        document.getElementById("uek-options-top").value = posTop;
                         
-        const filterHeightStr = window.getComputedStyle(document.getElementById("uek-stories-filter")).getPropertyValue("height");
-        const filterHeight = Number.parseInt(filterHeightStr.substring(0, filterHeightStr.length-2), 10);
+        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-stories").offsetHeight - document.getElementById("uek-stories-filter").offsetHeight- 40) + "px;");
         
-        const baseHeightStr = window.getComputedStyle(document.getElementById("uek-main-block-stories")).getPropertyValue("height");
-        const baseHeight = Number.parseInt(baseHeightStr.substring(0, baseHeightStr.length-2), 10);
-        
-        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (baseHeight - filterHeight - 40) + "px;");
     });
       
     { // Header and link
@@ -359,24 +384,76 @@ function main(inject) {
     }
 
     { // Options tab
+        document.getElementById("uek-options-heightfactor").oninput = calculateHeight;
+        document.getElementById("uek-options-heightconst").oninput = calculateHeight;
+        
+        document.getElementById("uek-options-widthfactor").oninput = calculateWidth;
+        document.getElementById("uek-options-widthconst").oninput = calculateWidth;
+        
+        document.getElementById("uek-options-left").oninput = calculatePosition;
+        document.getElementById("uek-options-top").oninput = calculatePosition;
+        
+        document.getElementById("uek-options-confirm").onclick = function () {
+            chrome.storage.sync.get("options", function (items) {
+                const options = items.options;
+                options.heightfactor = document.getElementById("uek-options-heightfactor").value;
+                options.heightConst = document.getElementById("uek-options-heightconst").value;
+                options.widthFactor = document.getElementById("uek-options-widthfactor").value;
+                options.widthConst = document.getElementById("uek-options-widthconst").value;
+                options.posLeft = document.getElementById("uek-options-left").value;
+                options.posTop = document.getElementById("uek-options-top").value;
+                chrome.storage.sync.set({"options": options});
+            });
+        }; 
         document.getElementById("uek-options-reload").onclick = function () {
-            console.log("Restarting UEK");
-            document.getElementById("uek-base-wrapper").parentElement.removeChild(document.getElementById("uek-base-wrapper"));
-            open = false;
-            championList = [];
-            authorList = [];
-            regionList = [];
-            height = undefined;
-            width = undefined; 
-            storyList = undefined; 
-            stories_sortKey = "title";
-            main(inject);
-            };
+            chrome.storage.sync.get("options", function (items) {
+                const options = items.options;
+                options.heightfactor = document.getElementById("uek-options-heightfactor").value;
+                options.heightConst = document.getElementById("uek-options-heightconst").value;
+                options.widthFactor = document.getElementById("uek-options-widthfactor").value;
+                options.widthConst = document.getElementById("uek-options-widthconst").value;
+                options.posLeft = document.getElementById("uek-options-left").value;
+                options.posTop = document.getElementById("uek-options-top").value;
+                chrome.storage.sync.set({"options": options}, function () {
+                    console.log("Restarting UEK");
+                    document.getElementById("uek-base-wrapper").parentElement.removeChild(document.getElementById("uek-base-wrapper"));
+                    open = false;
+                    championList = [];
+                    authorList = [];
+                    regionList = [];
+                    height = undefined;
+                    width = undefined; 
+                    storyList = undefined; 
+                    stories_sortKey = "title";
+                    main(inject);
+                });
+            });
+        };
+        document.getElementById("uek-options-delete").onclick = function() {
+            document.getElementById("uek-options-delete-text").classList.toggle("hidden");
+            document.getElementById("uek-options-delete-confirm").classList.toggle("hidden");
+        };
+        document.getElementById("uek-options-delete-confirm").onchange = function(e) {
+            if (e.srcElement.value === "delete") {
+                chrome.storage.sync.clear();
+                alert("Storage cleared.");
+                chrome.storage.sync.set({"options": {
+                    widthFactor: 40, // 40% = 0.4
+                    widthConst: 200,
+                    heightFactor: 70, // 70% = 0.7
+                    heightConst: 200,
+                    posTop: 150,
+                    posLeft: 15,
+                    universeOverride: chrome.i18n.getMessage("info_universecode")
+                }});
+            }
+        }
     }
     
     { // About Tab
         
     }
+
 }
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {

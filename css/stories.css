@@ -1,4 +1,4 @@
-input#uek-filter-words-min, input#uek-filter-words-max {
+div#uek-main-block-stories input[type=number] {
     width: 62px;
 }
 
@@ -76,4 +76,8 @@ thead#uek-stories-table-heading th + th + th + th {
 thead#uek-stories-table-heading th + th + th + th + th + th + th {
     width: 80px;
     text-align: center;
+}
+
+th.activeSort {
+    text-decoration-color: #c79a3c !important;
 }

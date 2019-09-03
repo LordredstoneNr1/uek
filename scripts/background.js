@@ -1,8 +1,10 @@
 var options = {
-    widthFactor: 0.4,
+    widthFactor: 40, // 40% = 0.4
     widthConst: 200,
-    heightFactor: 0.7,
+    heightFactor: 70, // 70% = 0.7
     heightConst: 200,
+    posTop: 150,
+    posLeft: 15,
     universeOverride: chrome.i18n.getMessage("info_universecode")
 };
 
@@ -414,13 +416,13 @@ getJSON("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverr
     */
     
     //Clear for Debug purposes, do not ship with this :D
-    chrome.storage.sync.clear();
+    //chrome.storage.sync.clear();
     
     //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
     chrome.storage.sync.get(null, function(items) {
         if (!items.options) {
             console.log("UEK: First Startup");
-            StoryList.createReadingList("all", true);
+            StoryList.createReadingList("all", "delete", false);
             chrome.commands.getAll(function (commands) {
                 options.shortcut = commands[1].shortcut;
                 chrome.storage.sync.set({"options": options});

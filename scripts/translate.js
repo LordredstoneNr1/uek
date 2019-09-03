@@ -3,13 +3,20 @@ function translate() {
     var options;
     console.log("Starting translation for locale ", chrome.i18n.getUILanguage());
     
+    // Options callback
+    chrome.storage.sync.get("options", function (items) {
+        options = items.options;
+        document.getElementById("uek-link-open").firstElementChild.innerHTML = options.shortcut;
+        
+        document.getElementById("uek-options-height").value = Math.round(options.heightFactor / 100 * window.innerHeight + options.heightConst * 1) + "px";
+        document.getElementById("uek-options-width").value = Math.round(options.widthFactor / 100 * window.innerWidth + options.widthConst * 1) + "px";
+        document.getElementById("uek-options-position").value = "" + options.posLeft + " / " + options.posTop;
+    });
+    
     { // Riot sidebar
         document.getElementById("uek-link-element").firstElementChild.innerHTML = chrome.i18n.getMessage("info_title");
         document.getElementById("uek-link-open").insertAdjacentText("afterBegin", chrome.i18n.getMessage("info_open"));
-        chrome.storage.sync.get("options", function (items) {
-            options = items.options;
-            document.getElementById("uek-link-open").firstElementChild.innerHTML = items.options.shortcut;
-        });
+        
     }
    
     { // Extension heading
@@ -172,6 +179,7 @@ function translate() {
     }
     
     { // Options Tab
+        // Universe Languages + Suggestions
         chrome.i18n.getAcceptLanguages(function (languages) {
             var optElement = document.createElement("optgroup");
             optElement.label = "Suggested" //chrome.i18n.getMessage("options_detected");
@@ -207,8 +215,11 @@ function translate() {
             document.getElementById("uek-options-locale").appendChild(optElement);
             
             optElement = document.createElement("optgroup");
-            optElement.label = "All Languages";
+            optElement.label = "";
+            document.getElementById("uek-options-locale").appendChild(optElement);
             
+            optElement = document.createElement("optgroup");
+            optElement.label = "All Languages";
             
             for (i = 0; i < universeLanguages.length; i++) {
                 var childElement = document.createElement("option");
@@ -219,6 +230,7 @@ function translate() {
             
             document.getElementById("uek-options-locale").appendChild(optElement);
         });
+        
     }
     
     { // About Tab

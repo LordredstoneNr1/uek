@@ -8,7 +8,7 @@
             <div class="riotbar-category-name"></div>
             <div><a id="uek-link-open" class="riotbar-navmenu-link" href="javascript:void(0)"><span class="riotbar-link-subtext"></span></a></div>
         </div>
-        <div id="uek-base-wrapper"> 
+        <div id="uek-base-wrapper" class="hidden"> 
             <div id="uek-main-page">
                 <div id="uek-main-header">
                     <a id="uek-main-title" class="title" href="https://boards.na.leagueoflegends.com/en/c/story-art"></a>
@@ -84,30 +84,44 @@
                     <div id="uek-main-block-options" class="hidden">
                         <form id="uek-options-form">
                             <label for="uek-options-locale">Select the language you want to use Universe in: </label>
-                            <select id="uek-options-locale"> 
-                            </select><br>
+                            <select id="uek-options-locale"> </select><hr>
                             
-                            <label for="uek-options-heightconst">Frame height (as percentage of screen height)</label>
-                            <input type="number" id="uek-options-heightconst">
+                            <div>
+                                <label for="uek-options-heightfactor">Frame height (%):</label>
+                                <input type="number" id="uek-options-heightfactor"><br>
+                                
+                                <label for="uek-options-heightconst">Frame height (px):</label>
+                                <input type="number" id="uek-options-heightconst"><br>
+                                <p>Calculated height: <output name="height" for="uek-options-heightfactor uek-options-heightconst" id="uek-options-height"></output></p>
+                            </div>
                             
-                            <label for="uek-options-heightfactor"></label>
-                            <input type="number" id="uek-options-heightfactor">
+                            <div>                                
+                                <label for="uek-options-widthfactor">Frame width (%):</label>
+                                <input type="number" id="uek-options-widthfactor"><br>
+                                
+                                <label for="uek-options-widthconst">Frame width (px):</label>
+                                <input type="number" id="uek-options-widthconst"><br>
+                                <p>Calculated width: <output name="width" for="uek-options-widthfactor uek-options-widthconst" id="uek-options-width"></output></p>
+                            </div>   
                             
-                            <label for="uek-options-widthconst"></label>
-                            <input type="number" id="uek-options-widthconst">
+                            <div>
+                                <label for="uek-options-left">Position  left (px): </label>
+                                <input type="number" id="uek-options-left"><br>
+                                
+                                <label for="uek-options-top">Position top (px): </label>
+                                <input type="number" id="uek-options-top"><br>
+                                
+                                <p>Current position: <output name="position" for="uek-options-top uek-options-left" id="uek-options-position"></output></p>
+                            </div>
                             
-                            <label for="uek-options-widthfactor"></label>
-                            <input type="number" id="uek-options-widthfactor">
-                            
-                            Window width: 50% + 200px
-                            Window height: 70% + 0px
+                            <hr>
                             
                             <p id="uek-options-text">Changes are only applied after the page has been refreshed.</p>
                             <button type="button" id="uek-options-confirm" class="icon-confirm"><div><h6>Save</h6><div></div></div></button>
                             <button type="button"  id="uek-options-reload" class="icon-reload"><div><h6>Refresh</h6><div></div></div></button><br>
                             
-                            <button type="button" id="uek-options-delete" class="no-icon" ><div><h6>Delete all data</h6></div></button>
-                            <label for="uek-options-delete-confirm" class="hidden"> Type "delete" to delete all of your user data. This can not be reversed. </label>
+                            <button type="button" id="uek-options-delete" class="no-icon" ><div><h6>Delete all data</h6></div></button><br>
+                            <label id="uek-options-delete-text" for="uek-options-delete-confirm" class="hidden"> Type "delete" to delete all of your user data. This can not be reversed. </label>
                             <input type="text" id="uek-options-delete-confirm" class="hidden"><br>
                             
                             
