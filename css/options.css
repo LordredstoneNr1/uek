@@ -11,7 +11,7 @@ form#uek-options-form > div {
     padding: 10px 20px 20px 0;
 }
 
-div#uek-main-block-options label, p {
+div#uek-main-block-options label, div#uek-main-block-options p {
     line-height: 2em;
 }
 

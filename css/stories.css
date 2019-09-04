@@ -19,6 +19,7 @@ tbody#uek-stories-table-body > tr {
 } 
 
 tbody#uek-stories-table-body td {
+    padding: 5px;
     width: 50px;
     text-align: center;
 }

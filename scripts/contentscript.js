@@ -293,7 +293,7 @@ function main(inject) {
         const posTop = document.getElementById("uek-options-top").value;
         document.getElementById("uek-options-position").value = "" + posLeft + " / " + posTop;
     }
-    
+        
     // Injection and logic
     const injectDoc = new DOMParser().parseFromString(inject, "text/html");
             
@@ -303,15 +303,16 @@ function main(inject) {
     document.body.appendChild(injectDoc.getElementById("uek-base-wrapper"));
     translate();
     
-    //Window layout & options callback
+    //Window layout & everything that needs the options callback
     chrome.storage.sync.get("options", function(items) {
         width = items.options.widthConst + (items.options.widthFactor / 100 * window.innerWidth);
-        height = items.options.heightConst + (items.options.heightFactor / 100 * window.innerHeight);
+        height =  items.options.heightConst + (items.options.heightFactor / 100 * window.innerHeight);
         posLeft = items.options.posLeft;
         posTop = items.options.posTop;
         document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px; top: " + posTop + "px; height: " + height + "px;");
         document.getElementById("uek-main-page").setAttribute("style", "width: "+ width +"px;");
         document.getElementById("uek-base-wrapper").classList.remove("hidden");
+        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-stories").offsetHeight - document.getElementById("uek-stories-filter").offsetHeight- 40) + "px;");
         
         document.getElementById("uek-options-heightfactor").value = items.options.heightFactor;
         document.getElementById("uek-options-heightconst").value = items.options.heightConst;
@@ -319,8 +320,8 @@ function main(inject) {
         document.getElementById("uek-options-widthconst").value = items.options.widthConst;
         document.getElementById("uek-options-left").value = posLeft;
         document.getElementById("uek-options-top").value = posTop;
-                        
-        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-stories").offsetHeight - document.getElementById("uek-stories-filter").offsetHeight- 40) + "px;");
+        document.getElementById("uek-options-contextmenu").checked = items.options.contextMenus;  
+        
         
     });
       
@@ -329,6 +330,8 @@ function main(inject) {
         document.getElementById("uek-toggle-open").src = chrome.runtime.getURL("images/arrow-right.png");
         document.getElementById("uek-toggle-close").src = chrome.runtime.getURL("images/arrow-left.png");
         
+        document.getElementById("uek-main-title").href = chrome.runtime.getManifest().homepage_url;
+        
         document.getElementById("uek-main-link-stories").onclick = function() {show("stories");};
         document.getElementById("uek-main-link-lists").onclick = function() {show("lists");};
         document.getElementById("uek-main-link-options").onclick = function() {show("options");};
@@ -336,7 +339,47 @@ function main(inject) {
     }
    
     { //Story tab
-    
+        
+        document.getElementById("uek-filter-title-text").oninput = function() {
+            document.getElementById("uek-filter-title").checked = true;
+        };
+        
+        document.getElementById("uek-filter-champions-text").oninput = function() {
+            document.getElementById("uek-filter-champions").checked = true;
+        };
+        
+        document.getElementById("uek-filter-regions-dropdown").onchange = function() {
+            document.getElementById("uek-filter-regions").checked = true;
+        };
+        
+        document.getElementById("uek-filter-authors-dropdown").onchange = function() {
+            document.getElementById("uek-filter-authors").checked = true;
+        };
+        
+        document.getElementById("uek-filter-type-universe-dropdown").onchange = function() {
+            document.getElementById("uek-filter-type").checked = true;
+        };
+        
+        document.getElementById("uek-filter-type-type-dropdown").onchange = function() {
+            document.getElementById("uek-filter-type").checked = true;
+        };
+        
+        document.getElementById("uek-filter-words-min").oninput = function() {
+            document.getElementById("uek-filter-words").checked = true;
+        };
+        
+        document.getElementById("uek-filter-words-max").oninput = function() {
+            document.getElementById("uek-filter-words").checked = true;
+        };
+        
+        document.getElementById("uek-filter-date-min").oninput = function() {
+            document.getElementById("uek-filter-date").checked = true;
+        };
+        
+        document.getElementById("uek-filter-date-max").oninput = function() {
+            document.getElementById("uek-filter-date").checked = true;
+        };
+        
         document.getElementById("uek-filter-apply").onclick = function() {
             generateStoryHTML(document.getElementById("uek-stories-table-body"));
         };
@@ -392,28 +435,44 @@ function main(inject) {
         
         document.getElementById("uek-options-left").oninput = calculatePosition;
         document.getElementById("uek-options-top").oninput = calculatePosition;
-        
+                
         document.getElementById("uek-options-confirm").onclick = function () {
             chrome.storage.sync.get("options", function (items) {
                 const options = items.options;
-                options.heightfactor = document.getElementById("uek-options-heightfactor").value;
-                options.heightConst = document.getElementById("uek-options-heightconst").value;
-                options.widthFactor = document.getElementById("uek-options-widthfactor").value;
-                options.widthConst = document.getElementById("uek-options-widthconst").value;
-                options.posLeft = document.getElementById("uek-options-left").value;
-                options.posTop = document.getElementById("uek-options-top").value;
+                options.heightFactor = Number(document.getElementById("uek-options-heightfactor").value);
+                options.heightConst = Number(document.getElementById("uek-options-heightconst").value);
+                options.widthFactor = Number(document.getElementById("uek-options-widthfactor").value);
+                options.widthConst = Number(document.getElementById("uek-options-widthconst").value);
+                options.posLeft = Number(document.getElementById("uek-options-left").value);
+                options.posTop = Number(document.getElementById("uek-options-top").value);
+                if (document.getElementById("uek-options-contextmenu").checked != options.contextMenus) {
+                    options.contextMenus = document.getElementById("uek-options-contextmenu").checked;
+                    chrome.runtime.sendMessage({
+                        id: "set-contextmenu-enabled",
+                        enabled: options.contextMenus
+                    });
+                }
                 chrome.storage.sync.set({"options": options});
             });
         }; 
-        document.getElementById("uek-options-reload").onclick = function () {
+        document.getElementById("uek-options-refresh").onclick = function () {
             chrome.storage.sync.get("options", function (items) {
                 const options = items.options;
-                options.heightfactor = document.getElementById("uek-options-heightfactor").value;
-                options.heightConst = document.getElementById("uek-options-heightconst").value;
-                options.widthFactor = document.getElementById("uek-options-widthfactor").value;
-                options.widthConst = document.getElementById("uek-options-widthconst").value;
-                options.posLeft = document.getElementById("uek-options-left").value;
-                options.posTop = document.getElementById("uek-options-top").value;
+                options.heightFactor = Number(document.getElementById("uek-options-heightfactor").value);
+                options.heightConst = Number(document.getElementById("uek-options-heightconst").value);
+                options.widthFactor = Number(document.getElementById("uek-options-widthfactor").value);
+                options.widthConst = Number(document.getElementById("uek-options-widthconst").value);
+                options.posLeft = Number(document.getElementById("uek-options-left").value);
+                options.posTop = Number(document.getElementById("uek-options-top").value);
+                options.contextMenus = document.getElementById("uek-options-contextmenu").checked;
+                if (document.getElementById("uek-options-contextmenu").checked != options.contextMenus) {
+                    options.contextMenus = document.getElementById("uek-options-contextmenu").checked;
+                    chrome.runtime.sendMessage({
+                        id: "set-contextmenu-enabled",
+                        enabled: options.contextMenus
+                    });
+                }
+                
                 chrome.storage.sync.set({"options": options}, function () {
                     console.log("Restarting UEK");
                     document.getElementById("uek-base-wrapper").parentElement.removeChild(document.getElementById("uek-base-wrapper"));
@@ -421,8 +480,6 @@ function main(inject) {
                     championList = [];
                     authorList = [];
                     regionList = [];
-                    height = undefined;
-                    width = undefined; 
                     storyList = undefined; 
                     stories_sortKey = "title";
                     main(inject);
@@ -434,9 +491,9 @@ function main(inject) {
             document.getElementById("uek-options-delete-confirm").classList.toggle("hidden");
         };
         document.getElementById("uek-options-delete-confirm").onchange = function(e) {
-            if (e.srcElement.value === "delete") {
+            if (e.srcElement.value === chrome.i18n.getMessage("options_delete_confirmation")) {
                 chrome.storage.sync.clear();
-                alert("Storage cleared.");
+                alert(chrome.i18n.getMessage("options_delete_alert"));
                 chrome.storage.sync.set({"options": {
                     widthFactor: 40, // 40% = 0.4
                     widthConst: 200,
@@ -444,6 +501,7 @@ function main(inject) {
                     heightConst: 200,
                     posTop: 150,
                     posLeft: 15,
+                    contextMenus: true,
                     universeOverride: chrome.i18n.getMessage("info_universecode")
                 }});
             }

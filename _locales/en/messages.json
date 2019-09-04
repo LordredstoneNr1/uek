@@ -436,8 +436,82 @@
     
     "options_universelocale": {
         "message": "Select the language you want to use Universe in: ",
-        "description": ""
+        "description": "Displayed on the options tab. Describes a dropdown menu with language codes."
     },
+    "options_heightFactor": {
+        "message": "Frame height (%):",
+        "description": "Describes the input for frame height as percentage of screen height."
+    },
+    "options_heightConst": {
+        "message": "Frame height (px):",
+        "description": "Describes the input for frame height as constant number of pixels."
+    },
+    "options_calculatedHeight": {
+        "message": "Calculated height:",
+        "description": "Describes the output for the total calculated height."
+    },
+    "options_widthFactor": {
+        "message": "Frame width (%):",
+        "description": "Describes the input for frame width as percentage of screen width."
+    },
+    "options_widthConst": {
+        "message": "Frame width (px):",
+        "description": "Describes the input for frame width as constant number of pixels."
+    },
+    "options_calculatedWidth": {
+        "message": "Calculated width:",
+        "description": "Describes the output for the total calculated width."
+    },
+    "options_positionLeft": {
+        "message": "Position left (px):",
+        "description": "Describes the input for the left margin of the window."
+    },
+    "options_positionTop": {
+        "message": "Position top (px):",
+        "description": "Describes the input for the upper margin of the window."
+    },
+    "options_currentPosition": {
+        "message": "Current position:",
+        "description": "Describes the output for the window position (top/left)."
+    },
+    
+    "options_contextmenu": {
+        "message": "Add context menu entries",
+        "description": "Describes a checkbox that enables the context menu."
+    },
+    "options_contextMenu_text": {
+        "message": "This enables the \"Extract Image\" functionality as well as other shortcuts.",
+        "description": "Describes extra functionality added by the checkbox."
+    },
+    "options_refresh_text": {
+        "message": "<i>Changes to the window size and position are only applied after the page has been refreshed.</i>",
+        "description": "Warning that the user needs to refresh the page before changes take effect."
+    },
+    "options_confirm": {
+        "message": "Save",
+        "description": "Button label, save/confirm the current values."
+    },
+    "options_refresh": {
+        "message": "Refresh",
+        "description": "Button label, refresh the page so the current vaules are applied."
+    },
+    "options_delete": {
+        "message": "Delete all data",
+        "description": "Button label, deletes all user data (with another confirmation step)."
+    },
+    "options_delete_text": {
+        "message": "Type \"delete\" to delete all of your user data. This can not be reversed.",
+        "description": "Describes a text field that acts as last confirmation."
+    },
+    "options_delete_confirmation": {
+        "message": "delete",
+        "description": "Describes the text that needs to be typed."
+    },
+    "options_delete_alert": {
+        "message": "Storage cleared.",
+        "description": "Text that's shown as a popup after the data is deleted."
+    },
+   
     
     "about_legal": {
         "message": "The Universe Enhancement Kit was created under Riot Games' <a href='https://www.riotgames.com/en/legal' target='_blank'>'Legal Jibber Jabber'</a> policy using assets owned by Riot Games.  Riot Games does not endorse or sponsor this project.",

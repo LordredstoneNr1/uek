@@ -180,6 +180,7 @@ function translate() {
     
     { // Options Tab
         // Universe Languages + Suggestions
+        document.getElementById("uek-options-locale").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_universelocale");
         chrome.i18n.getAcceptLanguages(function (languages) {
             var optElement = document.createElement("optgroup");
             optElement.label = "Suggested" //chrome.i18n.getMessage("options_detected");
@@ -231,10 +232,33 @@ function translate() {
             document.getElementById("uek-options-locale").appendChild(optElement);
         });
         
+        document.getElementById("uek-options-heightconst").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_heightConst");
+        document.getElementById("uek-options-heightfactor").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_heightFactor");
+        document.getElementById("uek-options-height").insertAdjacentText("afterBegin", chrome.i18n.getMessage("options_calculatedHeight"));
+        
+        document.getElementById("uek-options-widthconst").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_widthConst");
+        document.getElementById("uek-options-widthfactor").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_widthFactor");
+        document.getElementById("uek-options-width").insertAdjacentText("afterBegin", chrome.i18n.getMessage("options_calculatedWidth"));
+        
+        document.getElementById("uek-options-left").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_positionLeft");
+        document.getElementById("uek-options-top").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_positionTop");
+        document.getElementById("uek-options-position").insertAdjacentText("afterBegin", chrome.i18n.getMessage("options_currentPosition"));
+        
+        document.getElementById("uek-options-contextmenu").innerHTML = chrome.i18n.getMessage("options_contextMenu");
+        document.getElementById("uek-options-contextmenu").nextElementSibling.innerHTML = chrome.i18n.getMessage("options_contextMenu_text");
+        
+        document.getElementById("uek-options-text").innerHTML = chrome.i18n.getMessage("options_refresh_text");
+        
+        document.getElementById("uek-options-confirm").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("options_confirm");
+        document.getElementById("uek-options-refresh").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("options_refresh");
+        document.getElementById("uek-options-delete").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("options_delete");
+        
+        document.getElementById("uek-options-delete-text").innerHTML = chrome.i18n.getMessage("options_delete_text");
+        
     }
     
     { // About Tab
-        document.getElementById("uek-about-text").innerHTML = chrome.i18n.getMessage("about_text");
+        document.getElementById("uek-about-legal").innerHTML = chrome.i18n.getMessage("about_text");
     }
     console.log("Finished translation. Used locale is ", chrome.i18n.getMessage("info_universecode"));
 }

@@ -11,7 +11,7 @@
         <div id="uek-base-wrapper" class="hidden"> 
             <div id="uek-main-page">
                 <div id="uek-main-header">
-                    <a id="uek-main-title" class="title" href="https://boards.na.leagueoflegends.com/en/c/story-art"></a>
+                    <a id="uek-main-title" class="title" href=""></a>
                     <span class="uek-custom-separator"></span>
                     <a id="uek-main-link-stories" class="activeTab" href="javascript:void(0)"></a>
                     <a id="uek-main-link-lists" href="javascript:void(0)"></a>
@@ -83,45 +83,50 @@
                     
                     <div id="uek-main-block-options" class="hidden">
                         <form id="uek-options-form">
-                            <label for="uek-options-locale">Select the language you want to use Universe in: </label>
-                            <select id="uek-options-locale"> </select><hr>
+                            <label for="uek-options-locale"></label>
+                            <select id="uek-options-locale"></select><hr>
                             
                             <div>
-                                <label for="uek-options-heightfactor">Frame height (%):</label>
-                                <input type="number" id="uek-options-heightfactor"><br>
+                                <label for="uek-options-heightfactor"></label>
+                                <input type="number" id="uek-options-heightfactor" min="0" step="5" max="100"><br>
                                 
-                                <label for="uek-options-heightconst">Frame height (px):</label>
-                                <input type="number" id="uek-options-heightconst"><br>
-                                <p>Calculated height: <output name="height" for="uek-options-heightfactor uek-options-heightconst" id="uek-options-height"></output></p>
+                                <label for="uek-options-heightconst"></label>
+                                <input type="number" id="uek-options-heightconst"  min="0" step="50" max="2160"><br>
+                                <p><output name="height" for="uek-options-heightfactor uek-options-heightconst" id="uek-options-height"></output></p>
                             </div>
                             
                             <div>                                
-                                <label for="uek-options-widthfactor">Frame width (%):</label>
-                                <input type="number" id="uek-options-widthfactor"><br>
+                                <label for="uek-options-widthfactor"></label>
+                                <input type="number" id="uek-options-widthfactor" min="0" step="5" max="100"><br>
                                 
-                                <label for="uek-options-widthconst">Frame width (px):</label>
-                                <input type="number" id="uek-options-widthconst"><br>
-                                <p>Calculated width: <output name="width" for="uek-options-widthfactor uek-options-widthconst" id="uek-options-width"></output></p>
+                                <label for="uek-options-widthconst"></label>
+                                <input type="number" id="uek-options-widthconst" min="0" step="50" max="3840"><br>
+                                <p><output name="width" for="uek-options-widthfactor uek-options-widthconst" id="uek-options-width"></output></p>
                             </div>   
                             
                             <div>
-                                <label for="uek-options-left">Position  left (px): </label>
+                                <label for="uek-options-left"></label>
                                 <input type="number" id="uek-options-left"><br>
                                 
-                                <label for="uek-options-top">Position top (px): </label>
+                                <label for="uek-options-top"></label>
                                 <input type="number" id="uek-options-top"><br>
                                 
-                                <p>Current position: <output name="position" for="uek-options-top uek-options-left" id="uek-options-position"></output></p>
+                                <p><output name="position" for="uek-options-top uek-options-left" id="uek-options-position"></output></p>
                             </div>
                             
                             <hr>
                             
-                            <p id="uek-options-text">Changes are only applied after the page has been refreshed.</p>
-                            <button type="button" id="uek-options-confirm" class="icon-confirm"><div><h6>Save</h6><div></div></div></button>
-                            <button type="button"  id="uek-options-reload" class="icon-reload"><div><h6>Refresh</h6><div></div></div></button><br>
+                            <input type="checkbox" id="uek-options-contextmenu">
+                            <label for="uek-options-contextmenu"></label>
+                            <p></p>
                             
-                            <button type="button" id="uek-options-delete" class="no-icon" ><div><h6>Delete all data</h6></div></button><br>
-                            <label id="uek-options-delete-text" for="uek-options-delete-confirm" class="hidden"> Type "delete" to delete all of your user data. This can not be reversed. </label>
+                            <hr>
+                            <p id="uek-options-text"></p>
+                            <button type="button" id="uek-options-confirm" class="icon-confirm"><div><h6></h6><div></div></div></button>
+                            <button type="button" id="uek-options-refresh" class="icon-reload"><div><h6></h6><div></div></div></button><br>
+                            
+                            <button type="button" id="uek-options-delete" class="no-icon" ><div><h6></h6></div></button><br>
+                            <label id="uek-options-delete-text" for="uek-options-delete-confirm" class="hidden"></label>
                             <input type="text" id="uek-options-delete-confirm" class="hidden"><br>
                             
                             
@@ -129,8 +134,34 @@
                     </div>
                     
                     <div id="uek-main-block-about" class="hidden">
-                    <p id="uek-about-text"></p>
                     
+                    <h3>Legal Jibber Jabber</h3>
+                    <p id="uek-about-legal">
+                    </p>
+                    <hr>
+                    <h3>Suggestions</h3>
+                    <p id="uek-about-suggestions">
+                        Do you have any suggestions to make the Universe Enhancement Kit even better?
+                        Is a translation missing or do you want to help me by translating the UEK into another language? Do you maybe want to help in the development of the next version?
+                        Contact me on any of the platforms below: <br><br>
+                        <a href="">Boards:</a> LordRedStone Nr1 <span class="uek-custom-separator"></span> 
+                        <a href="">Discord: </a>Fabian P. / LordRedStone#7732 <span class="uek-custom-separator"></span> 
+                        <a href="https://github.com/LordredstoneNr1/uek">GitHub: </a> LordredstoneNr1
+                    </p>
+                    <hr>
+                    <h3> Credits </h3>
+                    <p id="uek-about-translators">
+                        I'd like to thank all the translators and everyone else who helped me create the UEK:
+                        Sharjo, for his knowledge of stories and their authors; the rest of the lore squad for our shared interest; 
+                        and as always Riot and the writers. <br>You are the reason I'm making this.
+                    </p>
+                        <ul> Translators:
+                            <li> fr: </li>
+                            <li> pt: </li>
+                            <li> de: </li>
+                            <li> ro: </li>
+                        </ul>
+                    </p>
                     </div>
                 </div>  
             </div>

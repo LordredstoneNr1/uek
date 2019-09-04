@@ -5,6 +5,7 @@ var options = {
     heightConst: 200,
     posTop: 150,
     posLeft: 15,
+    contextMenus: true,
     universeOverride: chrome.i18n.getMessage("info_universecode")
 };
 
@@ -308,7 +309,7 @@ chrome.runtime.onInstalled.addListener(function() {
             case "about":
                 chrome.tabs.create({
                     //Replace URL with post
-                    "url": "https://boards.na.leagueoflegends.com/en/c/story-art",
+                    "url": chrome.runtime.getManifest().homepage_url,
                     "index": tab.index + 1,
                     "openerTabId": tab.id
                 });
@@ -397,6 +398,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 stories: UnpackedStory.storyModules
             });
         });
+    } else if (request.id === "set-contextmenu-enabled") {
+        chrome.contextMenus.update("root", {visible: request.enabled});
     }
     return true;
 });
@@ -416,7 +419,7 @@ getJSON("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverr
     */
     
     //Clear for Debug purposes, do not ship with this :D
-    //chrome.storage.sync.clear();
+    chrome.storage.sync.clear();
     
     //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
     chrome.storage.sync.get(null, function(items) {
