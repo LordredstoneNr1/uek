@@ -1,32 +1,113 @@
-var options = {};
-class StoryList {
-    
-    constructor(name, list) {
-        var collection = [];
-        list.data.forEach(function (slug) {
-            collection.push(StoryList.findBinSearch(UnpackedStory.storyModules, "slug", slug));
+var options = {
+    "widthFactor": 40, 
+    "widthConst": 200,
+    "heightFactor": 70, 
+    "heightConst": 200,
+    "posTop": 150,
+    "posLeft": 15,
+    "contextMenus": true,
+    "changelog": true,
+    "universeOverride": chrome.i18n.getMessage("info_universecode")
+};
+
+function getJSON(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+        console.log("XMLHttpRequest to \'" + url + "\' finished with status " + xhr.status);
+        callback(xhr.response);
+    };
+    xhr.send();
+};
+
+//Setting up data
+function update(callback) {
+    getJSON("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json", function(data){
+        UnpackedStory.storyModules = [];
+        data.modules.forEach( function(obj) {
+            if (obj.type === "story-preview") {
+                UnpackedStory.storyModules.push( new UnpackedStory(obj));
+            }
         });
         
-        this.displayName = name;
-        this.data = collection;
-        if (Object.keys(list).includes("bool")) {
-            this.deleteAfterRead = list.bool;
+        /*Above sets up the base modules we work with. 
+        If more information are needed, add them to the constructor of UnpackedStory. 
+        For now, keep it small, store only the necessary information.
+        */
+        
+        //Clear for Debug purposes, do not ship with this :D
+        //chrome.storage.sync.clear();
+        
+        //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
+        chrome.storage.sync.get(null, function(items) {
+            if (!items.options) {
+                console.log("UEK: First Startup");
+                StoryList.createReadingList("all", "delete", false);
+                options = {
+                    "widthFactor": 40, 
+                    "widthConst": 200,
+                    "heightFactor": 70, 
+                    "heightConst": 200,
+                    "posTop": 150,
+                    "posLeft": 15,
+                    "contextMenus": true,
+                    "changelog": true,
+                    "universeOverride": chrome.i18n.getMessage("info_universecode")
+                };
+                chrome.commands.getAll(function (commands) {
+                    options.shortcut = commands[1].shortcut;
+                    chrome.storage.sync.set({"options": options});
+                });
+            } else {
+                for (entry in items) {
+                    if (entry.startsWith("list: ")) {
+                        new StoryList(items[entry].data, [entry.substring(6), items[entry].afterRead, items[entry].suggest]);
+                    } 
+                };
+                options = items.options;
+            }
+            callback(UnpackedStory.storyModules, items);
+        });
+        console.log("UEK update complete");
+    });
+};
+
+class StoryList {
+    
+    constructor(list, metaData) {
+        
+        this.displayName = metaData[0];
+        this.data = list.map(a => (UnpackedStory.storyModules.find(b => b["slug"] == a)));
+        
+        if (metaData.length > 1 && ["delete", "mark", "keep"].includes(metaData[1])) {
+            this.afterRead = metaData[1];
         } else {
-            this.deleteAfterRead = false;
+            this.afterRead = "keep";
         }
         
+        if (metaData.length > 2) {
+            this.suggest = metaData[2];
+        } else {
+            this.suggest = false;
+        }
+                
         StoryList.unpackedLists[this.displayName] = this;
-        
         chrome.contextMenus.create({
-            "id": name,
+            "id": "list: ".concat(this.displayName),
             "parentId": "listsRoot",
-            "title": name,
+            "title": this.displayName,
             "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
             "contexts": ["link"]
+        },
+        function() {
+            if (chrome.runtime.lastError) {
+                console.log("Error while creating context menu item " + name + ": ", chrome.runtime.lastError.message);
+            }
         }); 
     }
     
-    static createReadingList(tag, deleteAfterRead) {
+    static createReadingList(tag, afterReadHandler, suggest) {
         var filteredModules = [];
         var name;
         console.log("Setting up list for tag: " + tag);
@@ -35,13 +116,13 @@ class StoryList {
             console.log("Special Tag found: " + tag);
             name = "Reading List";
             filteredModules = UnpackedStory.storyModules;
-        } else if (Object.values(regions).includes(tag)) {
+        } else if (Object.values(champions_base).includes(tag)) {
             
             //Regions
             console.log("Region found: " + tag);
             name = "Region: " + tag;
             filteredModules = filterByTag("regions", tag);
-        } else if (Object.keys(champions).includes(tag)) {
+        } else if (Object.keys(champions_base).includes(tag)) {
             
             //Champions
             console.log("Champion found: " + tag);
@@ -59,40 +140,12 @@ class StoryList {
             console.log("Tag not found.");
             return null;
         }
-        var urlCollection = [];
-        console.log(filteredModules);
-        filteredModules.forEach(function(obj) {
-            urlCollection.push(obj.slug);
-        });
+        
+        //console.log(filteredModules);
             
-        var list =  {
-            "data": urlCollection,
-            "bool": deleteAfterRead, 
-        }
-        new StoryList(name, list).save();
+        new StoryList(filteredModules.map(a => a.slug), [name, afterReadHandler, suggest]).save();
     }
-    
-    static findBinSearch(list, key, item) {
-        function findBinRec(start, end) {
-            var middle = Math.floor((start + end) / 2);
-            var result = list[middle][key].localeCompare(item);
-            //console.log(start, middle, end);
-            //console.log(list[middle][key], item, result);
-            if (result == 0) {
-                return list[middle];
-            } else if (result > 0) {
-                return findBinRec(start, middle-1);
-            } else {
-                return findBinRec(middle+1, end);
-            }
-        };
-        return findBinRec(0, list.length);
-    }
-    
-    static hasUnpacked(list) {
-        return Object.keys(StoryList.unpackedLists).includes(list);
-    }
-    
+          
     static filterByTag(key, tag) {
        return UnpackedStory.storyModules.filter( function(obj)  {
             var found = false;
@@ -115,15 +168,13 @@ class StoryList {
     }
     
     save() {
-        var packedList = {};
-        var packedData = [];
-        this.data.forEach(function(story) {
-            packedData.push(story.slug);
-        });
-        // only save this value if true, since it defaults to false if unspecified. -- Actually I don't care, that extra storage space shouldn't make the difference.
-        packedList["list: " + this.displayName] = {"data" : packedData, "bool": this.deleteAfterRead};
-
-        chrome.storage.sync.set(packedList);
+        const list = {};
+        list["list: " + this.displayName] = {
+            "data" : this.data.map(a => a.slug), 
+            "afterRead": this.afterRead,
+            "suggest": this.suggest
+        }
+        chrome.storage.sync.set(list);
         chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
             console.log("Saved Data. Total bytes used: ", bytesInUse);
         });
@@ -148,47 +199,62 @@ class UnpackedStory {
         var tags = {"champions": [], "authors": [], "regions":[]};  
         
         //Override in case I don't like something
-        if (override_tags[this.title]) {
-            tags = override_tags[this.title];
+        if (override_tags[this.slug]) {
+            tags.champions = override_tags[this.slug].champions.map(a => chrome.i18n.getMessage("champion_" + a));
+            tags.regions = override_tags[this.slug].regions.map(a => chrome.i18n.getMessage("region_" + a));
+            tags.authors = override_tags[this.slug].authors;
         } else {
             //regular tags created from the champions and subtitle of the story
             obj['featured-champions'].forEach(function(champion) {
-                tags.champions.push(champion.name);
-                if (!tags.regions.includes(champions[champion.name])) {
+                if (chrome.i18n.getMessage("champion_" + champion.slug) != champion.name) {
+                    console.log("Champion " + champion.slug + " is translated as \"" + chrome.i18n.getMessage("champion_" + champion.slug) + "\" but the website says \"" + champion.name + "\".");
+                }
+                tags.champions.push(chrome.i18n.getMessage("champion_" + champion.slug));
+                if (!tags.regions.includes(chrome.i18n.getMessage("region_" + champions_base[champion.slug]))) {
                     // Plain text version instead of faction slug
-                    tags.regions.push(champions[champion.name]);
+                    tags.regions.push(chrome.i18n.getMessage("region_" + champions_base[champion.slug]));
                 }
             });  
-            if (obj.subtitle != null) {
-                /* Subtitle is "by author", so we need to cut the first three characters.
-                    We also need to get rid of character U+2019 (Single Right Quotation Mark). 
+            const beginnings = chrome.i18n.getMessage("info_subtitle_by").split(";");
+            if (obj.subtitle != null && beginnings.includes(obj.subtitle.substr(0, beginnings[0].length)) ) {
+                
+                var author = obj.subtitle.substring(beginnings[0].length);
+                
+                //Transform Ian St Martin into Ian St. Martin.
+                if (author === "Ian St Martin") {
+                    author = "Ian St. Martin";
+                }
+                
+                /*  We also need to get rid of character U+2019 (Single Right Quotation Mark). 
                     This one is for you, John O'Bryan!
                 */
-                tags.authors.push(obj.subtitle.substring(3).replace("\u2019","'"));
+                if (author.includes("\\u+2019")) {
+                    author = author.replace("\\u+2019", "'");
+                }
+                
+                // These are all edge cases we need to handle - I think?
+                tags.authors.push(author);
             } else {
                 //Lookup list in case the subtitle is not defined.
-                authors_fallback[this.title].forEach( function (author) {
-                    tags.authors.push(author);
-                });
+                if(authors_fallback[this.slug]) {
+                    tags.authors = authors_fallback[this.slug];
+                } else {
+                    console.log(obj["story-slug"]);
+                }
             }
             
             //Adding tags as defined in data.js (if present)
-            if (add_tags[this.title]) {
+            if (add_tags[this.slug]) {
                 
-                if (add_tags[this.title].champions) {
-                    add_tags[this.title].champions.forEach( function (newTag) {
-                        tags.champions.push(newTag);
-                    });
+                if (add_tags[this.slug].champions) {
+                    // Duplicate protection by transforming into a set and back
+                    tags.champions = [...new Set(tags.champions.concat(add_tags[this.slug].champions.map(a => chrome.i18n.getMessage("champion_" + a))))];
                 }
-                if (add_tags[this.title].regions) {
-                    add_tags[this.title].regions.forEach( function (newTag) {
-                        tags.regions.push(newTag);
-                    });
+                if (add_tags[this.slug].regions) {
+                    tags.regions = [...new Set(tags.regions.concat(add_tags[this.slug].regions.map(a => chrome.i18n.getMessage("region_" + a))))];
                 }
-                if (add_tags[this.title].authors) {
-                    add_tags[this.title].authors.forEach( function (newTag) {
-                        tags.authors.push(newTag);
-                    });
+                if (add_tags[this.slug].authors) {
+                    tags.authors = [...new Set(tags.authors.concat(add_tags[this.slug].authors))];
                 }
             }
             
@@ -283,7 +349,7 @@ chrome.runtime.onInstalled.addListener(function() {
         switch (info.menuItemId)  {
             case "root":
                 chrome.tabs.create({
-                    "url": "https://universe.leagueoflegends.com/en_US/",
+                    "url": "https://universe.leagueoflegends.com/" + options.universeOverride.replace("-", "_") + "/",
                     "index": tab.index + 1,
                     "openerTabId": tab.id
                 });
@@ -298,7 +364,7 @@ chrome.runtime.onInstalled.addListener(function() {
             case "about":
                 chrome.tabs.create({
                     //Replace URL with post
-                    "url": "https://boards.na.leagueoflegends.com/en/c/story-art",
+                    "url": chrome.runtime.getManifest().homepage_url,
                     "index": tab.index + 1,
                     "openerTabId": tab.id
                 });
@@ -310,7 +376,7 @@ chrome.runtime.onInstalled.addListener(function() {
                 });
                 break;
             case "listsNew":
-                list = new StoryList("New List", {"data":[]});
+                list = new StoryList([], ["New List", "delete", false]);
                 list.add(info.linkUrl);
                 list.save();
                 break;
@@ -349,7 +415,7 @@ chrome.runtime.onInstalled.addListener(function() {
                 });
                 break;
         } 
-        if (StoryList.hasUnpacked(info.menuItemId)) {
+        if (Object.keys(StoryList.unpackedLists).includes(info.menuItemId)) {
            StoryList.unpackedLists[info.menuItemId].add(info.linkUrl);
         }
     });
@@ -369,63 +435,31 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         sendResponse({
             id: "get-stories-response",
             success: true,
-            stories: UnpackedStory.storyModules,
-            authors: StoryList.authorList,
-            champions: champions
+            stories: UnpackedStory.storyModules
         });
-        console.log("Sender ", sender, " requested story modules, sending data.");
+        console.log("Sender ", sender.id, " requested story modules, sending data.");
+    } else if (request.id === "query-stories") {
+        update(function (modules, storedItems) {
+            sendResponse({
+                id: "query-stories-response",
+                success: true,
+                stories: modules
+            });
+            console.log("Sender ", sender.id, " requested refreshing the story modules. Story Modules: ", modules);
+        });
+    } else if (request.id === "update-options") {
+        options = request.data;
+        update(function (modules, storedItems) {
+            chrome.contextMenus.update("root", {visible: storedItems.options.contextMenus});
+        });
     }
     return true;
 });
 
-//Setting up data
-getJSON('https://universe-meeps.leagueoflegends.com/v1/en_us/explore2/index.json', function(status, data){
-    data.modules.forEach( function(obj) {
-        if (obj.type === "story-preview") {
-            UnpackedStory.storyModules.push( new UnpackedStory(obj));
-        }
-    });
-    console.log("Story Modules: ", UnpackedStory.storyModules);
-    /*Above sets up the base modules we work with. 
-    If more information are needed, add them to the constructor of UnpackedStory. 
-    For now, keep it small, store only the necessary information.
-    */
-    
-    //Clear for Debug purposes, do not ship with this :D
-    //chrome.storage.sync.clear();
-    
-    //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
-    chrome.storage.sync.get(null, function(items) {
-        //Setting up reading list after first startup
-        if (!Object.keys(items).includes("options")) {
-            StoryList.createReadingList("all", true);
-            chrome.commands.getAll(function (commands) {
-                options.shortcut = commands[1].shortcut;
-            });
-            chrome.storage.sync.set({"options": options});
-        } else {
-            console.log("Started UEK, reading data: " + Object.keys(items).length + " items.");
-            for (entry in items) {
-                if (entry.startsWith("list: ")) {
-                    new StoryList(entry.substring(6), items[entry]);
-                } else if (entry == "options") {
-                    options = entry[options];
-                }
-                console.log(entry);
-            };
-        }
-        console.log("Found", Object.keys(StoryList.unpackedLists).length, "lists in synchronized storage.");
-        console.log(StoryList.unpackedLists);
-    });
-});
 
-function getJSON(url, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'json';
-    xhr.onload = function() {
-        console.log("XMLHttpRequest to \'" + url + "\' finished with status " + xhr.status);
-        callback(xhr.status, xhr.response);
-    };
-    xhr.send();
-};
+//Actual startup / initialization
+update(function (modules, storedItems) {
+    console.log("Initializing UEK");
+    console.log("Story Modules: ", modules);
+    console.log("Storage: ",storedItems);
+});

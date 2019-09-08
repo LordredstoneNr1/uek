@@ -1,0 +1,23 @@
+div#uek-main-block-options input[type=number] {
+    width: 100px;
+    position: relative;
+    float: right;
+}
+
+form#uek-options-form > div {
+    float: left;
+    width: 33%;
+    min-width: 300px;
+    padding: 10px 3% 20px 0;
+}
+
+div#uek-main-block-options p {
+    padding: 5px 10px 20px 5px;
+    clear: both;
+}
+
+div#uek-main-block-options div > label, div#uek-main-block-options  div > p {
+    line-height: 2em;
+    padding: 0;
+}
+

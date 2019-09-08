@@ -1,0 +1,169 @@
+/* Wrapper */
+.hidden {
+    display: none !important;
+}
+
+div#uek-base-wrapper {
+    position: fixed;
+    z-index: 8000;
+    width: auto;
+    font-family: Spiegel, Helvetica, sans-serif;
+    color: #a09a8e;
+}
+
+div#uek-base-toggle {
+    float: right;
+    width: 40px;
+    height: 100%;
+}
+
+a#uek-toggle-link {
+    position: absolute;
+    width: 40px;
+    height: 80px;
+    top: 50%;
+    right: 0;
+}
+
+a#uek-toggle-link > img {
+    width: 20px;
+    height: 60px;
+    margin: 10px;
+}
+
+div#uek-main-page {
+    float: left;
+    height: 100%;
+    min-height: 750px;
+    min-width: 650px;
+    background-color: #111111;
+    border: 2px solid #c9aa71;
+}
+
+/* Misc rules to use in UEK elements only */
+
+div#uek-main-page ul {
+    list-style: disc;
+    padding: 10px;
+}
+
+div#uek-main-page li {
+    margin-left: 30px;
+}
+
+div#uek-main-page hr {
+    border: none;
+    border-top: 1px solid #5b5a564d;
+    margin: 10px 20px 10px 0;
+    padding: 0 10% 0 10%;
+    clear: both;
+}
+
+span.uek-custom-separator {
+    border-left: 2px solid #262626;
+    display: inline-block;
+    font-size: 14px;
+    height: 25px;
+    margin: -5px 0.25em 5px 0.25em;
+    vertical-align: top;
+}
+
+/* Header */
+
+div#uek-main-header {
+    margin: 10px 25px 0 25px;
+    border-bottom: 2px dotted #262626;
+    height: 30px;
+}
+
+div#uek-main-header a {
+    color: #d6bd8f;
+    margin: 0 10px;
+}
+
+div#uek-main-header a.activeTab {
+    color: white;
+    border-bottom: 2px solid #c79a3c;
+}
+
+div#uek-main-header a.title {
+    color: #f0e6d2;
+
+}
+
+
+/* Body */
+
+div#uek-main-body > div {
+    height: 100%; 
+    width: 100%;
+    padding: 20px 0 20px 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#uek-main-body form > button {
+    margin: 20px 15px 10px 25px;
+    height: 28px;
+    width: 100px;
+    color: #a09b8c;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+#uek-main-body form input, #uek-main-body form select {
+    vertical-align: middle;
+    background-color: #161616;
+    color: #937341;
+    border: 2px outset #a09a8e;
+    margin: 5px;
+}
+
+button > div > div {
+    width: 28px;
+    height: 28px;
+    background-repeat: no-repeat;
+    background-size: 60%;
+    background-position: 50%;
+    display: inline-block;
+}
+
+button > div > h6 {
+    background-color: #1e2328;
+    border: 2px solid #3c3c41;
+    border-right: none;
+    height: 28px;
+    width: 72px;
+    display: inline-block;
+    line-height: 12px;
+    font-size: 12px;
+    padding: 6px;
+    overflow: hidden;
+    text-transform: capitalize;
+}
+
+button.icon-confirm > div > div {
+    background-color: #be1e37; 
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAQCAYAAAAS7Y8mAAAAi0lEQVR4AWP48OzSf1rgATH4GxC/p4HBFx9+enpG5P2zi5OA+CdVDWaAgg+PrqgA+euobDACfHxy2er900vHqWgwAvz//5/xw9OLkcDguU1NgxEWXLnC9v7ZpWJQBNPEYKDL31IvKJ5fCqNqUHx8cdECFHlUT27vn178R7UMAmT3gzLIoMnSQ690AwAEAXOq7/wRugAAAABJRU5ErkJggg==");
+}
+
+button.icon-open > div > div  {
+    background-color: #770a59;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAUCAYAAACJfM0wAAAAXklEQVR4AWP48OzSf1rgIW7wuxcXdT88vCSIC+NTC+LjNvjpFTkG3ACvWhB/IAweNRiBDwPxblyYgNrDwyiDfHh6qQJIp5GDQXrxRx6ZAKR32BiMKFhIwIQLodGCHgC76b0GDP1lTgAAAABJRU5ErkJggg==");
+}
+
+button.icon-options > div > div  {
+    background-color: #1e825a;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAUCAYAAACJfM0wAAABW0lEQVR4AWJABoB2ygAiuiCKwvP/BKEIFQBCAAQECgAgIQuACAJohQgIAUgA2FWwAALAirAALbYd+97LAxtARanpfAyuYbReQLoc786953y7MFMUxa50NZlMttyMhZcM2RR2MhqNFqKppXNA6u/1PfTeL6YwZuykofG32MGC6eLwqSzLI2mfsxG7Z+nUxaJnlvrIwoDF2SWQd3s2874B9+0ul3WpoSkY5cDnUvcH4C6MFEy4LbWagsnC+G3gP7BuzgbXtAF4SDYHPiMYQvinfluza+ktB2aHh0eIDDsYuZt3p+XeYDCYi8ZV6VjqGHCHmfd+hTNeMmTTm7cp9bT8MP/+UWpXVbXkMsUOD16Tg9GDaY1rGlxo+WJfNn0v9V13seiZJS/cKzMYLlfj8Xg5Po1T8wOf+t4gejOf4iXjZq26rucVOpAegFgxY4fHNa0Qwn9BdqRbRM/su9wX9XqHXXm8ARwAAAAASUVORK5CYII=");
+}
+
+button.icon-reload > div > div  {
+    background-color: #01aaeb;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAKJSURBVEhLtZZJaBRBFIan3WIkB02M4EWiHgRFTzoheFQRBMlZRTypoAcP4gKePQiSm3iSEG+CCnpV0EgQVwyoIC4oaFxIIq5EXNJ+f/Xr7ulO96RnJvPBN6+73quqmemaqvFKNeD7/nxCFy7GWTiGrz3PmyDODEzSjgfxJv7CNL/xHh7BTutWO3RuwaP4GYvyA09iqw1TDDp04V2sl6e42oarDoWr8J16NcgYlm3YiMSioUCL4T5qYaT5iAN4C9/gJC7DjbgLV2KaUSyzqFSfhMk8vIJptFCO4TwrnQK5Obgfv2GaIZxtpTE0bnfpJF9Rn6AQ1K7FD+qY4oCVBNAg77hUzCRus5LC0KcbJzRABS9wrpW4onWoCSo5Z+maoe/pYIgEmy3tCo4HbRH/MGsRFIK+nZjeJPqU0/YkNlgMGcZXwWXtsCq1OgeDuwg3Rzjhcoshw3Syy7p5YDFkhV7CCYfwEl7Ey3gdG2XcYkgbX6tdNgEGP+GeXMwoRp+wGayxGDKix9SUCfkk2pU2BXcRWojBXkrBIkI76g3oB6qtSLkWi2oL4yDvVPtoLoy3m3A+uIvYQ7+gjYKdWIQBdH3yIN+B71VcgbbINitxRTpsx5WpwlvUt5AL+Va8oeIUp6wkhsazQS4T7TxbrDQT8jpHsw7tEVxoZTE0ll06G03Yjz0YbcJc61haj2dQfy/S/MWtVp6EhHysqmn4ic/xJX5XQw46DA7Z8NlQcNiVNo427n1oI+dAwVL8gyHp1VaEh9htQ04PxVddN99/gguwF6+hnkceepNanTuw6mYy5UigQy/hAvbwQ33kGoH2JQQdMdqy9GdL39cXfIa38VNdJwwD6ze5125nmFLpP6/no0KBL4d+AAAAAElFTkSuQmCC");
+}
+
+button.no-icon > div > h6 {
+    border-right: 2px solid #3c3c41;
+    width: 100px;
+}

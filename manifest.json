@@ -1,15 +1,17 @@
 {
     "manifest_version": 2,
-    "name": "Universe Enhancement Kit",
-    "description": "Enhances your League Universe page by adding some functionality.",
-    "version": "0.7.0",
+    "name": "__MSG_info_title__",
+    "short_name": "__MSG_info_title_short__",
+    "default_locale": "en",
+    "description": "__MSG_info_description__",
+    "version": "0.8.0",
     "permissions": ["storage", "contextMenus"],
-    
+    "author": "Fabian Palitza - LordRedStone",
+    "homepage_url": "https://boards.na.leagueoflegends.com/en/c/story-art",
     "icons": { 
         "16": "images/icons/16.png",
         "32": "images/icons/32.png",
-        "48": "images/icons/32.png",
-        "64": "images/icons/32.png",
+        "48": "images/icons/48.png",
         "128": "images/icons/128.png"
         },
     "commands": {
@@ -18,9 +20,9 @@
                 "default": "Ctrl+Shift+L",
                 "mac": "Command+Shift+L"
             },
-            "description": "Toggles the sidebar on all Universe Websites, if enabled."
+            "description": "Toggles the sidebar on all Universe Websites"
         }
-    },
+    },        
     "background": {
         "scripts": ["scripts/background.js", "scripts/data.js"],
         "persistent": false
@@ -31,8 +33,8 @@
     "content_scripts": [
         {
             "matches": ["*://universe.leagueoflegends.com/*"],
-            "css": ["html/style.css"],
-            "js": ["scripts/contentScript.js"]
+            "css": ["css/main.css", "css/stories.css", "css/lists.css", "css/options.css", "css/about.css"],
+            "js": ["scripts/contentScript.js", "scripts/translate.js"]
         }
     ],
     "web_accessible_resources": [
