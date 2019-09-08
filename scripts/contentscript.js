@@ -9,6 +9,17 @@ var storyList;
 var stories_sortKey = "title";
 
 //some functions we'll need. These need to be acessible outside of main
+
+function readHtmlFile(path, callback) {
+    var file = new XMLHttpRequest();
+    file.overrideMimeType("text/html");
+    file.open("GET", chrome.runtime.getURL(path), true);
+    file.onload = function() {
+        callback(file.responseText);
+    }
+    file.send();
+}
+
 function changeVisibility() {
     
     open = !open;
@@ -23,16 +34,6 @@ function changeVisibility() {
     document.getElementById("uek-toggle-close").classList.toggle("hidden");
     console.log((open?"Showing":"Hiding") + " UEK Extension page");
 };
-
-function readHtmlFile(path, callback) {
-    var file = new XMLHttpRequest();
-    file.overrideMimeType("text/html");
-    file.open("GET", chrome.runtime.getURL(path), true);
-    file.onload = function() {
-        callback(file.responseText);
-    }
-    file.send();
-}
 
 function main(inject) {
     // Some function definitions, I'd rather have them here if possible. only changeVisibility and readHtmlFile need to be outside.
@@ -179,9 +180,9 @@ function main(inject) {
         target.innerHTML = "";
         if (storyList === undefined) {
             console.log(await new Promise ((resolve, reject) => {
-                chrome.runtime.sendMessage({id: "get-stories"}, 
+                chrome.runtime.sendMessage({id: "query-stories"}, 
                 function(response) {
-                    if (response.id === "get-stories-response" && response.success == true) {
+                    if (response.id === "query-stories-response" && response.success == true) {
                         
                         storyList = response.stories;
                         parseData();
@@ -279,19 +280,22 @@ function main(inject) {
     function calculateHeight() {
         const heightConst = document.getElementById("uek-options-heightconst").value;
         const heightFactor = document.getElementById("uek-options-heightfactor").value;
+        document.getElementById("uek-options-window-text").classList.remove("hidden");
         document.getElementById("uek-options-height").value = Math.round(heightFactor / 100 * window.innerHeight + heightConst * 1) + "px";
     }
     
     function calculateWidth() {
         const widthConst = document.getElementById("uek-options-widthconst").value;
         const widthFactor = document.getElementById("uek-options-widthfactor").value;
+        document.getElementById("uek-options-window-text").classList.remove("hidden");
         document.getElementById("uek-options-width").value = Math.round((widthFactor / 100 * window.innerWidth) + widthConst * 1) + "px";
     }
     
     function calculatePosition() {
         const posLeft = document.getElementById("uek-options-left").value;
         const posTop = document.getElementById("uek-options-top").value;
-        document.getElementById("uek-options-position").value = "" + posLeft + " / " + posTop;
+        document.getElementById("uek-options-window-text").classList.remove("hidden");
+        document.getElementById("uek-options-position").value = " " + posLeft + " / " + posTop;
     }
         
     // Injection and logic
@@ -306,14 +310,25 @@ function main(inject) {
     //Window layout & everything that needs the options callback
     chrome.storage.sync.get("options", function(items) {
         width = items.options.widthConst + (items.options.widthFactor / 100 * window.innerWidth);
+        if (width < 650) {width = 650; }
         height =  items.options.heightConst + (items.options.heightFactor / 100 * window.innerHeight);
+        if (height < 750) {height = 750; }
         posLeft = items.options.posLeft;
         posTop = items.options.posTop;
         document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px; top: " + posTop + "px; height: " + height + "px;");
-        document.getElementById("uek-main-page").setAttribute("style", "width: "+ width +"px;");
+        document.getElementById("uek-main-page").setAttribute("style", "width: "+ width +"px; height: " + height + "px;");
+        document.getElementById("uek-main-body").setAttribute("style", "height: " + (height - 40-4) + "px;");
         document.getElementById("uek-base-wrapper").classList.remove("hidden");
-        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-stories").offsetHeight - document.getElementById("uek-stories-filter").offsetHeight- 40) + "px;");
         
+        
+        // Stories
+        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-stories").offsetHeight - document.getElementById("uek-stories-filter").offsetHeight- 52) + "px;");
+        
+        // Lists
+        
+        
+        
+        // Options
         document.getElementById("uek-options-heightfactor").value = items.options.heightFactor;
         document.getElementById("uek-options-heightconst").value = items.options.heightConst;
         document.getElementById("uek-options-widthfactor").value = items.options.widthFactor;
@@ -321,8 +336,14 @@ function main(inject) {
         document.getElementById("uek-options-left").value = posLeft;
         document.getElementById("uek-options-top").value = posTop;
         document.getElementById("uek-options-contextmenu").checked = items.options.contextMenus;  
+        document.getElementById("uek-options-changelog").checked = items.options.changelog;  
         
         
+        // About
+        if (items.options.changelog) {
+            document.getElementById("uek-about-changelog").classList.remove("hidden");
+            document.getElementById("uek-about-changelog").previousElementSibling.classList.remove("hidden");
+        }
     });
       
     { // Header and link
@@ -340,6 +361,7 @@ function main(inject) {
    
     { //Story tab
         
+        // Changing values activates the filter
         document.getElementById("uek-filter-title-text").oninput = function() {
             document.getElementById("uek-filter-title").checked = true;
         };
@@ -381,7 +403,7 @@ function main(inject) {
         };
         
         document.getElementById("uek-filter-apply").onclick = function() {
-            generateStoryHTML(document.getElementById("uek-stories-table-body"));
+            generateStoryHTML();
         };
         
         document.getElementById("uek-filter-save").onclick = function() {
@@ -437,6 +459,7 @@ function main(inject) {
         document.getElementById("uek-options-top").oninput = calculatePosition;
                 
         document.getElementById("uek-options-confirm").onclick = function () {
+            document.getElementById("uek-options-window-text").classList.add("hidden");
             chrome.storage.sync.get("options", function (items) {
                 const options = items.options;
                 options.heightFactor = Number(document.getElementById("uek-options-heightfactor").value);
@@ -445,16 +468,19 @@ function main(inject) {
                 options.widthConst = Number(document.getElementById("uek-options-widthconst").value);
                 options.posLeft = Number(document.getElementById("uek-options-left").value);
                 options.posTop = Number(document.getElementById("uek-options-top").value);
-                if (document.getElementById("uek-options-contextmenu").checked != options.contextMenus) {
-                    options.contextMenus = document.getElementById("uek-options-contextmenu").checked;
+                options.universeOverride = document.getElementById("uek-options-locale").value;
+                options.contextMenus = document.getElementById("uek-options-contextmenu").checked;
+                options.changelog = document.getElementById("uek-options-changelog").checked;
+                                
+                chrome.storage.sync.set({"options": options}, function() {
                     chrome.runtime.sendMessage({
-                        id: "set-contextmenu-enabled",
-                        enabled: options.contextMenus
+                        id: "update-options",
+                        data: options
                     });
-                }
-                chrome.storage.sync.set({"options": options});
+                });
             });
-        }; 
+        }
+        
         document.getElementById("uek-options-refresh").onclick = function () {
             chrome.storage.sync.get("options", function (items) {
                 const options = items.options;
@@ -464,16 +490,15 @@ function main(inject) {
                 options.widthConst = Number(document.getElementById("uek-options-widthconst").value);
                 options.posLeft = Number(document.getElementById("uek-options-left").value);
                 options.posTop = Number(document.getElementById("uek-options-top").value);
+                options.universeOverride = document.getElementById("uek-options-locale").value;
                 options.contextMenus = document.getElementById("uek-options-contextmenu").checked;
-                if (document.getElementById("uek-options-contextmenu").checked != options.contextMenus) {
-                    options.contextMenus = document.getElementById("uek-options-contextmenu").checked;
-                    chrome.runtime.sendMessage({
-                        id: "set-contextmenu-enabled",
-                        enabled: options.contextMenus
-                    });
-                }
+                options.changelog = document.getElementById("uek-options-changelog").checked;
                 
-                chrome.storage.sync.set({"options": options}, function () {
+                chrome.storage.sync.set({"options": options}, function() {
+                    chrome.runtime.sendMessage({
+                        id: "update-options",
+                        data: options
+                    });
                     console.log("Restarting UEK");
                     document.getElementById("uek-base-wrapper").parentElement.removeChild(document.getElementById("uek-base-wrapper"));
                     open = false;
@@ -484,8 +509,12 @@ function main(inject) {
                     stories_sortKey = "title";
                     main(inject);
                 });
+                
+                
+                
             });
-        };
+        }
+        
         document.getElementById("uek-options-delete").onclick = function() {
             document.getElementById("uek-options-delete-text").classList.toggle("hidden");
             document.getElementById("uek-options-delete-confirm").classList.toggle("hidden");
@@ -494,22 +523,13 @@ function main(inject) {
             if (e.srcElement.value === chrome.i18n.getMessage("options_delete_confirmation")) {
                 chrome.storage.sync.clear();
                 alert(chrome.i18n.getMessage("options_delete_alert"));
-                chrome.storage.sync.set({"options": {
-                    widthFactor: 40, // 40% = 0.4
-                    widthConst: 200,
-                    heightFactor: 70, // 70% = 0.7
-                    heightConst: 200,
-                    posTop: 150,
-                    posLeft: 15,
-                    contextMenus: true,
-                    universeOverride: chrome.i18n.getMessage("info_universecode")
-                }});
+                chrome.storage.sync.set({"options": chrome.runtime.getManifest().default_options});
             }
         }
     }
     
     { // About Tab
-        
+        document.getElementById("uek-about-suggestions").getElementsByTagName("a")[0].href = chrome.runtime.getManifest().homepage_url;
     }
 
 }

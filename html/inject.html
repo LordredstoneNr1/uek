@@ -11,14 +11,20 @@
         <div id="uek-base-wrapper" class="hidden"> 
             <div id="uek-main-page">
                 <div id="uek-main-header">
-                    <a id="uek-main-title" class="title" href=""></a>
+                    <a id="uek-main-title" class="title" href="" target="_blank"></a>
                     <span class="uek-custom-separator"></span>
-                    <a id="uek-main-link-stories" class="activeTab" href="javascript:void(0)"></a>
+                    <span><a id="uek-main-link-stories" class="activeTab" href="javascript:void(0)"></a>
                     <a id="uek-main-link-lists" href="javascript:void(0)"></a>
                     <a id="uek-main-link-options" href="javascript:void(0)"></a>
                     <a id="uek-main-link-about" href="javascript:void(0)"></a>
+                    </span>
                 </div>
                 <div id="uek-main-body">
+                    <!-- 
+                    -----------------------------------
+                    --------------Stories--------------
+                    -----------------------------------
+                    -->
                     <div id="uek-main-block-stories">
                         <form id="uek-stories-filter">
                             <p id="uek-stories-text"> </p>
@@ -71,6 +77,11 @@
                         
                     </div>
                     
+                    <!-- 
+                    -----------------------------------
+                    --------------Lists----------------
+                    -----------------------------------
+                    -->
                     <div id="uek-main-block-lists" class="hidden">
                         <form id="uek-lists-form">
                             <select id=""> 
@@ -81,6 +92,11 @@
                         </form>
                     </div>
                     
+                    <!-- 
+                    -----------------------------------
+                    -------------Options---------------
+                    -----------------------------------
+                    -->
                     <div id="uek-main-block-options" class="hidden">
                         <form id="uek-options-form">
                             <label for="uek-options-locale"></label>
@@ -113,19 +129,22 @@
                                 
                                 <p><output name="position" for="uek-options-top uek-options-left" id="uek-options-position"></output></p>
                             </div>
-                            
+                            <p id="uek-options-window-text" class="hidden"></p>
                             <hr>
                             
                             <input type="checkbox" id="uek-options-contextmenu">
                             <label for="uek-options-contextmenu"></label>
                             <p></p>
                             
-                            <hr>
-                            <p id="uek-options-text"></p>
-                            <button type="button" id="uek-options-confirm" class="icon-confirm"><div><h6></h6><div></div></div></button>
-                            <button type="button" id="uek-options-refresh" class="icon-reload"><div><h6></h6><div></div></div></button><br>
+                            <input type="checkbox" id="uek-options-changelog">
+                            <label for="uek-options-changelog"></label>
+                            <p></p>
                             
+                            <hr>
+                            <button type="button" id="uek-options-confirm" class="icon-confirm"><div><h6></h6><div></div></div></button>
+                            <button type="button" id="uek-options-refresh" class="icon-reload"><div><h6></h6><div></div></div></button>
                             <button type="button" id="uek-options-delete" class="no-icon" ><div><h6></h6></div></button><br>
+                            
                             <label id="uek-options-delete-text" for="uek-options-delete-confirm" class="hidden"></label>
                             <input type="text" id="uek-options-delete-confirm" class="hidden"><br>
                             
@@ -133,35 +152,39 @@
                         </form>
                     </div>
                     
+                    <!-- 
+                    -----------------------------------
+                    ---------------About---------------
+                    -----------------------------------
+                    -->
                     <div id="uek-main-block-about" class="hidden">
-                    
-                    <h3>Legal Jibber Jabber</h3>
-                    <p id="uek-about-legal">
-                    </p>
-                    <hr>
-                    <h3>Suggestions</h3>
-                    <p id="uek-about-suggestions">
-                        Do you have any suggestions to make the Universe Enhancement Kit even better?
-                        Is a translation missing or do you want to help me by translating the UEK into another language? Do you maybe want to help in the development of the next version?
-                        Contact me on any of the platforms below: <br><br>
-                        <a href="">Boards:</a> LordRedStone Nr1 <span class="uek-custom-separator"></span> 
-                        <a href="">Discord: </a>Fabian P. / LordRedStone#7732 <span class="uek-custom-separator"></span> 
-                        <a href="https://github.com/LordredstoneNr1/uek">GitHub: </a> LordredstoneNr1
-                    </p>
-                    <hr>
-                    <h3> Credits </h3>
-                    <p id="uek-about-translators">
-                        I'd like to thank all the translators and everyone else who helped me create the UEK:
-                        Sharjo, for his knowledge of stories and their authors; the rest of the lore squad for our shared interest; 
-                        and as always Riot and the writers. <br>You are the reason I'm making this.
-                    </p>
-                        <ul> Translators:
+                        <h3 class="hidden"></h3>
+                        <ul id="uek-about-changelog" class="hidden">
+                            <li><b>v1.0.0 Initial Release</b><br>
+                            Some Text...
+                            </li>
+                        </ul>
+                        <h3></h3>
+                        <p id="uek-about-suggestions">
+                            <br><br>
+                            <a href="" target="_blank">Boards:</a> LordRedStone Nr1 <span class="uek-custom-separator"></span> 
+                            Discord: Fabian P. / LordRedStone#7732 <span class="uek-custom-separator"></span> 
+                            <a href="https://github.com/LordredstoneNr1/uek" target="_blank">GitHub: </a> LordredstoneNr1
+                        </p>
+                        <hr>
+                        <h3></h3>
+                        <p id="uek-about-credits">
+                        </p>
+                        <ul> 
                             <li> fr: </li>
                             <li> pt: </li>
                             <li> de: </li>
                             <li> ro: </li>
                         </ul>
-                    </p>
+                        <hr>
+                        <h3></h3>
+                        <p id="uek-about-legal">
+                        </p>
                     </div>
                 </div>  
             </div>

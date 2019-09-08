@@ -34,6 +34,8 @@ a#uek-toggle-link > img {
 div#uek-main-page {
     float: left;
     height: 100%;
+    min-height: 750px;
+    min-width: 650px;
     background-color: #111111;
     border: 2px solid #c9aa71;
 }
@@ -52,8 +54,9 @@ div#uek-main-page li {
 div#uek-main-page hr {
     border: none;
     border-top: 1px solid #5b5a564d;
-    margin: 20px 20px 10px 0;
+    margin: 10px 20px 10px 0;
     padding: 0 10% 0 10%;
+    clear: both;
 }
 
 span.uek-custom-separator {
@@ -70,20 +73,20 @@ span.uek-custom-separator {
 div#uek-main-header {
     margin: 10px 25px 0 25px;
     border-bottom: 2px dotted #262626;
-    height: 40px:
+    height: 30px;
 }
 
-div#uek-main-header > a {
+div#uek-main-header a {
     color: #d6bd8f;
-    margin: 0 10px
+    margin: 0 10px;
 }
 
-div#uek-main-header > a.activeTab {
+div#uek-main-header a.activeTab {
     color: white;
     border-bottom: 2px solid #c79a3c;
 }
 
-div#uek-main-header > a.title {
+div#uek-main-header a.title {
     color: #f0e6d2;
 
 }
@@ -91,14 +94,12 @@ div#uek-main-header > a.title {
 
 /* Body */
 
-div#uek-main-body {
-    height: 95%;
-}
-
 div#uek-main-body > div {
     height: 100%; 
     width: 100%;
     padding: 20px 0 20px 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 #uek-main-body form > button {
@@ -112,6 +113,7 @@ div#uek-main-body > div {
 }
 
 #uek-main-body form input, #uek-main-body form select {
+    vertical-align: middle;
     background-color: #161616;
     color: #937341;
     border: 2px outset #a09a8e;

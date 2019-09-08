@@ -22,7 +22,7 @@
             },
             "description": "Toggles the sidebar on all Universe Websites"
         }
-    },
+    },        
     "background": {
         "scripts": ["scripts/background.js", "scripts/data.js"],
         "persistent": false

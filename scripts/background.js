@@ -1,12 +1,13 @@
 var options = {
-    widthFactor: 40, // 40% = 0.4
-    widthConst: 200,
-    heightFactor: 70, // 70% = 0.7
-    heightConst: 200,
-    posTop: 150,
-    posLeft: 15,
-    contextMenus: true,
-    universeOverride: chrome.i18n.getMessage("info_universecode")
+    "widthFactor": 40, 
+    "widthConst": 200,
+    "heightFactor": 70, 
+    "heightConst": 200,
+    "posTop": 150,
+    "posLeft": 15,
+    "contextMenus": true,
+    "changelog": true,
+    "universeOverride": chrome.i18n.getMessage("info_universecode")
 };
 
 function getJSON(url, callback) {
@@ -15,9 +16,61 @@ function getJSON(url, callback) {
     xhr.responseType = 'json';
     xhr.onload = function() {
         console.log("XMLHttpRequest to \'" + url + "\' finished with status " + xhr.status);
-        callback(xhr.status, xhr.response);
+        callback(xhr.response);
     };
     xhr.send();
+};
+
+//Setting up data
+function update(callback) {
+    getJSON("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json", function(data){
+        UnpackedStory.storyModules = [];
+        data.modules.forEach( function(obj) {
+            if (obj.type === "story-preview") {
+                UnpackedStory.storyModules.push( new UnpackedStory(obj));
+            }
+        });
+        
+        /*Above sets up the base modules we work with. 
+        If more information are needed, add them to the constructor of UnpackedStory. 
+        For now, keep it small, store only the necessary information.
+        */
+        
+        //Clear for Debug purposes, do not ship with this :D
+        //chrome.storage.sync.clear();
+        
+        //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
+        chrome.storage.sync.get(null, function(items) {
+            if (!items.options) {
+                console.log("UEK: First Startup");
+                StoryList.createReadingList("all", "delete", false);
+                options = {
+                    "widthFactor": 40, 
+                    "widthConst": 200,
+                    "heightFactor": 70, 
+                    "heightConst": 200,
+                    "posTop": 150,
+                    "posLeft": 15,
+                    "contextMenus": true,
+                    "changelog": true,
+                    "universeOverride": chrome.i18n.getMessage("info_universecode")
+                };
+                chrome.commands.getAll(function (commands) {
+                    options.shortcut = commands[1].shortcut;
+                    chrome.storage.sync.set({"options": options});
+                });
+            } else {
+                for (entry in items) {
+                    if (entry.startsWith("list: ")) {
+                        new StoryList(items[entry].data, [entry.substring(6), items[entry].afterRead, items[entry].suggest]);
+                    } 
+                };
+                options = items.options;
+            }
+            callback(UnpackedStory.storyModules, items);
+        });
+        console.log("UEK update complete");
+    });
 };
 
 class StoryList {
@@ -40,13 +93,17 @@ class StoryList {
         }
                 
         StoryList.unpackedLists[this.displayName] = this;
-        
         chrome.contextMenus.create({
-            "id": name,
+            "id": "list: ".concat(this.displayName),
             "parentId": "listsRoot",
             "title": this.displayName,
             "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
             "contexts": ["link"]
+        },
+        function() {
+            if (chrome.runtime.lastError) {
+                console.log("Error while creating context menu item " + name + ": ", chrome.runtime.lastError.message);
+            }
         }); 
     }
     
@@ -111,15 +168,13 @@ class StoryList {
     }
     
     save() {
-        const name = "list: " + this.displayName;
-        chrome.storage.sync.set({
-             name : {
-                "data" : this.data.map(a => a.slug), 
-                "afterRead": this.afterRead,
-                "suggest": this.suggest
-                }
-            }
-        );
+        const list = {};
+        list["list: " + this.displayName] = {
+            "data" : this.data.map(a => a.slug), 
+            "afterRead": this.afterRead,
+            "suggest": this.suggest
+        }
+        chrome.storage.sync.set(list);
         chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
             console.log("Saved Data. Total bytes used: ", bytesInUse);
         });
@@ -152,7 +207,7 @@ class UnpackedStory {
             //regular tags created from the champions and subtitle of the story
             obj['featured-champions'].forEach(function(champion) {
                 if (chrome.i18n.getMessage("champion_" + champion.slug) != champion.name) {
-                    //console.log("Champion " + champion.slug + " is translated as \"" + chrome.i18n.getMessage("champion_" + champion.slug) + "\" but the website says \"" + champion.name + "\".");
+                    console.log("Champion " + champion.slug + " is translated as \"" + chrome.i18n.getMessage("champion_" + champion.slug) + "\" but the website says \"" + champion.name + "\".");
                 }
                 tags.champions.push(chrome.i18n.getMessage("champion_" + champion.slug));
                 if (!tags.regions.includes(chrome.i18n.getMessage("region_" + champions_base[champion.slug]))) {
@@ -294,7 +349,7 @@ chrome.runtime.onInstalled.addListener(function() {
         switch (info.menuItemId)  {
             case "root":
                 chrome.tabs.create({
-                    "url": "https://universe.leagueoflegends.com/en_US/",
+                    "url": "https://universe.leagueoflegends.com/" + options.universeOverride.replace("-", "_") + "/",
                     "index": tab.index + 1,
                     "openerTabId": tab.id
                 });
@@ -321,7 +376,7 @@ chrome.runtime.onInstalled.addListener(function() {
                 });
                 break;
             case "listsNew":
-                list = new StoryList("New List", {"data":[]});
+                list = new StoryList([], ["New List", "delete", false]);
                 list.add(info.linkUrl);
                 list.save();
                 break;
@@ -382,64 +437,29 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             success: true,
             stories: UnpackedStory.storyModules
         });
-        console.log("Sender ", sender, " requested story modules, sending data.");
+        console.log("Sender ", sender.id, " requested story modules, sending data.");
     } else if (request.id === "query-stories") {
-        getJSON("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json", function(status, data){
-            UnpackedStory.storyModules = [];
-            data.modules.forEach( function(obj) {
-                if (obj.type === "story-preview") {
-                    UnpackedStory.storyModules.push( new UnpackedStory(obj));
-                }
-            });
-            console.log("Story Modules: ", UnpackedStory.storyModules);
+        update(function (modules, storedItems) {
             sendResponse({
                 id: "query-stories-response",
                 success: true,
-                stories: UnpackedStory.storyModules
+                stories: modules
             });
+            console.log("Sender ", sender.id, " requested refreshing the story modules. Story Modules: ", modules);
         });
-    } else if (request.id === "set-contextmenu-enabled") {
-        chrome.contextMenus.update("root", {visible: request.enabled});
+    } else if (request.id === "update-options") {
+        options = request.data;
+        update(function (modules, storedItems) {
+            chrome.contextMenus.update("root", {visible: storedItems.options.contextMenus});
+        });
     }
     return true;
 });
 
-//Setting up data
-getJSON("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json", function(status, data){
-    data.modules.forEach( function(obj) {
-        if (obj.type === "story-preview") {
-            UnpackedStory.storyModules.push( new UnpackedStory(obj));
-        }
-    });
-    console.log("Story Modules: ", UnpackedStory.storyModules);
-    
-    /*Above sets up the base modules we work with. 
-    If more information are needed, add them to the constructor of UnpackedStory. 
-    For now, keep it small, store only the necessary information.
-    */
-    
-    //Clear for Debug purposes, do not ship with this :D
-    chrome.storage.sync.clear();
-    
-    //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
-    chrome.storage.sync.get(null, function(items) {
-        if (!items.options) {
-            console.log("UEK: First Startup");
-            StoryList.createReadingList("all", "delete", false);
-            chrome.commands.getAll(function (commands) {
-                options.shortcut = commands[1].shortcut;
-                chrome.storage.sync.set({"options": options});
-            });
-        } else {
-            console.log("Started UEK, reading data: " + Object.keys(items).length + " items.");
-            for (entry in items) {
-                if (entry.startsWith("list: ")) {
-                    new StoryList(items[entry].data, [entry.substring(6), items[entry].afterRead, items[entry].suggest]);
-                } 
-            };
-            options = items.options;
-        }
-        
-        console.log(StoryList.unpackedLists);
-    });
+
+//Actual startup / initialization
+update(function (modules, storedItems) {
+    console.log("Initializing UEK");
+    console.log("Story Modules: ", modules);
+    console.log("Storage: ",storedItems);
 });

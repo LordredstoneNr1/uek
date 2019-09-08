@@ -447,7 +447,7 @@
         "description": "Describes the input for frame height as constant number of pixels."
     },
     "options_calculatedHeight": {
-        "message": "Calculated height:",
+        "message": "Calculated height: ",
         "description": "Describes the output for the total calculated height."
     },
     "options_widthFactor": {
@@ -459,7 +459,7 @@
         "description": "Describes the input for frame width as constant number of pixels."
     },
     "options_calculatedWidth": {
-        "message": "Calculated width:",
+        "message": "Calculated width: ",
         "description": "Describes the output for the total calculated width."
     },
     "options_positionLeft": {
@@ -471,7 +471,7 @@
         "description": "Describes the input for the upper margin of the window."
     },
     "options_currentPosition": {
-        "message": "Current position:",
+        "message": "Current position: ",
         "description": "Describes the output for the window position (top/left)."
     },
     
@@ -483,8 +483,16 @@
         "message": "This enables the \"Extract Image\" functionality as well as other shortcuts.",
         "description": "Describes extra functionality added by the checkbox."
     },
+    "options_changelog": {
+        "message": "Display Changelog",
+        "description": "Checkbox that enables the changelog in the About tab."
+    },
+    "options_changelog_text": {
+        "message": "Shows extension news in the \"About\" tab.",
+        "description": "Describes what the checkbox does. Please add that the changelog will be in english only."
+    },
     "options_refresh_text": {
-        "message": "<i>Changes to the window size and position are only applied after the page has been refreshed.</i>",
+        "message": "<i>Changes to the window size and position are only applied after the page has been refreshed. <br>Minimum window size is 750px X 650px.</i>",
         "description": "Warning that the user needs to refresh the page before changes take effect."
     },
     "options_confirm": {
@@ -512,9 +520,36 @@
         "description": "Text that's shown as a popup after the data is deleted."
     },
    
-    
+    "about_changelog": {
+        "message": "What's new?",
+        "description": "Headline displayed on the About tab."
+    },
+    "about_suggestions": {
+        "message": "Suggestions",
+        "description": "Headline displayed on the About tab."
+    },
+    "about_suggestions_text": {
+        "message": "Do you have any suggestions to make the Universe Enhancement Kit even better? Is a translation missing or do you want to help me by translating the UEK into another language? Do you maybe want to help in the development of the next version? Contact me on any of the platforms below: ",
+        "description": "Text displayed on the About tab."
+    },
+    "about_credits": {
+        "message": "Credits",
+        "description": "Headline displayed on the About tab."
+    },
+    "about_credits_text": {
+        "message": "I'd like to thank all the translators and everyone else who helped me create the UEK: Sharjo, for his knowledge of stories and their authors; the rest of the lore squad for our shared interest; and as always Riot and the writers. <br>You are the reason I'm making this.",
+        "description": "Text displayed on the About tab. "
+    },
+    "about_credits_translators": {
+        "message": "Translators: ",
+        "description": "Text displayed on the About tab. The actual list of translators will not be translated."
+    },
     "about_legal": {
-        "message": "The Universe Enhancement Kit was created under Riot Games' <a href='https://www.riotgames.com/en/legal' target='_blank'>'Legal Jibber Jabber'</a> policy using assets owned by Riot Games.  Riot Games does not endorse or sponsor this project.",
+        "message": "Legal Jibber Jabber",
+        "description": "Headline displayed on the About tab."
+    },
+    "about_legal_text": {
+        "message": "The Universe Enhancement Kit was created under Riot Games' <a href='https://www.riotgames.com/en/legal' target='_blank'>\"Legal Jibber Jabber\"</a> policy using assets owned by Riot Games.<br>Riot Games does not endorse or sponsor this project.",
         "description": "Text displayed on the About tab. HTML Encouraged. Swap out the link to include your regions page."
     }
     

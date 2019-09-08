@@ -1,16 +1,67 @@
 function translate() {       
     var element;
-    var options;
     console.log("Starting translation for locale ", chrome.i18n.getUILanguage());
     
     // Options callback
     chrome.storage.sync.get("options", function (items) {
-        options = items.options;
+        const options = items.options;
         document.getElementById("uek-link-open").firstElementChild.innerHTML = options.shortcut;
         
         document.getElementById("uek-options-height").value = Math.round(options.heightFactor / 100 * window.innerHeight + options.heightConst * 1) + "px";
         document.getElementById("uek-options-width").value = Math.round(options.widthFactor / 100 * window.innerWidth + options.widthConst * 1) + "px";
         document.getElementById("uek-options-position").value = "" + options.posLeft + " / " + options.posTop;
+        
+        // Creates language dropdown menu. This needs the current language, so it's here.
+        chrome.i18n.getAcceptLanguages(function (languages) {
+            var optElement = document.createElement("optgroup");
+            optElement.label = "Suggested" //chrome.i18n.getMessage("options_detected");
+            
+            const suggestedLanguages = new Set();
+            suggestedLanguages.add(options.universeOverride);
+            for (i = 0; i < languages.length; i++) {
+                // No need to suggest all english variants if en-US is already suggested
+                if (languages[i].length == 2 && Array.from(suggestedLanguages.values()).some(a => a.startsWith(languages[i]))) {
+                    continue;
+                }
+                var suggestions = universeLanguages.filter( a => a === languages[i] );
+                                
+                // No direct match, try second pass
+                if (suggestions.length == 0) {
+                    suggestions = universeLanguages.filter( a => a.substring(0, 2) === languages[i].substring(0,2));
+                } 
+                // Found something
+                if (suggestions.length > 0) {
+                    for (j = 0; j < suggestions.length; j++) {
+                        suggestedLanguages.add(suggestions[j]);
+                    }
+                }
+            }
+            
+            suggestedLanguages.forEach( function (suggestion) {
+                var childElement = document.createElement("option");
+                childElement.value = suggestion;
+                childElement.innerHTML = suggestion;
+                optElement.appendChild(childElement);
+            });
+            
+            document.getElementById("uek-options-locale").appendChild(optElement);
+            
+            optElement = document.createElement("optgroup");
+            optElement.label = "";
+            document.getElementById("uek-options-locale").appendChild(optElement);
+            
+            optElement = document.createElement("optgroup");
+            optElement.label = "All Languages";
+            
+            for (i = 0; i < universeLanguages.length; i++) {
+                var childElement = document.createElement("option");
+                childElement.value = universeLanguages[i];
+                childElement.innerHTML = universeLanguages[i];
+                optElement.appendChild(childElement);
+            }
+            
+            document.getElementById("uek-options-locale").appendChild(optElement);
+        });
     });
     
     { // Riot sidebar
@@ -181,73 +232,29 @@ function translate() {
     { // Options Tab
         // Universe Languages + Suggestions
         document.getElementById("uek-options-locale").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_universelocale");
-        chrome.i18n.getAcceptLanguages(function (languages) {
-            var optElement = document.createElement("optgroup");
-            optElement.label = "Suggested" //chrome.i18n.getMessage("options_detected");
-            
-            const suggestedLanguages = new Set();
-            suggestedLanguages.add(options.universeOverride);
-            for (i = 0; i < languages.length; i++) {
-                // No need to suggest all english variants if en-US is already suggested
-                if (languages[i].length == 2 && Array.from(suggestedLanguages.values()).some(a => a.startsWith(languages[i]))) {
-                    continue;
-                }
-                var suggestions = universeLanguages.filter( a => a === languages[i] );
-                                
-                // No direct match, try second pass
-                if (suggestions.length == 0) {
-                    suggestions = universeLanguages.filter( a => a.substring(0, 2) === languages[i].substring(0,2));
-                } 
-                // Found something
-                if (suggestions.length > 0) {
-                    for (j = 0; j < suggestions.length; j++) {
-                        suggestedLanguages.add(suggestions[j]);
-                    }
-                }
-            }
-            
-            suggestedLanguages.forEach( function (suggestion) {
-                var childElement = document.createElement("option");
-                childElement.value = suggestion;
-                childElement.innerHTML = suggestion;
-                optElement.appendChild(childElement);
-            });
-            
-            document.getElementById("uek-options-locale").appendChild(optElement);
-            
-            optElement = document.createElement("optgroup");
-            optElement.label = "";
-            document.getElementById("uek-options-locale").appendChild(optElement);
-            
-            optElement = document.createElement("optgroup");
-            optElement.label = "All Languages";
-            
-            for (i = 0; i < universeLanguages.length; i++) {
-                var childElement = document.createElement("option");
-                childElement.value = universeLanguages[i];
-                childElement.innerHTML = universeLanguages[i];
-                optElement.appendChild(childElement);
-            }
-            
-            document.getElementById("uek-options-locale").appendChild(optElement);
-        });
+        
+        // Creating the selection needs options support: See above
         
         document.getElementById("uek-options-heightconst").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_heightConst");
         document.getElementById("uek-options-heightfactor").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_heightFactor");
-        document.getElementById("uek-options-height").insertAdjacentText("afterBegin", chrome.i18n.getMessage("options_calculatedHeight"));
+        document.getElementById("uek-options-height").parentElement.insertAdjacentText("afterBegin", chrome.i18n.getMessage("options_calculatedHeight"));
         
         document.getElementById("uek-options-widthconst").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_widthConst");
         document.getElementById("uek-options-widthfactor").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_widthFactor");
-        document.getElementById("uek-options-width").insertAdjacentText("afterBegin", chrome.i18n.getMessage("options_calculatedWidth"));
+        document.getElementById("uek-options-width").parentElement.insertAdjacentText("afterBegin", chrome.i18n.getMessage("options_calculatedWidth"));
         
         document.getElementById("uek-options-left").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_positionLeft");
         document.getElementById("uek-options-top").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_positionTop");
-        document.getElementById("uek-options-position").insertAdjacentText("afterBegin", chrome.i18n.getMessage("options_currentPosition"));
+        document.getElementById("uek-options-position").parentElement.insertAdjacentText("afterBegin", chrome.i18n.getMessage("options_currentPosition"));
         
-        document.getElementById("uek-options-contextmenu").innerHTML = chrome.i18n.getMessage("options_contextMenu");
-        document.getElementById("uek-options-contextmenu").nextElementSibling.innerHTML = chrome.i18n.getMessage("options_contextMenu_text");
+        document.getElementById("uek-options-window-text").innerHTML = chrome.i18n.getMessage("options_refresh_text");
         
-        document.getElementById("uek-options-text").innerHTML = chrome.i18n.getMessage("options_refresh_text");
+        document.getElementById("uek-options-contextmenu").nextElementSibling.innerHTML = chrome.i18n.getMessage("options_contextMenu");
+        document.getElementById("uek-options-contextmenu").nextElementSibling.nextElementSibling.innerHTML = chrome.i18n.getMessage("options_contextMenu_text");
+        
+        document.getElementById("uek-options-changelog").nextElementSibling.innerHTML = chrome.i18n.getMessage("options_changelog");
+        document.getElementById("uek-options-changelog").nextElementSibling.nextElementSibling.innerHTML = chrome.i18n.getMessage("options_changelog_text");
+        
         
         document.getElementById("uek-options-confirm").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("options_confirm");
         document.getElementById("uek-options-refresh").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("options_refresh");
@@ -258,7 +265,16 @@ function translate() {
     }
     
     { // About Tab
-        document.getElementById("uek-about-legal").innerHTML = chrome.i18n.getMessage("about_text");
+        document.getElementById("uek-about-changelog").previousElementSibling.innerHTML = chrome.i18n.getMessage("about_changelog");
+        document.getElementById("uek-about-suggestions").previousElementSibling.innerHTML = chrome.i18n.getMessage("about_suggestions");
+        document.getElementById("uek-about-suggestions").insertAdjacentText("afterBegin", chrome.i18n.getMessage("about_suggestions_text"));
+        
+        document.getElementById("uek-about-credits").previousElementSibling.innerHTML = chrome.i18n.getMessage("about_credits");
+        document.getElementById("uek-about-credits").innerHTML = chrome.i18n.getMessage("about_credits_text");
+        document.getElementById("uek-about-credits").nextElementSibling.insertAdjacentText("afterBegin", chrome.i18n.getMessage("about_credits_translators"));
+        
+        document.getElementById("uek-about-legal").previousElementSibling.innerHTML = chrome.i18n.getMessage("about_legal");
+        document.getElementById("uek-about-legal").innerHTML = chrome.i18n.getMessage("about_legal_text");
     }
     console.log("Finished translation. Used locale is ", chrome.i18n.getMessage("info_universecode"));
 }
