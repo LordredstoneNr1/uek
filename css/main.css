@@ -37,7 +37,8 @@ div#uek-main-page {
     min-height: 750px;
     min-width: 650px;
     background-color: #111111;
-    border: 2px solid #c9aa71;
+    border: 3px solid #c9aa71;
+    border-radius: 2px;
 }
 
 /* Misc rules to use in UEK elements only */
@@ -97,13 +98,17 @@ div#uek-main-header a.title {
 div#uek-main-body > div {
     height: 100%; 
     width: 100%;
-    padding: 20px 0 20px 20px;
+    padding: 20px;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
+div#uek-main-body > div.no-padding {
+    padding: 20px 0 0 20px;
+}
+
 #uek-main-body form > button {
-    margin: 20px 15px 10px 25px;
+    margin: 20px 15px 20px 25px;
     height: 28px;
     width: 100px;
     color: #a09b8c;

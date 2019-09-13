@@ -4,7 +4,7 @@
     "short_name": "__MSG_info_title_short__",
     "default_locale": "en",
     "description": "__MSG_info_description__",
-    "version": "0.8.0",
+    "version": "0.9.0",
     "permissions": ["storage", "contextMenus"],
     "author": "Fabian Palitza - LordRedStone",
     "homepage_url": "https://boards.na.leagueoflegends.com/en/c/story-art",
@@ -34,7 +34,7 @@
         {
             "matches": ["*://universe.leagueoflegends.com/*"],
             "css": ["css/main.css", "css/stories.css", "css/lists.css", "css/options.css", "css/about.css"],
-            "js": ["scripts/contentScript.js", "scripts/translate.js"]
+            "js": ["scripts/contentscript.js", "scripts/translate.js"]
         }
     ],
     "web_accessible_resources": [

@@ -15,7 +15,7 @@ function getJSON(url, callback) {
     xhr.open('GET', url, true);
     xhr.responseType = 'json';
     xhr.onload = function() {
-        console.log("XMLHttpRequest to \'" + url + "\' finished with status " + xhr.status);
+        console.log("%c Network ","background-color: yellow; color: black; border-radius: 5px;" ,"XMLHttpRequest to \'" + url + "\' finished with status " + xhr.status);
         callback(xhr.response);
     };
     xhr.send();
@@ -23,6 +23,7 @@ function getJSON(url, callback) {
 
 //Setting up data
 function update(callback) {
+    console.debug("UEK update cycle started");
     getJSON("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json", function(data){
         UnpackedStory.storyModules = [];
         data.modules.forEach( function(obj) {
@@ -42,7 +43,7 @@ function update(callback) {
         //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
         chrome.storage.sync.get(null, function(items) {
             if (!items.options) {
-                console.log("UEK: First Startup");
+                console.log("%c Startup ", "color: red; font-weight: bold;", "UEK: First Startup");
                 StoryList.createReadingList("all", "delete", false);
                 options = {
                     "widthFactor": 40, 
@@ -69,8 +70,9 @@ function update(callback) {
             }
             callback(UnpackedStory.storyModules, items);
         });
-        console.log("UEK update complete");
     });
+    
+    console.debug("UEK update cycle complete");
 };
 
 class StoryList {
@@ -102,7 +104,7 @@ class StoryList {
         },
         function() {
             if (chrome.runtime.lastError) {
-                console.log("Error while creating context menu item " + name + ": ", chrome.runtime.lastError.message);
+                console.debug("%c Expected ", "background: lime; color: black; border-radius: 5px;", "Error while creating context menu item " + name + ": ", chrome.runtime.lastError.message);
             }
         }); 
     }
@@ -110,38 +112,38 @@ class StoryList {
     static createReadingList(tag, afterReadHandler, suggest) {
         var filteredModules = [];
         var name;
-        console.log("Setting up list for tag: " + tag);
+        console.log("%c Data ", "background: green; border-radius: 5px;", "Setting up list for tag: " + tag);
         if (tag==="all") {
             //Special Tag: All stories
-            console.log("Special Tag found: " + tag);
+            console.debug("Special Tag found: " + tag);
             name = "Reading List";
             filteredModules = UnpackedStory.storyModules;
         } else if (Object.values(champions_base).includes(tag)) {
             
             //Regions
-            console.log("Region found: " + tag);
+            console.debug("Region found: " + tag);
             name = "Region: " + tag;
             filteredModules = filterByTag("regions", tag);
         } else if (Object.keys(champions_base).includes(tag)) {
             
             //Champions
-            console.log("Champion found: " + tag);
+            console.debug("Champion found: " + tag);
             name = "Champion: " + tag;
             filteredModules = filterByTag("champions", tag);
         } else if (StoryList.authorList.includes(tag)) {
             
             //Authors
-            console.log("Author found: " + tag);
+            console.debug("Author found: " + tag);
             name = "Author: " + tag;
             filteredModules = filterByTag("authors", tag);
         } else {
             
             //???
-            console.log("Tag not found.");
+            console.debug("Tag not found.");
             return null;
         }
         
-        //console.log(filteredModules);
+        console.debug(filteredModules);
             
         new StoryList(filteredModules.map(a => a.slug), [name, afterReadHandler, suggest]).save();
     }
@@ -176,7 +178,7 @@ class StoryList {
         }
         chrome.storage.sync.set(list);
         chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
-            console.log("Saved Data. Total bytes used: ", bytesInUse);
+            console.log("%c Data ", "background: green; border-radius: 5px;", "Saved Data. Total bytes used: ", bytesInUse);
         });
     }
     
@@ -207,7 +209,7 @@ class UnpackedStory {
             //regular tags created from the champions and subtitle of the story
             obj['featured-champions'].forEach(function(champion) {
                 if (chrome.i18n.getMessage("champion_" + champion.slug) != champion.name) {
-                    console.log("Champion " + champion.slug + " is translated as \"" + chrome.i18n.getMessage("champion_" + champion.slug) + "\" but the website says \"" + champion.name + "\".");
+                    console.log("%c Translation missing ", "background-color: red; border-radius: 5px;", champion.name);
                 }
                 tags.champions.push(chrome.i18n.getMessage("champion_" + champion.slug));
                 if (!tags.regions.includes(chrome.i18n.getMessage("region_" + champions_base[champion.slug]))) {
@@ -239,7 +241,7 @@ class UnpackedStory {
                 if(authors_fallback[this.slug]) {
                     tags.authors = authors_fallback[this.slug];
                 } else {
-                    console.log(obj["story-slug"]);
+                    console.log("%c Translation missing ", "background-color: red; border-radius: 5px;", obj["story-slug"]);
                 }
             }
             
@@ -346,6 +348,7 @@ chrome.runtime.onInstalled.addListener(function() {
         "contexts": ["page", "browser_action"]
     });
     chrome.contextMenus.onClicked.addListener(function(info, tab) {
+        console.debug("Context menu: ", info);
         switch (info.menuItemId)  {
             case "root":
                 chrome.tabs.create({
@@ -363,7 +366,6 @@ chrome.runtime.onInstalled.addListener(function() {
                 break;
             case "about":
                 chrome.tabs.create({
-                    //Replace URL with post
                     "url": chrome.runtime.getManifest().homepage_url,
                     "index": tab.index + 1,
                     "openerTabId": tab.id
@@ -422,22 +424,26 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 
 chrome.commands.onCommand.addListener( function(command){
-    chrome.tabs.query(
-        {"active": true, "currentWindow": true}, 
-        function(currentTab) {
-            chrome.tabs.sendMessage(currentTab[0].id, {id: "toggle-panel"});
-        }
-    );
+    console.debug("Command: ", command);
+    if (command === "toggle-panel") {
+        chrome.tabs.query(
+            {"active": true, "currentWindow": true}, 
+            function(currentTab) {
+                chrome.tabs.sendMessage(currentTab[0].id, {id: "toggle-panel"});
+            }
+        );
+    }
 });
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    console.debug("Message: ", request);
     if (request.id === "get-stories") {
         sendResponse({
             id: "get-stories-response",
             success: true,
             stories: UnpackedStory.storyModules
         });
-        console.log("Sender ", sender.id, " requested story modules, sending data.");
+        console.log("%c Data ", "background: green; border-radius: 5px;", "Sending data to ", sender.id);
     } else if (request.id === "query-stories") {
         update(function (modules, storedItems) {
             sendResponse({
@@ -445,7 +451,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 success: true,
                 stories: modules
             });
-            console.log("Sender ", sender.id, " requested refreshing the story modules. Story Modules: ", modules);
+            console.log("%c Data ", "background: green; border-radius: 5px;", "Sender ", sender.id, " requested refreshing the story modules.");
+            console.log("%c Data ", "background: green; border-radius: 5px;", "Story Modules: ", modules);
         });
     } else if (request.id === "update-options") {
         options = request.data;
@@ -459,7 +466,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 //Actual startup / initialization
 update(function (modules, storedItems) {
-    console.log("Initializing UEK");
-    console.log("Story Modules: ", modules);
-    console.log("Storage: ",storedItems);
+    console.log("%c Startup ", "color: red; font-weight: bold;", "Initializing UEK");
+    console.log("%c Data ", "background: green; border-radius: 5px;", "Story Modules: ", modules);
+    console.log("%c Data ", "background: green; border-radius: 5px;", "Storage: ", storedItems);
 });

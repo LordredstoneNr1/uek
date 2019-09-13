@@ -1,6 +1,6 @@
 function translate() {       
     var element;
-    console.log("Starting translation for locale ", chrome.i18n.getUILanguage());
+    console.log("%c Translation ", "background-color: yellow; color: black; border-radius: 5px;", "Starting translation for locale ", chrome.i18n.getUILanguage());
     
     // Options callback
     chrome.storage.sync.get("options", function (items) {
@@ -37,6 +37,7 @@ function translate() {
                 }
             }
             
+            console.debug(suggestedLanguages);
             suggestedLanguages.forEach( function (suggestion) {
                 var childElement = document.createElement("option");
                 childElement.value = suggestion;
@@ -276,5 +277,5 @@ function translate() {
         document.getElementById("uek-about-legal").previousElementSibling.innerHTML = chrome.i18n.getMessage("about_legal");
         document.getElementById("uek-about-legal").innerHTML = chrome.i18n.getMessage("about_legal_text");
     }
-    console.log("Finished translation. Used locale is ", chrome.i18n.getMessage("info_universecode"));
+    console.log("%c Translation ", "background-color: yellow; color: black; border-radius: 5px;", "Finished translation. Used locale is ", chrome.i18n.getMessage("info_universecode"));
 }

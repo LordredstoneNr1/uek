@@ -5,19 +5,19 @@ const universeLanguages = ["cs-CZ", "de-DE", "el-GR", "en-AU", "en-GB", "en-PH",
 var open = false;
 var championList = [], authorList = [], regionList = [];
 var height, width, posLeft, posTop;
-var storyList; 
+var storyList, unpackedLists;
 var stories_sortKey = "title";
 
 //some functions we'll need. These need to be acessible outside of main
 
 function readHtmlFile(path, callback) {
-    var file = new XMLHttpRequest();
-    file.overrideMimeType("text/html");
-    file.open("GET", chrome.runtime.getURL(path), true);
-    file.onload = function() {
-        callback(file.responseText);
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", chrome.runtime.getURL(path), true);
+    xhr.overrideMimeType("text/html");
+    xhr.onload = function() {
+        callback(xhr.responseText);
     }
-    file.send();
+    xhr.send();
 }
 
 function changeVisibility() {
@@ -32,7 +32,7 @@ function changeVisibility() {
     
     document.getElementById("uek-toggle-open").classList.toggle("hidden");
     document.getElementById("uek-toggle-close").classList.toggle("hidden");
-    console.log((open?"Showing":"Hiding") + " UEK Extension page");
+    console.debug((open?"Showing":"Hiding") + " UEK Extension page");
 };
 
 function main(inject) {
@@ -49,20 +49,7 @@ function main(inject) {
         document.getElementById("uek-main-block-"+key).classList.remove("hidden");
     }
     
-    function parseTR(index, story) {
-        var html = [];
-        html.push(
-        "<td>" + (index+1) + "</td>",
-        "<td> <a href=\"" + story.url + "\">" + story.title + "</a></td>",
-        "<td>" + story.words + "</td>",
-        "<td>" + story.tags.champions.join(", ") + "</td>",
-        "<td>" + story.tags.regions.join(", ") + "</td>",
-        "<td>" + story.tags.authors.join(", ") + "</td>",
-        "<td>" + new Date(story.timestamp).toLocaleDateString() + "</td>"
-        );
-        return html.join("\n");
-    }
-    
+    // Stories
     function compareStories(a, b, key) {
         switch (key) {
             // Use title instead of slug because slugs are x-color-story: Unexpected results while sorting
@@ -174,19 +161,18 @@ function main(inject) {
         
     }
     
-    //needs to be async because we need to wait for the response.
     async function generateStoryHTML() {
         const target = document.getElementById("uek-stories-table-body");
         target.innerHTML = "";
         if (storyList === undefined) {
-            console.log(await new Promise ((resolve, reject) => {
+            console.log("%c Data ", "background: green; border-radius: 5px;", await new Promise ((resolve, reject) => {
                 chrome.runtime.sendMessage({id: "query-stories"}, 
                 function(response) {
                     if (response.id === "query-stories-response" && response.success == true) {
                         
                         storyList = response.stories;
                         parseData();
-                        resolve("Data parsed successfully");
+                        resolve("Story data parsed successfully");
                     } else {
                         reject("Could not get story data from background script");
                     }
@@ -268,15 +254,107 @@ function main(inject) {
             });
             currentSelection.sort((a,b) => compareStories(a,b, stories_sortKey));
         }
-        console.log("Displaying current selection, sorted by: ", stories_sortKey, currentSelection);
+        console.log("%c Data ", "background: green; border-radius: 5px;", "Displaying current selection, sorted by: ", stories_sortKey, currentSelection);
         
         for (i = 0; i < currentSelection.length; i++) {
             const row = document.createElement("tr");
-            row.innerHTML = parseTR(i, currentSelection[i]);
+            const story = currentSelection[i];
+            row.innerHTML = [
+                "<td>" + (i+1),
+                "<a href=\"" + story.url + "\">" + story.title + "</a>",
+                story.words,
+                story.tags.champions.join(", "),
+                story.tags.regions.join(", "),
+                story.tags.authors.join(", "), 
+                new Date(story.timestamp).toLocaleDateString() + "</td>"
+            ].join("</td>\n<td>");
             target.appendChild(row);
         }
     }
     
+    
+    // Lists
+    function dragStart(ev) {
+        this.id = "uek-lists-dragelement";
+        
+        ev.dataTransfer.setData("text/plain", "Drag text");
+    }
+        
+    function dragEnd(ev) {
+        this.id = "";
+        while (document.getElementById("uek-lists-previewelement") != null) {
+            document.getElementById("uek-lists-previewelement").remove();
+        }
+    }
+     
+    function dragEnter(ev) {
+        if (isValid) {
+            ev.stopPropagation();
+            const placeholder = document.getElementById("uek-lists-previewelement");
+            if (placeholder == null) {
+                placeholder = document.createElement("tr");
+                placeholder.innerHTML = "<td></td>";
+                placeholder.id = "uek-lists-previewelement";
+            }
+            this.parentElement.insertBefore(placeholder, this.nextElementSibling);
+        } else {
+          document.getElementById("uek-lists-previewelement").remove();
+        }
+    }
+     
+    function dragOver(ev) {
+        if (isValid) {
+            ev.preventDefault();
+        }
+    } 
+     
+    function dragLeave(ev) {
+        ev.stopPropagation();
+        console.log(this);
+    }
+    
+    function drop(ev) {
+         ev.preventDefault();
+    }
+    
+    async function generateListHTML() {
+        const target = document.getElementById("uek-lists-display").firstElementChild;
+        target.innerHTML = "";
+        if (storyList === undefined) {
+            console.log("%c Data ", "background: green; border-radius: 5px;", await new Promise ((resolve, reject) => {
+                chrome.runtime.sendMessage({id: "query-stories"}, 
+                function(response) {
+                    if (response.id === "query-stories-response" && response.success == true) {
+                        
+                        storyList = response.stories;
+                        parseData();
+                        resolve("List data parsed successfully");
+                    } else {
+                        reject(new Error("Could not get list data from background script"));
+                    }
+                });
+            }));
+        }
+        var currentSelection = Array.from(storyList);
+        //Apply filters and sort the list;
+        
+        for (i = 0; i < currentSelection.length; i++) {
+            const row = document.createElement("tr");
+            const story = currentSelection[i];
+            row.innerHTML = [].push(
+                "<td>" + (i+1),
+                "<a href=\"" + story.url + "\">" + story.title + "</a>",
+                story.words,
+                story.tags.champions.join(", "),
+                story.tags.regions.join(", "),
+                story.tags.authors.join(", "), 
+                new Date(story.timestamp).toLocaleDateString() + "</td>"
+            ).join("</td>\n<td>");
+            target.appendChild(row);
+        }
+    }
+    
+    // Options
     function calculateHeight() {
         const heightConst = document.getElementById("uek-options-heightconst").value;
         const heightFactor = document.getElementById("uek-options-heightfactor").value;
@@ -300,7 +378,6 @@ function main(inject) {
         
     // Injection and logic
     const injectDoc = new DOMParser().parseFromString(inject, "text/html");
-            
     document.getElementById("riotbar-navmenu").lastElementChild.firstElementChild.appendChild(injectDoc.getElementById("uek-link-element"));
     document.getElementById("uek-link-open").onclick = function () { changeVisibility();};
     
@@ -317,12 +394,12 @@ function main(inject) {
         posTop = items.options.posTop;
         document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px; top: " + posTop + "px; height: " + height + "px;");
         document.getElementById("uek-main-page").setAttribute("style", "width: "+ width +"px; height: " + height + "px;");
-        document.getElementById("uek-main-body").setAttribute("style", "height: " + (height - 40-4) + "px;");
+        document.getElementById("uek-main-body").setAttribute("style", "height: " + (height - 40 - 6) + "px;");
         document.getElementById("uek-base-wrapper").classList.remove("hidden");
         
         
         // Stories
-        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-stories").offsetHeight - document.getElementById("uek-stories-filter").offsetHeight- 52) + "px;");
+        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-stories").offsetHeight - document.getElementById("uek-stories-filter").offsetHeight- 50) + "px;");
         
         // Lists
         
@@ -340,7 +417,7 @@ function main(inject) {
         
         
         // About
-        if (items.options.changelog) {
+        if (items.options.changelog == true) {
             document.getElementById("uek-about-changelog").classList.remove("hidden");
             document.getElementById("uek-about-changelog").previousElementSibling.classList.remove("hidden");
         }
@@ -445,7 +522,21 @@ function main(inject) {
     }
 
     { // Lists tab
-        
+         for (element of document.getElementById("uek-lists-display").getElementsByTagName("TR")) {
+             // if (element.getAttribute("data-type") === "list") {
+             if (element.parentElement.nodeName === "TBODY") {
+                 // Draggable
+                 element.draggable = true;
+                 element.ondragstart = dragStart;
+                 element.ondragend = dragEnd;
+             }
+             
+             //Droppable
+             element.ondragenter = dragEnter;
+             element.ondragover = dragOver;
+             element.ondragleave = dragLeave;
+             element.ondrop = drop;
+         }
     }
 
     { // Options tab
@@ -519,6 +610,7 @@ function main(inject) {
             document.getElementById("uek-options-delete-text").classList.toggle("hidden");
             document.getElementById("uek-options-delete-confirm").classList.toggle("hidden");
         };
+        
         document.getElementById("uek-options-delete-confirm").onchange = function(e) {
             if (e.srcElement.value === chrome.i18n.getMessage("options_delete_confirmation")) {
                 chrome.storage.sync.clear();
@@ -535,6 +627,7 @@ function main(inject) {
 }
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+    console.debug("Message: ", request
     if (document.readyState == "complete") {
         switch (message.id) {
             case "toggle-panel":
@@ -635,17 +728,19 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
                 });
                 break;
             default:
-                console.log("Received unknown message with id " + message.id);
-                console.log(message, sender);
+                console.warn("Received unknown message with id " + message.id + ": ", message, sender);
                 break;
         }
     }
 });
 
+console.log("%c Startup ", "color: red; font-weight: bold;", "Background script loaded");
+
 // Execute main logic after Riot set up the window
 new MutationObserver(function(mutationsList, observer) {
     if (mutationsList.find(a => a.target.id === "riotbar-navmenu") != undefined) {
         observer.disconnect();
+        console.log("%c Startup ", "color: red; font-weight: bold;", "DOM ready for injection");
         readHtmlFile("html/inject.html", main);
     }
 }).observe(document.body, {childList: true, subtree: true});

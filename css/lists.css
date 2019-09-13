@@ -1,0 +1,39 @@
+div#uek-main-block-lists h3 {
+    font-family: Beaufort for LOL, Arial, sans-serif;
+    font-weight: 700;
+    color: #f0e6d2;
+    font-size: 24px;
+    line-height: 1.167;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+table#uek-lists-display {
+    width: 100%;
+    background-color: #1e2328;
+    color: #94724d;
+}
+
+table#uek-lists-display tr {
+    width: 100%;
+    border: 1px solid #775c31;
+    border-radius: 3px;
+}
+
+table#uek-lists-display tr:last-child {
+    border: none;
+}
+
+
+table#uek-lists-display table > tbody > tr {
+    width: 100%; 
+    border: 2px outset #262626; 
+}
+
+thead.collapse + tbody {
+    display: none;
+}
+
+#uek-lists-dragelement  {
+    opacity: 0.5;
+}
