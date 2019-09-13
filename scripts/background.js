@@ -42,6 +42,7 @@ function update(callback) {
         
         //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
         chrome.storage.sync.get(null, function(items) {
+            console.debug(items);
             if (!items.options) {
                 console.log("%c Startup ", "color: red; font-weight: bold;", "UEK: First Startup");
                 StoryList.createReadingList("all", "delete", false);
@@ -68,7 +69,7 @@ function update(callback) {
                 };
                 options = items.options;
             }
-            callback(UnpackedStory.storyModules, items);
+            callback(UnpackedStory.storyModules, StoryList.unpackedLists, options);
         });
     });
     
@@ -101,8 +102,7 @@ class StoryList {
             "title": this.displayName,
             "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
             "contexts": ["link"]
-        },
-        function() {
+        }, function() {
             if (chrome.runtime.lastError) {
                 console.debug("%c Expected ", "background: lime; color: black; border-radius: 5px;", "Error while creating context menu item " + name + ": ", chrome.runtime.lastError.message);
             }
@@ -209,7 +209,7 @@ class UnpackedStory {
             //regular tags created from the champions and subtitle of the story
             obj['featured-champions'].forEach(function(champion) {
                 if (chrome.i18n.getMessage("champion_" + champion.slug) != champion.name) {
-                    console.log("%c Translation missing ", "background-color: red; border-radius: 5px;", champion.name);
+                    console.log("%c Author missing ", "background-color: red; border-radius: 5px;", champion.name);
                 }
                 tags.champions.push(chrome.i18n.getMessage("champion_" + champion.slug));
                 if (!tags.regions.includes(chrome.i18n.getMessage("region_" + champions_base[champion.slug]))) {
@@ -217,6 +217,7 @@ class UnpackedStory {
                     tags.regions.push(chrome.i18n.getMessage("region_" + champions_base[champion.slug]));
                 }
             });  
+            
             const beginnings = chrome.i18n.getMessage("info_subtitle_by").split(";");
             if (obj.subtitle != null && beginnings.includes(obj.subtitle.substr(0, beginnings[0].length)) ) {
                 
@@ -347,6 +348,7 @@ chrome.runtime.onInstalled.addListener(function() {
         "title": "About...",
         "contexts": ["page", "browser_action"]
     });
+    
     chrome.contextMenus.onClicked.addListener(function(info, tab) {
         console.debug("Context menu: ", info);
         switch (info.menuItemId)  {
@@ -439,25 +441,44 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     console.debug("Message: ", request);
     if (request.id === "get-stories") {
         sendResponse({
-            id: "get-stories-response",
-            success: true,
-            stories: UnpackedStory.storyModules
+            "id": "get-stories-response",
+            "success": true,
+            "stories": UnpackedStory.storyModules
         });
-        console.log("%c Data ", "background: green; border-radius: 5px;", "Sending data to ", sender.id);
+        console.log("%c Data ", "background: green; border-radius: 5px;", "Sending story data to ", sender.id);
     } else if (request.id === "query-stories") {
-        update(function (modules, storedItems) {
+        update(function (modules, lists, options) {
             sendResponse({
-                id: "query-stories-response",
-                success: true,
-                stories: modules
+                "id": "query-stories-response",
+                "success": true,
+                "stories": modules
             });
             console.log("%c Data ", "background: green; border-radius: 5px;", "Sender ", sender.id, " requested refreshing the story modules.");
             console.log("%c Data ", "background: green; border-radius: 5px;", "Story Modules: ", modules);
+            console.log("%c Data ", "background: green; border-radius: 5px;", "Lists: ", lists);
+        });
+    } else if (request.id === "get-lists") {
+        sendResponse({
+            "id": "get-lists-response",
+            "success": true,
+            "lists": StoryList.unpackedLists
+        });
+        console.log("%c Data ", "background: green; border-radius: 5px;", "Sending list data to ", sender.id);
+    } else if (request.id === "query-lists") {
+        update(function (modules, lists, options) {
+            sendResponse({
+                "id": "query-lists-response",
+                "success": true,
+                "lists": lists
+            });
+            console.log("%c Data ", "background: green; border-radius: 5px;", "Sender ", sender.id, " requested refreshing the lists.");
+            console.log("%c Data ", "background: green; border-radius: 5px;", "Story Modules: ", modules);
+            console.log("%c Data ", "background: green; border-radius: 5px;", "Lists: ", lists);
         });
     } else if (request.id === "update-options") {
         options = request.data;
-        update(function (modules, storedItems) {
-            chrome.contextMenus.update("root", {visible: storedItems.options.contextMenus});
+        update(function (modules, lists, options) {
+            chrome.contextMenus.update("root", {visible: options.contextMenus});
         });
     }
     return true;
@@ -465,8 +486,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 
 //Actual startup / initialization
-update(function (modules, storedItems) {
+update(function (modules, lists, options) {
     console.log("%c Startup ", "color: red; font-weight: bold;", "Initializing UEK");
     console.log("%c Data ", "background: green; border-radius: 5px;", "Story Modules: ", modules);
-    console.log("%c Data ", "background: green; border-radius: 5px;", "Storage: ", storedItems);
+    console.log("%c Data ", "background: green; border-radius: 5px;", "Lists: ", lists);
+    console.log("%c Data ", "background: green; border-radius: 5px;", "Storage: ", options);
 });

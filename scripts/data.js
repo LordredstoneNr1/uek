@@ -147,6 +147,7 @@ const champions_base = {
 };
 
 const override_tags = {
+    "at-the-edge-of-the-world": {"champions": ["zyra"], "authors": ["Ian St. Martin"], "regions":  ["noxus"]},
     "bilgewater-story": {"champions": ["twistedfate", "graves"],"regions": ["bilgewater"], "authors": ["Scott Hawkes", "George Krstic", "Anthony Reynolds", "John O'Bryan"]},
     "popstar-interview":  {"champions": ["ahri", "kaisa", "akali", "evelynn"], "regions": [], "authors": ["Indu Reddy", "Jared Rosen"]},
     "popstars-lyrics": {"champions": ["ahri", "kaisa", "akali", "evelynn"], "regions": [], "authors": ["Jared Rosen"]},
@@ -158,7 +159,6 @@ const override_tags = {
 const add_tags = {
     "project-of-rats-and-cats-and-neon-mice": {"champions": ["jhin", "vi", "vayne"]},
     "pajama-party": {"champions": ["lux", "ezreal", "missfortune", "soraka", "poppy", "lulu", "janna", "jinx"]},
-    "at-the-edge-of-the-world": {"champions": ["zyra"], "regions":  ["noxus"]},
     "mount-targon-story": {"regions": ["mount_targon"], "champions": ["leona", "diana", "zoe", "pantheon", "taric"]},
     "star-guardian-starfall": {"champions": ["lux", "ezreal", "missfortune", "soraka", "poppy", "lulu", "janna", "jinx", "ahri", "syndra"]},
     "the-legend-of-the-darkin": {"champions": ["kayn", "aatrox", "varus"]},

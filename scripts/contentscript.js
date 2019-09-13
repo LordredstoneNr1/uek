@@ -627,7 +627,7 @@ function main(inject) {
 }
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-    console.debug("Message: ", request
+    console.debug("Message: ", request);
     if (document.readyState == "complete") {
         switch (message.id) {
             case "toggle-panel":
@@ -737,10 +737,20 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 console.log("%c Startup ", "color: red; font-weight: bold;", "Background script loaded");
 
 // Execute main logic after Riot set up the window
-new MutationObserver(function(mutationsList, observer) {
-    if (mutationsList.find(a => a.target.id === "riotbar-navmenu") != undefined) {
-        observer.disconnect();
-        console.log("%c Startup ", "color: red; font-weight: bold;", "DOM ready for injection");
-        readHtmlFile("html/inject.html", main);
-    }
-}).observe(document.body, {childList: true, subtree: true});
+if (document.getElementById("riotbar-navmenu") == null 
+|| document.getElementById("riotbar-navmenu").lastElementChild == null 
+|| document.getElementById("riotbar-navmenu").lastElementChild.firstElementChild == null) {
+    // Not ready yet, set up observer and wait.
+    console.log("%c Startup ", "color: red; font-weight: bold;", "Riot is still building the website, I'll just sit here waiting...");
+    new MutationObserver(function(mutationsList, observer) {
+        if (mutationsList.find(a => a.target.id === "riotbar-navmenu") != undefined) {
+            observer.disconnect();
+            console.log("%c Startup ", "color: red; font-weight: bold;", "DOM is ready for injection now");
+            readHtmlFile("html/inject.html", main);
+        }
+    }).observe(document.body, {childList: true, subtree: true});
+} else {
+    //for the unlikely case that riot already loaded the DOM
+    console.log("%c Startup ", "color: red; font-weight: bold;", "DOM was already ready for injection");
+    readHtmlFile("html/inject.html", main);
+}
