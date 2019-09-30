@@ -83,10 +83,10 @@ class StoryList {
         this.displayName = metaData[0];
         this.data = list.map(a => (UnpackedStory.storyModules.find(b => b["slug"] == a)));
         
-        if (metaData.length > 1 && ["delete", "mark", "keep"].includes(metaData[1])) {
+        if (metaData.length > 1 && ["delete", "mark"].includes(metaData[1])) {
             this.afterRead = metaData[1];
         } else {
-            this.afterRead = "keep";
+            this.afterRead = "mark";
         }
         
         if (metaData.length > 2) {
@@ -198,6 +198,7 @@ class UnpackedStory {
     }
     
     getTags(obj) {
+        //console.debug("getTags for ", obj);
         var tags = {"champions": [], "authors": [], "regions":[]};  
         
         //Override in case I don't like something
@@ -209,7 +210,7 @@ class UnpackedStory {
             //regular tags created from the champions and subtitle of the story
             obj['featured-champions'].forEach(function(champion) {
                 if (chrome.i18n.getMessage("champion_" + champion.slug) != champion.name) {
-                    console.log("%c Author missing ", "background-color: red; border-radius: 5px;", champion.name);
+                    console.log("%c Translation missing ", "background-color: red; border-radius: 5px;", champion.name);
                 }
                 tags.champions.push(chrome.i18n.getMessage("champion_" + champion.slug));
                 if (!tags.regions.includes(chrome.i18n.getMessage("region_" + champions_base[champion.slug]))) {
@@ -222,17 +223,18 @@ class UnpackedStory {
             if (obj.subtitle != null && beginnings.includes(obj.subtitle.substr(0, beginnings[0].length)) ) {
                 
                 var author = obj.subtitle.substring(beginnings[0].length);
-                
-                //Transform Ian St Martin into Ian St. Martin.
+                //Transform Ian St Martin into Ian St. Martin. No regex or unicode for that, it's just for Ian and no one else.
                 if (author === "Ian St Martin") {
+                    console.debug("Ian St Martin", " -> ", "Ian St. Martin");
                     author = "Ian St. Martin";
                 }
                 
                 /*  We also need to get rid of character U+2019 (Single Right Quotation Mark). 
                     This one is for you, John O'Bryan!
                 */
-                if (author.includes("\\u+2019")) {
-                    author = author.replace("\\u+2019", "'");
+                if (author.includes("\u2019")) {
+                    console.debug(author, " -> ", author.replace("\u2019", "'"));
+                    author = author.replace("\u2019", "'");
                 }
                 
                 // These are all edge cases we need to handle - I think?
@@ -393,7 +395,7 @@ chrome.runtime.onInstalled.addListener(function() {
                     pageURL: info.pageUrl
                 },
                 function (response) {
-                  if (response.id === "extract-image-response" && response.success == true) {
+                  if (response && response.id === "extract-image-response") {
                         chrome.tabs.create({
                             "url": response.imageURL,
                             "index": tab.index + 1,
@@ -409,7 +411,7 @@ chrome.runtime.onInstalled.addListener(function() {
                     pageURL: info.pageUrl
                 },
                 function (response) {
-                    if (response.id === "extract-image-response" && response.success == true) {
+                    if (response && response.id === "extract-image-response") {
                         chrome.tabs.create({
                             "url": response.imageURL,
                             "index": tab.index + 1,
@@ -468,7 +470,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         update(function (modules, lists, options) {
             sendResponse({
                 "id": "query-lists-response",
-                "success": true,
                 "lists": lists
             });
             console.log("%c Data ", "background: green; border-radius: 5px;", "Sender ", sender.id, " requested refreshing the lists.");
@@ -477,9 +478,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         });
     } else if (request.id === "update-options") {
         options = request.data;
-        update(function (modules, lists, options) {
-            chrome.contextMenus.update("root", {visible: options.contextMenus});
-        });
     }
     return true;
 });
@@ -490,5 +488,5 @@ update(function (modules, lists, options) {
     console.log("%c Startup ", "color: red; font-weight: bold;", "Initializing UEK");
     console.log("%c Data ", "background: green; border-radius: 5px;", "Story Modules: ", modules);
     console.log("%c Data ", "background: green; border-radius: 5px;", "Lists: ", lists);
-    console.log("%c Data ", "background: green; border-radius: 5px;", "Storage: ", options);
+    console.log("%c Data ", "background: green; border-radius: 5px;", "Options: ", options);
 });

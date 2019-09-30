@@ -2,6 +2,10 @@ div#uek-main-block-stories input[type=number] {
     width: 62px;
 }
 
+div#uek-main-block-stories > form {
+    padding: 0 20px 20px 0;
+}
+
 tbody#uek-stories-table-body {
     padding: 0;
     display: block;

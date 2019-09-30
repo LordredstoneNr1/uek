@@ -1,39 +1,86 @@
-div#uek-main-block-lists h3 {
+div#uek-main-block-lists > form {
+    padding: 0 20px 20px 0;
+}
+
+div#uek-lists-overview {
+    width: 50%;
+    padding: 0 20px 20px 0;
+    float: left;
+}
+
+div#uek-lists-options {
+    width: 50%;
+    padding-bottom: 20px;
+    float: left;
+}
+
+div#uek-lists-selected-story {
+    width: 100%;
+    padding-bottom: 20px;
+}
+
+img#uek-lists-thumbnail {
+    float: left;
+    padding: 0 20px 20px 0;
+    width: 100%;
+    border: 10px double #c8aa6e;
+    border-radius: 5px;
+}
+
+h3#uek-lists-title {
     font-family: Beaufort for LOL, Arial, sans-serif;
     font-weight: 700;
     color: #f0e6d2;
     font-size: 24px;
-    line-height: 1.167;
     text-transform: uppercase;
+    float: left;
+    position: relative;
+    top: 36px;
+    left: 18px;
+}
+
+div#uek-main-block-lists label + p {
+    float: left;
+    padding: 5px 10px 20px 5px;
+}
+
+div#uek-lists-progress {
+    float: left;
+    background-color: #5b5a564d;
     width: 100%;
+    margin: 20px 0;
 }
 
-table#uek-lists-display {
-    width: 100%;
-    background-color: #1e2328;
-    color: #94724d;
+div#uek-lists-progress > div {
+    text-align: center;
+    background-color: #c8aa6e;
 }
 
-table#uek-lists-display tr {
-    width: 100%;
-    border: 1px solid #775c31;
-    border-radius: 3px;
-}
-
-table#uek-lists-display tr:last-child {
-    border: none;
-}
-
-
-table#uek-lists-display table > tbody > tr {
-    width: 100%; 
-    border: 2px outset #262626; 
-}
-
-thead.collapse + tbody {
-    display: none;
-}
 
 #uek-lists-dragelement  {
     opacity: 0.5;
 }
+
+tbody#uek-lists-table-body {
+    width: 100%;
+    padding: 0;
+    display: block;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+tbody#uek-lists-table-body > tr, thead#uek-lists-table-heading > tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+tbody#uek-lists-table-body > tr {
+    border: 2px outset #262626 !important;
+} 
+
+tbody#uek-lists-table-body td {
+    padding: 5px;
+    width: 50px;
+    text-align: center;
+} // TD + TD usw
