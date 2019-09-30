@@ -438,6 +438,14 @@
         "message": "Select the language you want to use Universe in: ",
         "description": "Displayed on the options tab. Describes a dropdown menu with language codes."
     },
+    "options_suggestedlocales": {
+        "message": "Suggested",
+        "description": "Heading for a group of locale options. Below are the detected languages."
+    },
+    "options_alllocales": {
+        "message": "All Languages",
+        "description": "Heading for a group of locale options. Below is a list of all languages."
+    },
     "options_heightFactor": {
         "message": "Frame height (%):",
         "description": "Describes the input for frame height as percentage of screen height."
@@ -473,15 +481,6 @@
     "options_currentPosition": {
         "message": "Current position: ",
         "description": "Describes the output for the window position (top/left)."
-    },
-    
-    "options_contextmenu": {
-        "message": "Add context menu entries",
-        "description": "Describes a checkbox that enables the context menu."
-    },
-    "options_contextMenu_text": {
-        "message": "This enables the \"Extract Image\" functionality as well as other shortcuts.",
-        "description": "Describes extra functionality added by the checkbox."
     },
     "options_changelog": {
         "message": "Display Changelog",

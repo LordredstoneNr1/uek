@@ -83,54 +83,53 @@
                     -----------------------------------
                     -->
                     <div id="uek-main-block-lists" class="no-padding hidden">
-                    
-                        <img> Thumbnail
-                        <h3> Reading List </h3>
-                        <h3> Reading List: Where Icathia once stood </h3>    
+                        <form id="uek-lists-window">
+                            <div id="uek-lists-overview"> <!-- Drag and Drop Area -->
+                                <h3 id="uek-lists-title"> Title </h3>
+                                <img id="uek-lists-thumbnail" src="https://universe-meeps.leagueoflegends.com/v1/assets/images/khazix-color-splash.jpg"> 
+                                <a> Import / Export </a>
+                            </div>
+                            <div id="uek-lists-options">
+                                <select id="uek-lists-selection"> </select><br>
+                                <div id="uek-lists-progress"> <div style="width: 50%;"> <p>80/160</p> </div> </div> <br>
+                                
+                                <button> New </button>
+                                <button> rename </button><br>
+                                
+                                <input type="checkbox" id="uek-lists-suggest">
+                                <label for="uek-lists-suggest">Suggest new stories from this list</label>
+                                <p>At the end of a story from this list, link to the next story.</p><br>
+                                
+                                <label for="uek-lists-afterfinish">After finishing a story: </label>
+                                <select id="uek-lists-afterfinish"> 
+                                    <option> Mark it as read </option>
+                                    <option> Delete it from the list </option>
+                                </select><br>
+                                
+                                - sort
+                                - Save changes
+                                
+                            </div>
+                            <hr>
+                            
+                            <div id="uek-lists-selected-story">
+                             - Set as thumbnail
+                             - Mark as read
+                             - Add to list
+                             - Delete
+                             - Download - Raw Text - Markdown - 
+                            </div>
+                            
+                            
+                        </form>
                             
                         <table id="uek-lists-display"> 
-
-                        <tbody>
-                        <tr data-type="list" data-name=""> 
-                        <td>
-                            <table>
-                            <thead>
-                            <tr> <td>Reading List</td><td></td></tr>
+                            <thead id="uek-lists-table-heading">
+                            
                             </thead>
-                            <tbody>
-                            <tr> <td>1.</td><td>test</td></tr>
-                            <tr> <td>2.</td><td>test</td></tr>
+                            <tbody id="uek-lists-table-body">
+                                
                             </tbody>
-                            </table>
-                        </td>
-                        </tr>
-                        <tr> 
-                        <td>
-                            <table>
-                            <thead>
-                            <tr> <td>Reading List</td></tr>
-                            </thead>
-                            <tbody>
-                            <tr> <td>1.</td><td>test</td></tr>
-                            <tr> <td>2.</td><td>test</td></tr>
-                            </tbody>
-                            </table>
-                        </td>
-                        </tr>
-                        <tr> 
-                        <td>
-                            <table>
-                            <thead>
-                            <tr> <td>Reading List</td></tr>
-                            </thead>
-                            <tbody>
-                            <tr> <td>1.</td><td>test</td></tr>
-                            <tr> <td>2.</td><td>test</td></tr>
-                            </tbody>
-                            </table>
-                        </td>
-                        </tr>
-                        </tbody>
                         </table>
                     </div>
                     
@@ -173,11 +172,7 @@
                             </div>
                             <p id="uek-options-window-text" class="hidden"></p>
                             <hr>
-                            
-                            <input type="checkbox" id="uek-options-contextmenu">
-                            <label for="uek-options-contextmenu"></label>
-                            <p></p>
-                            
+                                                        
                             <input type="checkbox" id="uek-options-changelog">
                             <label for="uek-options-changelog"></label>
                             <p></p>

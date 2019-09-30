@@ -14,7 +14,7 @@ function translate() {
         // Creates language dropdown menu. This needs the current language, so it's here.
         chrome.i18n.getAcceptLanguages(function (languages) {
             var optElement = document.createElement("optgroup");
-            optElement.label = "Suggested" //chrome.i18n.getMessage("options_detected");
+            optElement.label = chrome.i18n.getMessage("options_suggestedlocales");
             
             const suggestedLanguages = new Set();
             suggestedLanguages.add(options.universeOverride);
@@ -52,7 +52,7 @@ function translate() {
             document.getElementById("uek-options-locale").appendChild(optElement);
             
             optElement = document.createElement("optgroup");
-            optElement.label = "All Languages";
+            optElement.label = chrome.i18n.getMessage("options_alllocales");
             
             for (i = 0; i < universeLanguages.length; i++) {
                 var childElement = document.createElement("option");
@@ -249,9 +249,6 @@ function translate() {
         document.getElementById("uek-options-position").parentElement.insertAdjacentText("afterBegin", chrome.i18n.getMessage("options_currentPosition"));
         
         document.getElementById("uek-options-window-text").innerHTML = chrome.i18n.getMessage("options_refresh_text");
-        
-        document.getElementById("uek-options-contextmenu").nextElementSibling.innerHTML = chrome.i18n.getMessage("options_contextMenu");
-        document.getElementById("uek-options-contextmenu").nextElementSibling.nextElementSibling.innerHTML = chrome.i18n.getMessage("options_contextMenu_text");
         
         document.getElementById("uek-options-changelog").nextElementSibling.innerHTML = chrome.i18n.getMessage("options_changelog");
         document.getElementById("uek-options-changelog").nextElementSibling.nextElementSibling.innerHTML = chrome.i18n.getMessage("options_changelog_text");

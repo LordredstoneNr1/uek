@@ -112,7 +112,7 @@ function main(inject) {
         }
     }
     
-    function parseData() {
+    function parseStoryData() {
         
         championList = [], authorList = [], regionList = [];
         storyList.forEach(function (story) {
@@ -143,7 +143,13 @@ function main(inject) {
                 cumultativeAuthors[index].nr++;
             }
             return cumultativeAuthors;
-        }, []).sort((a,b) => b.nr - a.nr).map(a => a.name);
+        }, []).sort(function (a,b) { 
+            if (a.nr !== b.nr) {
+                return b.nr-a.nr; // High to low with stories
+            } else {
+                return a.name.localeCompare(b.name); // a to z with the names if same stories
+            }
+        });
         
         regionList.forEach(function (region) {
             const element = document.createElement("option");
@@ -154,8 +160,8 @@ function main(inject) {
         
         authorList.forEach(function (author) {
             const element = document.createElement("option");
-            element.value = author;
-            element.innerHTML = author;
+            element.value = author.name;
+            element.innerHTML = author.name + " (" + author.nr + ")";
             document.getElementById("uek-filter-authors-dropdown").appendChild(element);
         });
         
@@ -168,10 +174,10 @@ function main(inject) {
             console.log("%c Data ", "background: green; border-radius: 5px;", await new Promise ((resolve, reject) => {
                 chrome.runtime.sendMessage({id: "query-stories"}, 
                 function(response) {
-                    if (response.id === "query-stories-response" && response.success == true) {
+                    if (response && response.id === "query-stories-response") {
                         
                         storyList = response.stories;
-                        parseData();
+                        parseStoryData();
                         resolve("Story data parsed successfully");
                     } else {
                         reject("Could not get story data from background script");
@@ -318,16 +324,24 @@ function main(inject) {
     }
     
     async function generateListHTML() {
-        const target = document.getElementById("uek-lists-display").firstElementChild;
+        const target = document.getElementById("uek-lists-table-body");
         target.innerHTML = "";
-        if (storyList === undefined) {
+        if (unpackedLists === undefined) {
             console.log("%c Data ", "background: green; border-radius: 5px;", await new Promise ((resolve, reject) => {
-                chrome.runtime.sendMessage({id: "query-stories"}, 
+                chrome.runtime.sendMessage({id: "query-lists"}, 
                 function(response) {
-                    if (response.id === "query-stories-response" && response.success == true) {
+                    if (response && response.id === "query-lists-response") {
                         
-                        storyList = response.stories;
-                        parseData();
+                        unpackedLists = response.lists;
+                        
+                        for (list of Object.values(unpackedLists)) {
+                           const element = document.createElement("option");
+                           element.innerHTML = list.displayName;
+                           element.value = list.displayName;
+                           console.log(document.getElementById("uek-lists-selection"));
+                           document.getElementById("uek-lists-selection").appendChild(element);
+                        }
+                        
                         resolve("List data parsed successfully");
                     } else {
                         reject(new Error("Could not get list data from background script"));
@@ -335,13 +349,17 @@ function main(inject) {
                 });
             }));
         }
-        var currentSelection = Array.from(storyList);
-        //Apply filters and sort the list;
         
-        for (i = 0; i < currentSelection.length; i++) {
+        var key = document.getElementById("uek-lists-selection").value;
+        
+        if (key === undefined) { key = Object.keys(unpackedLists)[0]};
+        
+        const stories = unpackedLists[key].data;
+        
+        for (i = 0; i < stories.length; i++) {
             const row = document.createElement("tr");
-            const story = currentSelection[i];
-            row.innerHTML = [].push(
+            const story = stories[i];
+            row.innerHTML = [
                 "<td>" + (i+1),
                 "<a href=\"" + story.url + "\">" + story.title + "</a>",
                 story.words,
@@ -349,9 +367,10 @@ function main(inject) {
                 story.tags.regions.join(", "),
                 story.tags.authors.join(", "), 
                 new Date(story.timestamp).toLocaleDateString() + "</td>"
-            ).join("</td>\n<td>");
+            ].join("</td>\n<td>");
             target.appendChild(row);
         }
+        
     }
     
     // Options
@@ -399,7 +418,7 @@ function main(inject) {
         
         
         // Stories
-        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-stories").offsetHeight - document.getElementById("uek-stories-filter").offsetHeight- 50) + "px;");
+        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-stories").offsetHeight - document.getElementById("uek-stories-filter").offsetHeight- 50 - 2) + "px;");
         
         // Lists
         
@@ -412,7 +431,6 @@ function main(inject) {
         document.getElementById("uek-options-widthconst").value = items.options.widthConst;
         document.getElementById("uek-options-left").value = posLeft;
         document.getElementById("uek-options-top").value = posTop;
-        document.getElementById("uek-options-contextmenu").checked = items.options.contextMenus;  
         document.getElementById("uek-options-changelog").checked = items.options.changelog;  
         
         
@@ -437,6 +455,8 @@ function main(inject) {
     }
    
     { //Story tab
+        
+        generateStoryHTML();
         
         // Changing values activates the filter
         document.getElementById("uek-filter-title-text").oninput = function() {
@@ -493,7 +513,7 @@ function main(inject) {
         document.getElementById("uek-filter-reload").onclick = function() {
             chrome.runtime.sendMessage({id: "query-stories"}, 
                 function(response) {
-                    if (response.id === "get-stories-response" && response.success == true) {
+                    if (response && response.id === "get-stories-response") {
                         storyList = response.stories;
                         stories_sortKey = "title";
                         parseData();
@@ -518,11 +538,15 @@ function main(inject) {
             }
         });
         
-        generateStoryHTML();
     }
 
     { // Lists tab
-         for (element of document.getElementById("uek-lists-display").getElementsByTagName("TR")) {
+    
+        generateListHTML();
+        
+        
+        
+        for (element of document.getElementById("uek-lists-display").getElementsByTagName("TR")) {
              // if (element.getAttribute("data-type") === "list") {
              if (element.parentElement.nodeName === "TBODY") {
                  // Draggable
@@ -560,7 +584,6 @@ function main(inject) {
                 options.posLeft = Number(document.getElementById("uek-options-left").value);
                 options.posTop = Number(document.getElementById("uek-options-top").value);
                 options.universeOverride = document.getElementById("uek-options-locale").value;
-                options.contextMenus = document.getElementById("uek-options-contextmenu").checked;
                 options.changelog = document.getElementById("uek-options-changelog").checked;
                                 
                 chrome.storage.sync.set({"options": options}, function() {
@@ -627,7 +650,7 @@ function main(inject) {
 }
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-    console.debug("Message: ", request);
+    console.debug("Message: ", message);
     if (document.readyState == "complete") {
         switch (message.id) {
             case "toggle-panel":
@@ -723,7 +746,6 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
                 
                 sendResponse({
                     id: "extract-image-response",
-                    success: (url != undefined),
                     imageURL: url
                 });
                 break;
@@ -731,9 +753,13 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
                 console.warn("Received unknown message with id " + message.id + ": ", message, sender);
                 break;
         }
+    } else {
+        console.debug("Not ready to process message right now.");
     }
 });
 
+
+// Execution starts here
 console.log("%c Startup ", "color: red; font-weight: bold;", "Background script loaded");
 
 // Execute main logic after Riot set up the window
