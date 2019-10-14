@@ -4,6 +4,10 @@ div#uek-main-block-options input[type=number] {
     float: right;
 }
 
+div#uek-main-block-options button {
+	margin: 20px 15px 20px 25px;
+}
+
 form#uek-options-form > div {
     float: left;
     width: 33%;
@@ -12,12 +16,11 @@ form#uek-options-form > div {
 }
 
 div#uek-main-block-options p {
-    padding: 5px 10px 20px 5px;
     clear: both;
 }
 
 div#uek-main-block-options div > label, div#uek-main-block-options  div > p {
     line-height: 2em;
-    padding: 0;
+    padding-left: 5px;
 }
 

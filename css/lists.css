@@ -1,5 +1,14 @@
+/* Form setup */
 div#uek-main-block-lists > form {
     padding: 0 20px 20px 0;
+}
+
+div#uek-main-block-lists button {
+	margin: 5px;
+}	
+
+button#uek-lists-import label {
+	cursor: pointer;
 }
 
 div#uek-lists-overview {
@@ -20,11 +29,12 @@ div#uek-lists-selected-story {
 }
 
 img#uek-lists-thumbnail {
-    float: left;
-    padding: 0 20px 20px 0;
+    padding: 0;
     width: 100%;
-    border: 10px double #c8aa6e;
+    border: 5px solid #c8aa6e;
     border-radius: 5px;
+	outline: 5px solid #c8aa6e;
+	outline-offset: -15px;
 }
 
 h3#uek-lists-title {
@@ -33,15 +43,13 @@ h3#uek-lists-title {
     color: #f0e6d2;
     font-size: 24px;
     text-transform: uppercase;
-    float: left;
     position: relative;
-    top: 36px;
-    left: 18px;
-}
-
-div#uek-main-block-lists label + p {
-    float: left;
-    padding: 5px 10px 20px 5px;
+	float: left;
+    top: 44px;
+    left: 24px;
+	padding-right: 44px;
+	text-align: left;
+    text-align-last: center;
 }
 
 div#uek-lists-progress {
@@ -59,6 +67,16 @@ div#uek-lists-progress > div {
 
 #uek-lists-dragelement  {
     opacity: 0.5;
+}
+
+/* Table */
+
+thead#uek-lists-table-heading {
+	padding: 0 20px;
+}
+
+thead#uek-lists-table-heading th {
+	height: 2em;
 }
 
 tbody#uek-lists-table-body {

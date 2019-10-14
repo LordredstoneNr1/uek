@@ -8,10 +8,10 @@
             <div class="riotbar-category-name"></div>
             <div><a id="uek-link-open" class="riotbar-navmenu-link" href="javascript:void(0)"><span class="riotbar-link-subtext"></span></a></div>
         </div>
-        <div id="uek-base-wrapper" class="hidden"> 
+        <div id="uek-base-wrapper" class="half-hidden"> 
             <div id="uek-main-page">
                 <div id="uek-main-header">
-                    <a id="uek-main-title" class="title" href="" target="_blank"></a>
+                    <a id="uek-main-title" class="title" target="_blank"></a>
                     <span class="uek-custom-separator"></span>
                     <span><a id="uek-main-link-stories" class="activeTab" href="javascript:void(0)"></a>
                     <a id="uek-main-link-lists" href="javascript:void(0)"></a>
@@ -25,7 +25,7 @@
                     --------------Stories--------------
                     -----------------------------------
                     -->
-                    <div id="uek-main-block-stories" class="no-padding">
+                    <div id="uek-main-block-stories" class="no-padding half-hidden">
                         <form id="uek-stories-filter">
                             <p id="uek-stories-text"> </p>
                             <input id="uek-filter-title" type="checkbox">
@@ -82,23 +82,24 @@
                     --------------Lists----------------
                     -----------------------------------
                     -->
-                    <div id="uek-main-block-lists" class="no-padding hidden">
+                    <div id="uek-main-block-lists" class="no-padding half-hidden">
                         <form id="uek-lists-window">
                             <div id="uek-lists-overview"> <!-- Drag and Drop Area -->
                                 <h3 id="uek-lists-title"> Title </h3>
-                                <img id="uek-lists-thumbnail" src="https://universe-meeps.leagueoflegends.com/v1/assets/images/khazix-color-splash.jpg"> 
-                                <a> Import / Export </a>
+                                <img id="uek-lists-thumbnail" src="https://universe-meeps.leagueoflegends.com/v1/assets/images/pantheon-fallen-story.jpg"> 
+								
+                                <button type="button" id="uek-lists-export" class="no-icon"><div><h6>Export List</h6><div></div></div></button>
+                                <button type="button" id="uek-lists-import" class="no-icon"><div><h6><label for="uek-lists-import-file">Import Lists</label><input type="file" id="uek-lists-import-file" hidden accept="application/json" multiple></h6><div></div></div></button><br>
+
                             </div>
                             <div id="uek-lists-options">
                                 <select id="uek-lists-selection"> </select><br>
+								
+                                <button type="button" id="uek-lists-new" class="icon-confirm"><div><h6>New </h6><div></div></div></button>
+                                <button type="button" id="uek-lists-rename" class="icon-options"><div><h6>Rename </h6><div></div></div></button>
+								<button type="button" id="uek-lists-save" class="icon-open"><div><h6>Save </h6><div></div></div></button><br>
+								
                                 <div id="uek-lists-progress"> <div style="width: 50%;"> <p>80/160</p> </div> </div> <br>
-                                
-                                <button> New </button>
-                                <button> rename </button><br>
-                                
-                                <input type="checkbox" id="uek-lists-suggest">
-                                <label for="uek-lists-suggest">Suggest new stories from this list</label>
-                                <p>At the end of a story from this list, link to the next story.</p><br>
                                 
                                 <label for="uek-lists-afterfinish">After finishing a story: </label>
                                 <select id="uek-lists-afterfinish"> 
@@ -106,8 +107,14 @@
                                     <option> Delete it from the list </option>
                                 </select><br>
                                 
-                                - sort
-                                - Save changes
+								<input type="checkbox" id="uek-lists-suggest">
+                                <label for="uek-lists-suggest">Suggest new stories from this list</label>
+                                <p>At the end of a story from this list, link to the next story.</p><br>
+								
+                                <label for="uek-lists-sort">Sort this list by </label>
+								<select id="uek-lists-sort">
+									
+								</select><br>
                                 
                             </div>
                             <hr>
@@ -125,10 +132,16 @@
                             
                         <table id="uek-lists-display"> 
                             <thead id="uek-lists-table-heading">
-                            
-                            </thead>
+								<tr>
+                                <th><input type="checkbox" id="uek-select-all"> </th>
+								<th>Title</th>
+								<th>Time to read</th>
+								<th>Champions</th>
+								<th>Regions</th>
+								</tr>
+							</thead>
                             <tbody id="uek-lists-table-body">
-                                
+							
                             </tbody>
                         </table>
                     </div>
@@ -138,7 +151,7 @@
                     -------------Options---------------
                     -----------------------------------
                     -->
-                    <div id="uek-main-block-options" class="hidden">
+                    <div id="uek-main-block-options" class="half-hidden">
                         <form id="uek-options-form">
                             <label for="uek-options-locale"></label>
                             <select id="uek-options-locale"></select><hr>
@@ -172,7 +185,7 @@
                             </div>
                             <p id="uek-options-window-text" class="hidden"></p>
                             <hr>
-                                                        
+                               
                             <input type="checkbox" id="uek-options-changelog">
                             <label for="uek-options-changelog"></label>
                             <p></p>
@@ -194,7 +207,7 @@
                     ---------------About---------------
                     -----------------------------------
                     -->
-                    <div id="uek-main-block-about" class="hidden">
+                    <div id="uek-main-block-about" class="half-hidden">
                         <h3 class="hidden"></h3>
                         <ul id="uek-about-changelog" class="hidden">
                             <li><b>v1.0.0 Initial Release</b><br>

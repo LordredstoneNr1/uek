@@ -6,6 +6,46 @@ div#uek-main-block-stories > form {
     padding: 0 20px 20px 0;
 }
 
+div#uek-main-block-stories button {
+	margin: 20px 15px 20px 25px;
+}
+
+thead#uek-stories-table-heading {
+    padding: 0 20px;
+}
+
+thead#uek-stories-table-heading th {
+	height: 2em;
+    width: 50px;
+    text-align: right;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+thead#uek-stories-table-heading th + th {
+    width: 20%;
+    text-align: center;
+}
+
+thead#uek-stories-table-heading th + th + th {
+    width: 60px;
+    text-align: center;
+}
+
+thead#uek-stories-table-heading th + th + th + th {
+    width: auto;
+    text-align: center;
+}
+
+thead#uek-stories-table-heading th + th + th + th + th + th + th {
+    width: 80px;
+    text-align: center;
+}
+
+th.activeSort {
+    text-decoration-color: #c79a3c !important;
+}
+
 tbody#uek-stories-table-body {
     padding: 0;
     display: block;
@@ -51,39 +91,4 @@ tbody#uek-stories-table-body td + td + td + td + td + td + td {
 
 tfoot {
     display: none;
-}
-
-thead#uek-stories-table-heading {
-    padding-left: 20px;
-}
-
-thead#uek-stories-table-heading th {
-    width: 50px;
-    text-align: right;
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-thead#uek-stories-table-heading th + th {
-    width: 20%;
-    text-align: center;
-}
-
-thead#uek-stories-table-heading th + th + th {
-    width: 60px;
-    text-align: center;
-}
-
-thead#uek-stories-table-heading th + th + th + th {
-    width: auto;
-    text-align: center;
-}
-
-thead#uek-stories-table-heading th + th + th + th + th + th + th {
-    width: 80px;
-    text-align: center;
-}
-
-th.activeSort {
-    text-decoration-color: #c79a3c !important;
 }

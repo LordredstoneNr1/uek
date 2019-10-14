@@ -7,6 +7,7 @@ var championList = [], authorList = [], regionList = [];
 var height, width, posLeft, posTop;
 var storyList, unpackedLists;
 var stories_sortKey = "title";
+var lists_sortKey = "custom";
 
 //some functions we'll need. These need to be acessible outside of main
 
@@ -278,8 +279,7 @@ function main(inject) {
         }
     }
     
-    
-    // Lists
+    /* // Lists D&D
     function dragStart(ev) {
         this.id = "uek-lists-dragelement";
         
@@ -322,8 +322,9 @@ function main(inject) {
     function drop(ev) {
          ev.preventDefault();
     }
-    
-    async function generateListHTML() {
+    */
+   
+   async function generateListHTML() {
         const target = document.getElementById("uek-lists-table-body");
         target.innerHTML = "";
         if (unpackedLists === undefined) {
@@ -338,7 +339,6 @@ function main(inject) {
                            const element = document.createElement("option");
                            element.innerHTML = list.displayName;
                            element.value = list.displayName;
-                           console.log(document.getElementById("uek-lists-selection"));
                            document.getElementById("uek-lists-selection").appendChild(element);
                         }
                         
@@ -356,19 +356,36 @@ function main(inject) {
         
         const stories = unpackedLists[key].data;
         
+		if (lists_sortKey.endsWith("reverse")) {
+            stories.forEach(function (story) {
+                story.tags.champions.sort().reverse();
+                story.tags.regions.sort().reverse();
+                story.tags.authors.sort().reverse();
+            });
+            
+            stories.sort((a,b) => compareStories(a,b, lists_sortKey.substring(0, lists_sortKey.indexOf("-reverse")))).reverse();
+        } else {
+            stories.forEach(function (story) {
+                story.tags.champions.sort();
+                story.tags.regions.sort();
+                story.tags.authors.sort();
+            });
+            stories.sort((a,b) => compareStories(a,b, lists_sortKey));
+        }
+		
         for (i = 0; i < stories.length; i++) {
             const row = document.createElement("tr");
             const story = stories[i];
             row.innerHTML = [
-                "<td>" + (i+1),
+                "<td>" + "<input type=\"checkbox\" id=\"uek-select-story-" + i + "\">",
                 "<a href=\"" + story.url + "\">" + story.title + "</a>",
-                story.words,
+                Math.ceil(story.words / 260) + " min.",
                 story.tags.champions.join(", "),
-                story.tags.regions.join(", "),
-                story.tags.authors.join(", "), 
-                new Date(story.timestamp).toLocaleDateString() + "</td>"
+                story.tags.regions.join(", ") + "</td>"
             ].join("</td>\n<td>");
             target.appendChild(row);
+			//document.getElementById("uek-select-story-" + i ).onchange = // Add to selection
+			//row.onclick = // Select this 
         }
         
     }
@@ -394,8 +411,8 @@ function main(inject) {
         document.getElementById("uek-options-window-text").classList.remove("hidden");
         document.getElementById("uek-options-position").value = " " + posLeft + " / " + posTop;
     }
-        
-    // Injection and logic
+    
+    // Injection and translation start
     const injectDoc = new DOMParser().parseFromString(inject, "text/html");
     document.getElementById("riotbar-navmenu").lastElementChild.firstElementChild.appendChild(injectDoc.getElementById("uek-link-element"));
     document.getElementById("uek-link-open").onclick = function () { changeVisibility();};
@@ -414,17 +431,22 @@ function main(inject) {
         document.getElementById("uek-base-wrapper").setAttribute("style", "left: -"+ width +"px; top: " + posTop + "px; height: " + height + "px;");
         document.getElementById("uek-main-page").setAttribute("style", "width: "+ width +"px; height: " + height + "px;");
         document.getElementById("uek-main-body").setAttribute("style", "height: " + (height - 40 - 6) + "px;");
-        document.getElementById("uek-base-wrapper").classList.remove("hidden");
         
         
         // Stories
-        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-stories").offsetHeight - document.getElementById("uek-stories-filter").offsetHeight- 50 - 2) + "px;");
+        document.getElementById("uek-stories-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-stories").getBoundingClientRect().height - document.getElementById("uek-stories-filter").getBoundingClientRect().height - 20 - 32) + "px;");
         
         // Lists
-        
-        
-        
-        // Options
+		// This is to handle cached images where the size is not correct in the onload event.
+		if (document.getElementById("uek-lists-thumbnail").complete) {
+			document.getElementById("uek-main-block-lists").classList.add("half-hidden");
+			document.getElementById("uek-main-block-lists").classList.remove("hidden");
+			document.getElementById("uek-lists-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-lists").getBoundingClientRect().height - document.getElementById("uek-lists-window").getBoundingClientRect().height - 20 - 32) + "px;");
+			document.getElementById("uek-main-block-lists").classList.add("hidden");
+			document.getElementById("uek-main-block-lists").classList.remove("half-hidden");
+		}
+		
+		// Options
         document.getElementById("uek-options-heightfactor").value = items.options.heightFactor;
         document.getElementById("uek-options-heightconst").value = items.options.heightConst;
         document.getElementById("uek-options-widthfactor").value = items.options.widthFactor;
@@ -439,6 +461,17 @@ function main(inject) {
             document.getElementById("uek-about-changelog").classList.remove("hidden");
             document.getElementById("uek-about-changelog").previousElementSibling.classList.remove("hidden");
         }
+		
+		
+		//Ready to show - quick switch for determining the landing page
+		
+		//document.getElementById("uek-main-block-stories").classList.add("hidden");
+		document.getElementById("uek-main-block-lists").classList.add("hidden");
+		document.getElementById("uek-main-block-options").classList.add("hidden");
+		document.getElementById("uek-main-block-about").classList.add("hidden");
+		
+		Array.from(document.getElementsByClassName("half-hidden")).forEach(function (element) {element.classList.remove("half-hidden")});
+		
     });
       
     { // Header and link
@@ -544,8 +577,41 @@ function main(inject) {
     
         generateListHTML();
         
-        
-        
+		// Layout fix
+		document.getElementById("uek-lists-thumbnail").onload = function () {
+			document.getElementById("uek-main-block-lists").classList.add("half-hidden");
+			document.getElementById("uek-main-block-lists").classList.remove("hidden");
+			document.getElementById("uek-lists-table-body").setAttribute("style", "height: " + (document.getElementById("uek-main-block-lists").getBoundingClientRect().height - document.getElementById("uek-lists-window").getBoundingClientRect().height - 20 - 32) + "px;");
+			document.getElementById("uek-main-block-lists").classList.remove("half-hidden");
+			document.getElementById("uek-main-block-lists").classList.add("hidden");
+		}
+		
+		document.getElementById("uek-lists-export").onclick = function () {
+			const url = window.URL.createObjectURL(new Blob([JSON.stringify(unpackedLists[document.getElementById("uek-lists-selection").value])], {type: "application/json"}));
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = document.getElementById("uek-lists-selection").value;
+			link.classList.add("hidden");
+			document.getElementById("uek-lists-overview").appendChild(link);
+			link.click();
+			setTimeout(function () {
+			  window.URL.revokeObjectURL(url);
+			  document.getElementById("uek-lists-overview").removeChild(link);
+			}, 0);
+		}
+		
+		document.getElementById("uek-lists-import").onclick = function (ev) {
+			const label = this.getElementsByTagName("label")[0];
+			if (ev.srcElement != label) {
+				label.click();
+			}
+		}
+		
+		document.getElementById("uek-lists-import-file").onchange = function () {
+			alert("Todo!");
+		}
+		
+        /*
         for (element of document.getElementById("uek-lists-display").getElementsByTagName("TR")) {
              // if (element.getAttribute("data-type") === "list") {
              if (element.parentElement.nodeName === "TBODY") {
@@ -560,7 +626,8 @@ function main(inject) {
              element.ondragover = dragOver;
              element.ondragleave = dragLeave;
              element.ondrop = drop;
-         }
+         } 
+		 */
     }
 
     { // Options tab
@@ -605,7 +672,6 @@ function main(inject) {
                 options.posLeft = Number(document.getElementById("uek-options-left").value);
                 options.posTop = Number(document.getElementById("uek-options-top").value);
                 options.universeOverride = document.getElementById("uek-options-locale").value;
-                options.contextMenus = document.getElementById("uek-options-contextmenu").checked;
                 options.changelog = document.getElementById("uek-options-changelog").checked;
                 
                 chrome.storage.sync.set({"options": options}, function() {
@@ -646,7 +712,6 @@ function main(inject) {
     { // About Tab
         document.getElementById("uek-about-suggestions").getElementsByTagName("a")[0].href = chrome.runtime.getManifest().homepage_url;
     }
-
 }
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
