@@ -1,3 +1,6 @@
+console.debug("Data script loaded");
+
+// Data
 const champions_base = {
     "aatrox": "runeterra",
     "ahri": "ionia",
@@ -6,6 +9,7 @@ const champions_base = {
     "amumu": "shurima",
     "anivia": "freljord",
     "annie": "runeterra",
+    "aphelios": "mount_targon",
     "ashe": "freljord",
     "aurelionsol": "runeterra",
     "azir": "shurima",
@@ -63,7 +67,7 @@ const champions_base = {
     "leesin": "ionia",
     "leona": "mount_targon",
     "lissandra": "freljord",
-    "lucian": "demacia",
+    "lucian": "runeterra",
     "lulu": "bandle_city",
     "lux": "demacia",
     "malphite": "ixtal",
@@ -98,6 +102,8 @@ const champions_base = {
     "rumble": "bandle_city",
     "ryze": "runeterra",
     "sejuani": "freljord",
+    "senna": "runeterra",
+    "sett": "ionia",
     "shaco": "runeterra",
     "shen": "ionia",
     "shyvana": "demacia",
@@ -153,10 +159,12 @@ const override_tags = {
     "popstars-lyrics": {"champions": ["ahri", "kaisa", "akali", "evelynn"], "regions": [], "authors": ["Jared Rosen"]},
     "trial-of-the-masks": {"champions": ["sivir"], "regions": [], "authors": ["Jared Rosen"]},
     "the-lure": {"champions": ["kayn", "sona"], "regions": [], "authors": ["Dan Abnett"]},
-    "the-man-with-the-grinning-shadow": {"champions": ["lucian", "thresh", "alistar", "urgot", "karthus"], "regions": [], "authors": ["Jared Rosen"]}
+    "the-man-with-the-grinning-shadow": {"champions": ["lucian", "thresh", "alistar", "urgot", "karthus"], "regions": [], "authors": ["Jared Rosen"]},
+    "with-hell-before-them": {"champions": ["thresh", "Ashe", "Darius", "Hecarim"], "regions": [], "authors": ["Jared Rosen"]}
 };
 
 const add_tags = {
+    "child-of-zaun": {"champions":["caitlyn", "vi"]},
     "project-of-rats-and-cats-and-neon-mice": {"champions": ["jhin", "vi", "vayne"]},
     "pajama-party": {"champions": ["lux", "ezreal", "missfortune", "soraka", "poppy", "lulu", "janna", "jinx"]},
     "mount-targon-story": {"regions": ["mount_targon"], "champions": ["leona", "diana", "zoe", "pantheon", "taric"]},
@@ -235,6 +243,7 @@ const authors_fallback = {
     "nami-first-steps": ["Rayla Heide"],
     "orianna-color-story": ["Rayla Heide"],
     "pajama-party": ["Ariel Lawrence"],
+    "pantheon-color-story": ["David Slagle"],
     "pantheon-fallen-story": ["David Slagle"],
     "piltover-progress-day": ["Graham McNeill"],
     "poppy-color-story": ["John O'Bryan"],
@@ -255,6 +264,7 @@ const authors_fallback = {
     "skarner-color-story": ["Rayla Heide"],
     "snow-day": ["Michael Luo"],
     "star-guardian-starfall": ["Ariel Lawrence"],
+    "sylas-color-story": ["John O'Bryan"],
     "tales-of-ornn": ["Matt Dunn"],
     "taliyah-color-story": ["Ariel Lawrence"],
     "taric-color-story": ["George Krstic"],
@@ -268,6 +278,7 @@ const authors_fallback = {
     "thresh-color-story": ["Rayla Heide"],
     "trifarian-legion": ["Anthony Reynolds"],
     "tristana-color-story": ["Graham McNeill"],
+    "turmoil": ["Anthony Reynolds"],
     "twilight-of-the-gods": ["Graham McNeill"],
     "twistedfate-color-story": ["Graham McNeill"],
     "twitch-color-story": ["Iain Hendry"],
@@ -286,4 +297,255 @@ const authors_fallback = {
     "zaun-cityironglass": ["Graham McNeill"],
     "zoe-color-story": ["Odin Austin Shafer"],
     "zyra-color-story": ["Matt Dunn"],
+}
+
+// Classes
+
+class UnpackedStory {
+    
+    constructor(obj) {
+        this.url = obj['url'];
+        this.title = obj['title'];
+        this.words = obj['word-count'];
+        this.slug = obj['story-slug'];
+        this.timestamp = obj['release-date'];
+        this.imageURL = obj['background'].uri;
+        this.getTags(obj);
+        if (UnpackedStory.readStories.has(this.slug)) {
+            this.read = true;
+        } else {
+            this.read = false;
+        }
+        
+        UnpackedStory.storyModules.add(this);
+    }
+    
+    compareToWithKey(other, key) {
+        switch (key) {
+            // Use title instead of slug because slugs are x-color-story: Unexpected results while sorting
+            case "title": 
+                if (other.title == null) return -1;
+                if (this.title == null) return 1;
+                return this.title.localeCompare(other.title);
+                break;
+                
+            case "words":
+                //Default from high to low here
+                return other.words - this.words;
+                break;
+                
+            case "release":
+                if (other.timestamp == null) return -1;
+                if (this.timestamp == null) return 1;
+                return other.timestamp.localeCompare(this.timestamp);
+                break;
+            
+            case "authors":
+                var maxIndex = Math.min(this.tags.authors.length, other.tags.authors.length);
+                for (i = 0; i < maxIndex; i++) {
+                    if (this.tags.authors[i].localeCompare(other.tags.authors[i]) != 0) {
+                        return this.tags.authors[i].localeCompare(other.tags.authors[i]);
+                        break;
+                    }
+                }
+                return this.tags.authors.length - other.tags.authors.length;
+                break;
+            
+            case "champions":
+                if (other.tags.champions.length == 0) return -1;
+                if (this.tags.champions.length == 0) return 1;
+                var maxIndex = Math.min(this.tags.champions.length, other.tags.champions.length);
+                for (i = 0; i < maxIndex; i++) {
+                    if (this.tags.champions[i].localeCompare(other.tags.champions[i]) != 0) {
+                        return this.tags.champions[i].localeCompare(other.tags.champions[i]);
+                        break;
+                    }
+                }
+                return this.tags.champions.length - other.tags.champions.length;
+                break;
+            
+            case "regions":
+                if (other.tags.regions.length == 0) return -1;
+                if (this.tags.regions.length == 0) return 1;
+                var maxIndex = Math.min(this.tags.regions.length, other.tags.regions.length);
+                for (i = 0; i < maxIndex; i++) {
+                    if (this.tags.regions[i].localeCompare(other.tags.regions[i]) != 0) {
+                        return this.tags.regions[i].localeCompare(other.tags.regions[i]);
+                    }
+                }
+                return this.tags.regions.length - other.tags.regions.length;
+                break;
+                
+            default: 
+                return 0;
+                break;
+        }
+    }
+    
+    getTags(obj) {
+        //console.debug("getTags for ", obj);
+        var tags = {"champions": new Set(), "authors": new Set(), "regions": new Set()};  
+        
+        //Override in case I don't like something
+        if (!override_tags[this.slug]) {
+            //regular tags created from the champions and subtitle of the story
+            obj['featured-champions'].forEach(function(champion) {
+                if (chrome.i18n.getMessage("champion_" + champion.slug) != champion.name) {
+                    console.log("%c Translation missing ", "background-color: red; border-radius: 5px;", champion.name);
+                }
+                tags.champions.add(chrome.i18n.getMessage("champion_" + champion.slug));
+                
+                // Plain text version instead of faction slug
+                tags.regions.add(chrome.i18n.getMessage("region_" + champions_base[champion.slug]));
+                
+            });  
+            
+            // We embark on our quest to find the author. It will be long and painful, but these people need to be credited.
+            const beginnings = chrome.i18n.getMessage("info_subtitle_by").split(";");
+            if (obj.subtitle != null && beginnings.includes(obj.subtitle.substr(0, beginnings[0].length)) ) {
+                
+                var author = obj.subtitle.substring(beginnings[0].length);
+                //Transform Ian St Martin into Ian St. Martin. No regex or unicode for that, it's just for Ian and no one else.
+                if (author === "Ian St Martin") {
+                    console.debug("Ian St Martin", " -> ", "Ian St. Martin");
+                    author = "Ian St. Martin";
+                }
+                
+                /*  We also need to get rid of character U+2019 (Single Right Quotation Mark). 
+                    This one is for you, John O'Bryan!
+                */
+                if (author.includes("\u2019")) {
+                    console.debug(author, " -> ", author.replace("\u2019", "'"));
+                    author = author.replace("\u2019", "'");
+                }
+                
+                // These are all edge cases we need to handle - I think?
+                tags.authors.add(author);
+            } else {
+                //Lookup list in case the subtitle is not defined.
+                if(authors_fallback[this.slug]) {
+                    tags.authors = authors_fallback[this.slug];
+                } else {
+                    console.log("%c Author missing ", "background-color: red; border-radius: 5px;", obj["story-slug"]);
+                }
+            }
+            
+            //Adding tags as defined in data.js (if present)
+            if (add_tags[this.slug]) {
+                if (add_tags[this.slug].champions) {
+                    add_tags[this.slug].champions.forEach(function (champion) {
+                        tags.champions.add(chrome.i18n.getMessage("champion_" + champion));
+                    });
+                }
+                if (add_tags[this.slug].regions) {
+                    add_tags[this.slug].regions.forEach(function (region) {
+                        tags.regions.add(chrome.i18n.getMessage("champion_" + region));
+                    });
+                }
+                if (add_tags[this.slug].authors) {
+                    add_tags[this.slug].authors.forEach(function (author) {
+                        tags.authors.add(chrome.i18n.getMessage("champion_" + author));
+                    });
+                }
+            }
+            
+            tags.authors.forEach(function(author){
+                StoryList.authorList.add(author);
+            });
+            
+        } else {
+            //Override
+            tags.champions = override_tags[this.slug].champions.map(a => chrome.i18n.getMessage("champion_" + a));
+            tags.regions = override_tags[this.slug].regions.map(a => chrome.i18n.getMessage("region_" + a));
+            tags.authors = override_tags[this.slug].authors;
+        }
+        tags.champions = Array.from(tags.champions).sort();
+        tags.regions = Array.from(tags.regions).sort();
+        tags.authors = Array.from(tags.authors).sort(); 
+        this.tags = tags;
+    }
+}
+UnpackedStory.storyModules = new Set();
+UnpackedStory.readStories = new Set();
+
+class StoryList {
+
+    constructor(list, metaData) {
+        this.displayName = StoryList.checkName(metaData[0]);
+        this.data = list.map(a => (Array.from(UnpackedStory.storyModules).find(b => b["slug"] == a)));
+        console.debug(this.data); 
+        
+        if (metaData.length > 1) {
+            this.deleteAfterRead = metaData[1];
+        } else {
+            this.deleteAfterRead = false;
+        }
+
+        if (metaData.length > 2) {
+            this.suggest = metaData[2];
+        } else {
+            this.suggest = false;
+        }
+
+        if (metaData.length > 3) {
+            this.thumbnailURL = metaData[3];
+        } else if (this.data.lenght > 0) {
+            this.thumbnailURL = this.data[0].imageURL;
+        } else {
+            this.thumbnailURL = null;
+        }
+
+        /*if (metaData.length > 4) {
+            this.updates = metaData[4];
+        } else {
+            this.updates = "";
+        }
+        */
+
+        StoryList.unpackedLists[this.displayName] = this;
+    }
+
+    add(url) {
+        var unpackedStory = UnpackedStory.storyModules.find(function (story) {
+            return story.slug === url.substring(49, url.length-1);
+        });
+        if (!this.data.includes(unpackedStory)) {
+           this.data.push(unpackedStory);
+        }
+    }
+
+    save() {
+        chrome.storage.sync.set(this.pack());
+        chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
+            console.log("%c Data ", "background: green; border-radius: 5px;", "Saved Data. Total bytes used: ", bytesInUse);
+        });
+    }
+
+    pack() {
+        const list = {};
+        list["list: " + this.displayName] = {
+            "data" : this.data.map(a => a.slug),
+            "deleteAfterRead": this.deleteAfterRead,
+            "suggest": this.suggest//,
+            //"updates": this.updates 
+        }
+        return list;
+    }
+    
+}
+StoryList.authorList = new Set();
+StoryList.unpackedLists = new Object();
+StoryList.checkName = function (name) {
+    if (Object.keys(StoryList.unpackedLists).includes(name)) {
+        console.log("%c Data ", "background: green; border-radius: 5px;", "Duplicate list: ", name);
+        const pattern = / \(\d+\)$/;
+        const pos = name.search(pattern);
+        if (pos != -1) {
+            const nr = name.substr(pos, name.length-1).toNumber();
+            return StoryList.checkName(name.replace(pattern, " (" + (nr+1) + ")"));
+        } else {
+            return name + " (1)";
+        }
+    }
+    return name;
 }

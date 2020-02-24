@@ -6,6 +6,7 @@
     "champion_amumu": {"message": "Amumu", "description": "Displayed name for champion Amumu."},
     "champion_anivia": {"message": "Anivia", "description": "Displayed name for champion Anivia."},
     "champion_annie": {"message": "Annie", "description": "Displayed name for champion Annie."},
+    "champion_aphelios": {"message": "Aphelios", "description": "Displayed name for champion Aphelios."},
     "champion_ashe": {"message": "Ashe", "description": "Displayed name for champion Ashe."},
     "champion_aurelionsol": {"message": "Aurelion Sol", "description": "Displayed name for champion Aurelion Sol."},
     "champion_azir": {"message": "Azir", "description": "Displayed name for champion Azir."},
@@ -116,6 +117,8 @@
     "champion_ryze": {"message": "Ryze", "description": "Displayed name for champion Ryze."},
    
     "champion_sejuani": {"message": "Sejuani", "description": "Displayed name for champion Sejuani."},
+    "champion_senna": {"message": "Senna", "description": "Displayed name for champion Senna."},
+    "champion_sett": {"message": "Sett", "description": "Displayed name for champion Sett."},
     "champion_shaco": {"message": "Shaco", "description": "Displayed name for champion Shaco."},
     "champion_shen": {"message": "Shen", "description": "Displayed name for champion Shen."},
     "champion_shyvana": {"message": "Shyvana", "description": "Displayed name for champion Shyvana."},
@@ -208,10 +211,6 @@
      "info_description": {
         "message": "Enhances your League Universe page by adding some functionality.",
         "description": "Description displayed in the webstore."
-     },
-    "info_open": {
-        "message": "Open extension",
-        "description": "The link in Riot's sidebar to open the extension."
      },
      "info_subtitle_by": {
         "message": "by ;By ;BY ",

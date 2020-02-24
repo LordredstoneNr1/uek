@@ -35,6 +35,8 @@ img#uek-lists-thumbnail {
     border-radius: 5px;
 	outline: 5px solid #c8aa6e;
 	outline-offset: -15px;
+    min-width: 320px;
+    min-height: 180px;
 }
 
 h3#uek-lists-title {
@@ -50,6 +52,7 @@ h3#uek-lists-title {
 	padding-right: 44px;
 	text-align: left;
     text-align-last: center;
+    text-shadow: 0.05em 0 1px #262626, 0 0.05em 1px #262626, -0.05em 0 1px #262626, 0 -0.05em 1px #262626, -0.05em -0.05em 1px #262626, -0.05em 0.05em  1px #262626, 0.05em -0.05em 1px #262626, 0.05em 0.05em 1px #262626;
 }
 
 div#uek-lists-progress {
@@ -64,6 +67,9 @@ div#uek-lists-progress > div {
     background-color: #c8aa6e;
 }
 
+input#uek-lists-suggest {
+    min-width: 0;
+}
 
 #uek-lists-dragelement  {
     opacity: 0.5;

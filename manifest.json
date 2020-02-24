@@ -24,7 +24,7 @@
         }
     },        
     "background": {
-        "scripts": ["scripts/background.js", "scripts/data.js"],
+        "scripts": ["scripts/data.js", "scripts/background.js"],
         "persistent": false
         },
     "browser_action": {
@@ -33,8 +33,9 @@
     "content_scripts": [
         {
             "matches": ["*://universe.leagueoflegends.com/*"],
+            "exclude_matches": ["*://universe.leagueoflegends.com/css/*", "*://universe.leagueoflegends.com/images/*", "*://universe.leagueoflegends.com/icons/*", "*://universe.leagueoflegends.com/js/*"],
             "css": ["css/main.css", "css/stories.css", "css/lists.css", "css/options.css", "css/about.css"],
-            "js": ["scripts/contentscript.js", "scripts/translate.js"]
+            "js": ["scripts/data.js", "scripts/translate.js", "scripts/contentscript.js"]
         }
     ],
     "web_accessible_resources": [

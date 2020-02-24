@@ -1,3 +1,6 @@
+console.debug("Translation script loaded");
+
+// Don't want to use module import / export here because I can already specify what script gets loaded where in the manifest.
 function translate() {       
     var element;
     console.log("%c Translation ", "background-color: yellow; color: black; border-radius: 5px;", "Starting translation for locale ", chrome.i18n.getUILanguage());
@@ -5,13 +8,13 @@ function translate() {
     // Options callback
     chrome.storage.sync.get("options", function (items) {
         const options = items.options;
-        document.getElementById("uek-link-open").firstElementChild.innerHTML = options.shortcut;
         
         document.getElementById("uek-options-height").value = Math.round(options.heightFactor / 100 * window.innerHeight + options.heightConst * 1) + "px";
         document.getElementById("uek-options-width").value = Math.round(options.widthFactor / 100 * window.innerWidth + options.widthConst * 1) + "px";
         document.getElementById("uek-options-position").value = "" + options.posLeft + " / " + options.posTop;
         
         // Creates language dropdown menu. This needs the current language, so it's here.
+        console.log("Languages");
         chrome.i18n.getAcceptLanguages(function (languages) {
             var optElement = document.createElement("optgroup");
             optElement.label = chrome.i18n.getMessage("options_suggestedlocales");
@@ -66,8 +69,7 @@ function translate() {
     });
     
     { // Riot sidebar
-        document.getElementById("uek-link-element").firstElementChild.innerHTML = chrome.i18n.getMessage("info_title");
-        document.getElementById("uek-link-open").insertAdjacentText("afterBegin", chrome.i18n.getMessage("info_open"));
+        document.getElementById("uek-link-element").firstElementChild.innerHTML = chrome.i18n.getMessage("info_title_short");
         
     }
    
@@ -194,40 +196,40 @@ function translate() {
         document.getElementById("uek-filter-reload").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("stories_button_reload");
         
         { //Table heading
-        element = document.createElement("th");
-        element.innerHTML = chrome.i18n.getMessage("stories_table_nr");
-        document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
-        
-        element = document.createElement("th");
-        element.innerHTML = chrome.i18n.getMessage("stories_table_title");
-        element.classList.add("activeSort");
-        document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
-        
-        element = document.createElement("th");
-        element.innerHTML = chrome.i18n.getMessage("stories_table_length");
-        document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
-        
-        element = document.createElement("th");
-        element.innerHTML = chrome.i18n.getMessage("stories_table_champions");
-        document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
-        
-        element = document.createElement("th");
-        element.innerHTML = chrome.i18n.getMessage("stories_table_regions");
-        document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
-        
-        element = document.createElement("th");
-        element.innerHTML = chrome.i18n.getMessage("stories_table_author");
-        document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
-        
-        element = document.createElement("th");
-        element.innerHTML = chrome.i18n.getMessage("stories_table_date");
-        document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
+            element = document.createElement("th");
+            element.innerHTML = chrome.i18n.getMessage("stories_table_nr");
+            document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
+            
+            element = document.createElement("th");
+            element.innerHTML = chrome.i18n.getMessage("stories_table_title");
+            element.classList.add("activeSort");
+            document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
+            
+            element = document.createElement("th");
+            element.innerHTML = chrome.i18n.getMessage("stories_table_length");
+            document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
+            
+            element = document.createElement("th");
+            element.innerHTML = chrome.i18n.getMessage("stories_table_champions");
+            document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
+            
+            element = document.createElement("th");
+            element.innerHTML = chrome.i18n.getMessage("stories_table_regions");
+            document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
+            
+            element = document.createElement("th");
+            element.innerHTML = chrome.i18n.getMessage("stories_table_author");
+            document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
+            
+            element = document.createElement("th");
+            element.innerHTML = chrome.i18n.getMessage("stories_table_date");
+            document.getElementById("uek-stories-table-heading").firstElementChild.appendChild(element);
         }
         
     }
 
     { // Lists Tab
-        
+        // TODO
     }
     
     { // Options Tab

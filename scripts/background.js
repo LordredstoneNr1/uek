@@ -1,282 +1,68 @@
+console.debug("Background script loaded");
+
+// Default options
 var options = {
     "widthFactor": 40, 
     "widthConst": 200,
     "heightFactor": 70, 
     "heightConst": 200,
-    "posTop": 150,
+    "posTop": 200,
     "posLeft": 15,
     "contextMenus": true,
     "changelog": true,
     "universeOverride": chrome.i18n.getMessage("info_universecode")
 };
 
-function getJSON(url, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'json';
-    xhr.onload = function() {
-        console.log("%c Network ","background-color: yellow; color: black; border-radius: 5px;" ,"XMLHttpRequest to \'" + url + "\' finished with status " + xhr.status);
-        callback(xhr.response);
-    };
-    xhr.send();
-};
-
 //Setting up data
-function update(callback) {
-    console.debug("UEK update cycle started");
-    getJSON("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json", function(data){
-        UnpackedStory.storyModules = [];
-        data.modules.forEach( function(obj) {
-            if (obj.type === "story-preview") {
-                UnpackedStory.storyModules.push( new UnpackedStory(obj));
-            }
-        });
-        
-        /*Above sets up the base modules we work with. 
-        If more information are needed, add them to the constructor of UnpackedStory. 
-        For now, keep it small, store only the necessary information.
-        */
-        
-        //Clear for Debug purposes, do not ship with this :D
-        //chrome.storage.sync.clear();
-        
-        //this NEEDS to be inside the JSON callback so it is guaranteed to have data.
-        chrome.storage.sync.get(null, function(items) {
-            console.debug(items);
-            if (!items.options) {
-                console.log("%c Startup ", "color: red; font-weight: bold;", "UEK: First Startup");
-                StoryList.createReadingList("all", "delete", false);
-                options = {
-                    "widthFactor": 40, 
-                    "widthConst": 200,
-                    "heightFactor": 70, 
-                    "heightConst": 200,
-                    "posTop": 150,
-                    "posLeft": 15,
-                    "contextMenus": true,
-                    "changelog": true,
-                    "universeOverride": chrome.i18n.getMessage("info_universecode")
-                };
-                chrome.commands.getAll(function (commands) {
-                    options.shortcut = commands[1].shortcut;
-                    chrome.storage.sync.set({"options": options});
-                });
-            } else {
-                for (entry in items) {
-                    if (entry.startsWith("list: ")) {
-                        new StoryList(items[entry].data, [entry.substring(6), items[entry].afterRead, items[entry].suggest]);
-                    } 
-                };
-                options = items.options;
-            }
-            callback(UnpackedStory.storyModules, StoryList.unpackedLists, options);
-        });
-    });
+function update() {
+    console.debug("Started update");
     
-    console.debug("UEK update cycle complete");
-};
-
-class StoryList {
+    //Clear for Debug purposes, do not ship with this :D
+    //chrome.storage.sync.clear();
     
-    constructor(list, metaData) {
+    chrome.storage.sync.get(null, function(items) {
+        console.debug(items);
         
-        this.displayName = metaData[0];
-        this.data = list.map(a => (UnpackedStory.storyModules.find(b => b["slug"] == a)));
-        
-        if (metaData.length > 1 && ["delete", "mark"].includes(metaData[1])) {
-            this.afterRead = metaData[1];
+        // No options: fresh install
+        if (!items.options) {
+            console.log("%c Startup ", "color: red; font-weight: bold;", "UEK: First Startup");
+            options = {
+                "widthFactor": 40, 
+                "widthConst": 200,
+                "heightFactor": 70, 
+                "heightConst": 200,
+                "posTop": 150,
+                "posLeft": 15,
+                "contextMenus": true,
+                "changelog": true,
+                "universeOverride": chrome.i18n.getMessage("info_universecode")
+            };
+            chrome.commands.getAll(function (commands) {
+                options.shortcut = commands[1].shortcut;
+                chrome.storage.sync.set({"options": options, "read": new Array()});
+            });
         } else {
-            this.afterRead = "mark";
-        }
-        
-        if (metaData.length > 2) {
-            this.suggest = metaData[2];
-        } else {
-            this.suggest = false;
-        }
-                
-        StoryList.unpackedLists[this.displayName] = this;
-        chrome.contextMenus.create({
-            "id": "list: ".concat(this.displayName),
-            "parentId": "listsRoot",
-            "title": this.displayName,
-            "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
-            "contexts": ["link"]
-        }, function() {
-            if (chrome.runtime.lastError) {
-                console.debug("%c Expected ", "background: lime; color: black; border-radius: 5px;", "Error while creating context menu item " + name + ": ", chrome.runtime.lastError.message);
-            }
-        }); 
-    }
-    
-    static createReadingList(tag, afterReadHandler, suggest) {
-        var filteredModules = [];
-        var name;
-        console.log("%c Data ", "background: green; border-radius: 5px;", "Setting up list for tag: " + tag);
-        if (tag==="all") {
-            //Special Tag: All stories
-            console.debug("Special Tag found: " + tag);
-            name = "Reading List";
-            filteredModules = UnpackedStory.storyModules;
-        } else if (Object.values(champions_base).includes(tag)) {
-            
-            //Regions
-            console.debug("Region found: " + tag);
-            name = "Region: " + tag;
-            filteredModules = filterByTag("regions", tag);
-        } else if (Object.keys(champions_base).includes(tag)) {
-            
-            //Champions
-            console.debug("Champion found: " + tag);
-            name = "Champion: " + tag;
-            filteredModules = filterByTag("champions", tag);
-        } else if (StoryList.authorList.includes(tag)) {
-            
-            //Authors
-            console.debug("Author found: " + tag);
-            name = "Author: " + tag;
-            filteredModules = filterByTag("authors", tag);
-        } else {
-            
-            //???
-            console.debug("Tag not found.");
-            return null;
-        }
-        
-        console.debug(filteredModules);
-            
-        new StoryList(filteredModules.map(a => a.slug), [name, afterReadHandler, suggest]).save();
-    }
-          
-    static filterByTag(key, tag) {
-       return UnpackedStory.storyModules.filter( function(obj)  {
-            var found = false;
-            obj.tags[key].forEach(function(givenTag) {
-                if (tag === givenTag) {
-                    found = true;
+            for (entry in items) {
+                if (entry.startsWith("list: ")) {
+                    chrome.contextMenus.create({
+                        "id": entry,
+                        "parentId": "listsRoot",
+                        "title": entry.substring(6),
+                        "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
+                        "contexts": ["link"]
+                    }, function() {
+                        if (chrome.runtime.lastError) {
+                            console.debug("%c Expected ", "background: lime; color: black; border-radius: 5px;", "Error while creating context menu item " + entry + ": ", chrome.runtime.lastError.message);
+                        }
+                    });
                 } 
-            });
-            return found;
-        }); 
-    }
-    
-    add(url) {
-        var unpackedStory = UnpackedStory.storyModules.find(function (story) {
-            return story.slug === url.substring(49, url.length-1);
-        });
-        if (!this.data.includes(unpackedStory)) {
-           this.data.push(unpackedStory);
+            };
+            options = items.options;
         }
-    }
-    
-    save() {
-        const list = {};
-        list["list: " + this.displayName] = {
-            "data" : this.data.map(a => a.slug), 
-            "afterRead": this.afterRead,
-            "suggest": this.suggest
-        }
-        chrome.storage.sync.set(list);
-        chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
-            console.log("%c Data ", "background: green; border-radius: 5px;", "Saved Data. Total bytes used: ", bytesInUse);
-        });
-    }
-    
-}
-StoryList.authorList = new Array();
-StoryList.unpackedLists = new Object();
-
-class UnpackedStory {
-    
-    constructor(obj) {
-        this.url = obj['url'];
-        this.title = obj['title'];
-        this.words = obj['word-count'];
-        this.slug = obj['story-slug'];
-        this.timestamp = obj['release-date'];
-        this.getTags(obj);
-    }
-    
-    getTags(obj) {
-        //console.debug("getTags for ", obj);
-        var tags = {"champions": [], "authors": [], "regions":[]};  
-        
-        //Override in case I don't like something
-        if (override_tags[this.slug]) {
-            tags.champions = override_tags[this.slug].champions.map(a => chrome.i18n.getMessage("champion_" + a));
-            tags.regions = override_tags[this.slug].regions.map(a => chrome.i18n.getMessage("region_" + a));
-            tags.authors = override_tags[this.slug].authors;
-        } else {
-            //regular tags created from the champions and subtitle of the story
-            obj['featured-champions'].forEach(function(champion) {
-                if (chrome.i18n.getMessage("champion_" + champion.slug) != champion.name) {
-                    console.log("%c Translation missing ", "background-color: red; border-radius: 5px;", champion.name);
-                }
-                tags.champions.push(chrome.i18n.getMessage("champion_" + champion.slug));
-                if (!tags.regions.includes(chrome.i18n.getMessage("region_" + champions_base[champion.slug]))) {
-                    // Plain text version instead of faction slug
-                    tags.regions.push(chrome.i18n.getMessage("region_" + champions_base[champion.slug]));
-                }
-            });  
-            
-            const beginnings = chrome.i18n.getMessage("info_subtitle_by").split(";");
-            if (obj.subtitle != null && beginnings.includes(obj.subtitle.substr(0, beginnings[0].length)) ) {
-                
-                var author = obj.subtitle.substring(beginnings[0].length);
-                //Transform Ian St Martin into Ian St. Martin. No regex or unicode for that, it's just for Ian and no one else.
-                if (author === "Ian St Martin") {
-                    console.debug("Ian St Martin", " -> ", "Ian St. Martin");
-                    author = "Ian St. Martin";
-                }
-                
-                /*  We also need to get rid of character U+2019 (Single Right Quotation Mark). 
-                    This one is for you, John O'Bryan!
-                */
-                if (author.includes("\u2019")) {
-                    console.debug(author, " -> ", author.replace("\u2019", "'"));
-                    author = author.replace("\u2019", "'");
-                }
-                
-                // These are all edge cases we need to handle - I think?
-                tags.authors.push(author);
-            } else {
-                //Lookup list in case the subtitle is not defined.
-                if(authors_fallback[this.slug]) {
-                    tags.authors = authors_fallback[this.slug];
-                } else {
-                    console.log("%c Translation missing ", "background-color: red; border-radius: 5px;", obj["story-slug"]);
-                }
-            }
-            
-            //Adding tags as defined in data.js (if present)
-            if (add_tags[this.slug]) {
-                
-                if (add_tags[this.slug].champions) {
-                    // Duplicate protection by transforming into a set and back
-                    tags.champions = [...new Set(tags.champions.concat(add_tags[this.slug].champions.map(a => chrome.i18n.getMessage("champion_" + a))))];
-                }
-                if (add_tags[this.slug].regions) {
-                    tags.regions = [...new Set(tags.regions.concat(add_tags[this.slug].regions.map(a => chrome.i18n.getMessage("region_" + a))))];
-                }
-                if (add_tags[this.slug].authors) {
-                    tags.authors = [...new Set(tags.authors.concat(add_tags[this.slug].authors))];
-                }
-            }
-            
-            tags.authors.forEach(function(author){
-                if (!StoryList.authorList.includes(author)) {
-                    StoryList.authorList.push(author);
-                }
-            });
-            
-        }
-        tags.authors.sort();
-        tags.champions.sort();
-        tags.regions.sort();
-        this.tags = tags;
-    }
-}
-UnpackedStory.storyModules = new Array();
+        console.log("%c Startup ", "color: red; font-weight: bold;", "Initializing UEK");
+        console.log("%c Data ", "background: green; border-radius: 5px;", "Options: ", options);
+    });
+};
 
 // Run only once on startup / update
 chrome.runtime.onInstalled.addListener(function() {
@@ -425,9 +211,12 @@ chrome.runtime.onInstalled.addListener(function() {
            StoryList.unpackedLists[info.menuItemId].add(info.linkUrl);
         }
     });
+    
+    // Execution starts here
+    update();
 });
 
-chrome.commands.onCommand.addListener( function(command){
+chrome.commands.onCommand.addListener( function (command){
     console.debug("Command: ", command);
     if (command === "toggle-panel") {
         chrome.tabs.query(
@@ -441,52 +230,10 @@ chrome.commands.onCommand.addListener( function(command){
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     console.debug("Message: ", request);
-    if (request.id === "get-stories") {
-        sendResponse({
-            "id": "get-stories-response",
-            "success": true,
-            "stories": UnpackedStory.storyModules
-        });
-        console.log("%c Data ", "background: green; border-radius: 5px;", "Sending story data to ", sender.id);
-    } else if (request.id === "query-stories") {
-        update(function (modules, lists, options) {
-            sendResponse({
-                "id": "query-stories-response",
-                "success": true,
-                "stories": modules
-            });
-            console.log("%c Data ", "background: green; border-radius: 5px;", "Sender ", sender.id, " requested refreshing the story modules.");
-            console.log("%c Data ", "background: green; border-radius: 5px;", "Story Modules: ", modules);
-            console.log("%c Data ", "background: green; border-radius: 5px;", "Lists: ", lists);
-        });
-    } else if (request.id === "get-lists") {
-        sendResponse({
-            "id": "get-lists-response",
-            "success": true,
-            "lists": StoryList.unpackedLists
-        });
-        console.log("%c Data ", "background: green; border-radius: 5px;", "Sending list data to ", sender.id);
-    } else if (request.id === "query-lists") {
-        update(function (modules, lists, options) {
-            sendResponse({
-                "id": "query-lists-response",
-                "lists": lists
-            });
-            console.log("%c Data ", "background: green; border-radius: 5px;", "Sender ", sender.id, " requested refreshing the lists.");
-            console.log("%c Data ", "background: green; border-radius: 5px;", "Story Modules: ", modules);
-            console.log("%c Data ", "background: green; border-radius: 5px;", "Lists: ", lists);
-        });
-    } else if (request.id === "update-options") {
-        options = request.data;
+    switch (request.id) {
+        case "update": 
+            update();
+            break;
     }
     return true;
-});
-
-
-//Actual startup / initialization
-update(function (modules, lists, options) {
-    console.log("%c Startup ", "color: red; font-weight: bold;", "Initializing UEK");
-    console.log("%c Data ", "background: green; border-radius: 5px;", "Story Modules: ", modules);
-    console.log("%c Data ", "background: green; border-radius: 5px;", "Lists: ", lists);
-    console.log("%c Data ", "background: green; border-radius: 5px;", "Options: ", options);
 });
