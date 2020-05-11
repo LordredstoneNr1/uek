@@ -729,6 +729,8 @@ function main(inject) {
             parent.appendChild(element);
             parent.value = name;
             lists_currentList = unpackedLists[name];
+            chrome.runtime.sendMessage({id: "list-created", name: "list: " + name});
+            lists_currentList.save();
             generateListHTML();
         }
         
@@ -738,10 +740,10 @@ function main(inject) {
         
         document.getElementById("uek-lists-save").onclick = function () {
             Object.keys(unpackedLists).forEach( function(key) {
-                console.log(key, unpackedLists[key].displayName);
                 if (key != unpackedLists[key].displayName) {
                     chrome.storage.sync.remove("list: " + key);
                     //will be saved under a different name: Remove this version
+                    chrome.runtime.sendMessage({id: "list-renamed", old: "list: " + key, name: "list: " + unpackedLists[key].displayName});
                 }
                 unpackedLists[key].save();
             });

@@ -234,6 +234,26 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         case "update": 
             update();
             break;
+        case "list-created":
+            chrome.contextMenus.create({
+                "id": request.name,
+                "parentId": "listsRoot",
+                "title": request.name.substring(6),
+                "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
+                "contexts": ["link"]
+            });
+            break;
+        case "list-renamed":
+            chrome.contextMenus.remove(request.old, function () {
+                chrome.contextMenus.create({
+                "id": request.name,
+                "parentId": "listsRoot",
+                "title": request.name.substring(6),
+                "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
+                "contexts": ["link"]
+                });
+            });
+            break;
     }
     return true;
 });
