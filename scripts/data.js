@@ -485,7 +485,6 @@ class StoryList {
     constructor(list, metaData) {
         this.displayName = StoryList.checkName(metaData[0]);
         this.data = list.map(a => (Array.from(UnpackedStory.storyModules).find(b => b["slug"] == a)));
-        console.debug(this.data); 
         
         if (metaData.length > 1) {
             this.deleteAfterRead = metaData[1];
@@ -518,9 +517,7 @@ class StoryList {
     }
 
     add(url) {
-        var unpackedStory = UnpackedStory.storyModules.find(function (story) {
-            return story.slug === url.substring(49, url.length-1);
-        });
+        var unpackedStory = Array.of(...UnpackedStory.storyModules).find( story => story.slug === url.substring(49, url.length-1) );
         if (!this.data.includes(unpackedStory)) {
            this.data.push(unpackedStory);
         }
@@ -562,9 +559,6 @@ StoryList.checkName = function (name) {
     // else: unchanged
     return name;
 }
-StoryList.unpack = function (entry) {
-    new StoryList(items[entry].data, [entry.substring(6), items[entry].deleteAfterRead, items[entry].suggest]);
-}
 
 // functions
 
@@ -575,7 +569,7 @@ function getAsPromise() {
         } else {
             resolve(items);
         }
-    });
+    }));
 }
 
 function request(url) {

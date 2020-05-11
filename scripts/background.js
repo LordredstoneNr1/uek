@@ -60,9 +60,9 @@ function update() {
         }
     ).then(
         function (listData) {
-            for (entry in items) {
+            for (entry in listData) {
                 if (entry.startsWith("list: ")) {
-                    StoryList.unpack(entry);
+                    new StoryList(listData[entry].data, [entry.substring(6), listData[entry].deleteAfterRead, listData[entry].suggest]);
                 }                    
             }
             console.log("%c Startup ", "color: red; font-weight: bold;", "Initializing UEK");
@@ -216,9 +216,12 @@ chrome.runtime.onInstalled.addListener(function() {
                 });
                 break;
         } 
-        if (Object.keys(StoryList.unpackedLists).includes(info.menuItemId)) {
-           StoryList.unpackedLists[info.menuItemId].add(info.linkUrl);
+        const list = StoryList.unpackedLists[info.menuItemId.substring(6)];
+        if (list != undefined) {
+           list.add(info.linkUrl);
+           list.save();
         }
+        console.log(StoryList.unpackedLists);
     });
     
     // Execution starts here

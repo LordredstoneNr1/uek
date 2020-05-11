@@ -106,10 +106,10 @@ function startup () {
         }
     ).then(
         // Handle list data
-        function (items) {
-            for (entry in items) {
+        function (listData) {
+            for (entry in listData) {
                 if (entry.startsWith("list: ")) {
-                    StoryList.unpack(entry);
+                    new StoryList(listData[entry].data, [entry.substring(6), listData[entry].deleteAfterRead, listData[entry].suggest]);
                 }                    
             }
             unpackedLists = StoryList.unpackedLists; 
