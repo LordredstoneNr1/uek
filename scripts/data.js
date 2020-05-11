@@ -299,6 +299,19 @@ const authors_fallback = {
     "zyra-color-story": ["Matt Dunn"],
 }
 
+// Default options
+var options = {
+    "widthFactor": 40, 
+    "widthConst": 200,
+    "heightFactor": 70, 
+    "heightConst": 200,
+    "posTop": 200,
+    "posLeft": 15,
+    "contextMenus": true,
+    "changelog": true,
+    "universeOverride": chrome.i18n.getMessage("info_universecode")
+};
+
 // Classes
 
 class UnpackedStory {
@@ -548,4 +561,38 @@ StoryList.checkName = function (name) {
     }
     // else: unchanged
     return name;
+}
+StoryList.unpack = function (entry) {
+    new StoryList(items[entry].data, [entry.substring(6), items[entry].deleteAfterRead, items[entry].suggest]);
+}
+
+// functions
+
+function getAsPromise() {
+    return new Promise((resolve, reject) => chrome.storage.sync.get(null, function (items) {
+        if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError.message);
+        } else {
+            resolve(items);
+        }
+    });
+}
+
+function request(url) {
+    console.debug("Requested " + url);
+    return new Promise((resolve, reject) => {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url);
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(xhr.response);
+            } else {
+                reject(xhr.statusText);
+            }
+        }
+        xhr.onerror = function() {
+            reject(xhr.statusText);
+        }
+        xhr.send();
+    });
 }

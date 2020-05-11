@@ -1,67 +1,76 @@
 console.debug("Background script loaded");
 
-// Default options
-var options = {
-    "widthFactor": 40, 
-    "widthConst": 200,
-    "heightFactor": 70, 
-    "heightConst": 200,
-    "posTop": 200,
-    "posLeft": 15,
-    "contextMenus": true,
-    "changelog": true,
-    "universeOverride": chrome.i18n.getMessage("info_universecode")
-};
-
 //Setting up data
 function update() {
     console.debug("Started update");
-    
+    var temp = null;
     //Clear for Debug purposes, do not ship with this :D
     //chrome.storage.sync.clear();
     
-    chrome.storage.sync.get(null, function(items) {
-        console.debug(items);
-        
-        // No options: fresh install
-        if (!items.options) {
-            console.log("%c Startup ", "color: red; font-weight: bold;", "UEK: First Startup");
-            options = {
-                "widthFactor": 40, 
-                "widthConst": 200,
-                "heightFactor": 70, 
-                "heightConst": 200,
-                "posTop": 150,
-                "posLeft": 15,
-                "contextMenus": true,
-                "changelog": true,
-                "universeOverride": chrome.i18n.getMessage("info_universecode")
-            };
-            chrome.commands.getAll(function (commands) {
-                options.shortcut = commands[1].shortcut;
-                chrome.storage.sync.set({"options": options, "read": new Array()});
+    
+    // this sequence is deliberately chosen: requesting universe needs the locale found in options, and unpacking the lists needs the stories from universe.
+    getAsPromise().then(
+        function(items) {
+            console.debug(items);
+            
+            // No options: fresh install
+            if (!items.options) {
+                console.log("%c Startup ", "color: red; font-weight: bold;", "UEK: First Startup");
+                
+                chrome.commands.getAll(function (commands) {
+                    options.shortcut = commands[1].shortcut;
+                    chrome.storage.sync.set({"options": options, "read": new Array()});
+                });
+            } else {
+                for (entry in items) {
+                    if (entry.startsWith("list: ")) {
+                        chrome.contextMenus.create({
+                            "id": entry,
+                            "parentId": "listsRoot",
+                            "title": entry.substring(6),
+                            "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
+                            "contexts": ["link"]
+                        }, function() {
+                            if (chrome.runtime.lastError) {
+                                console.debug("%c Expected ", "background: lime; color: black; border-radius: 5px;", "Error while creating context menu item " + entry + ": ", chrome.runtime.lastError.message);
+                            }
+                        });
+                    } 
+                };
+                options = items.options;
+                temp = items;
+            }
+            console.log("%c Data ", "background: green; border-radius: 5px;", "Options: ", options);
+            return request("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json");
+        }, 
+        function (errorMsg) {
+            console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: Unable to load synchronized storage.", errorMsg);
+        }
+    ).then(
+        function (requestData) {
+            JSON.parse(requestData).modules.forEach(function (module) {
+                if (module.type === "story-preview") {
+                    new UnpackedStory(module);
+                }
             });
-        } else {
+            return temp;
+        },
+        function (errorMsg) {
+            console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: Unable to fetch story modules from Universe.", errorMsg);
+        }
+    ).then(
+        function (listData) {
             for (entry in items) {
                 if (entry.startsWith("list: ")) {
-                    chrome.contextMenus.create({
-                        "id": entry,
-                        "parentId": "listsRoot",
-                        "title": entry.substring(6),
-                        "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
-                        "contexts": ["link"]
-                    }, function() {
-                        if (chrome.runtime.lastError) {
-                            console.debug("%c Expected ", "background: lime; color: black; border-radius: 5px;", "Error while creating context menu item " + entry + ": ", chrome.runtime.lastError.message);
-                        }
-                    });
-                } 
-            };
-            options = items.options;
+                    StoryList.unpack(entry);
+                }                    
+            }
+            console.log("%c Startup ", "color: red; font-weight: bold;", "Initializing UEK");
+        },
+        function (errorMsg) {
+            console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: Unable to parse list input.", errorMsg);
         }
-        console.log("%c Startup ", "color: red; font-weight: bold;", "Initializing UEK");
-        console.log("%c Data ", "background: green; border-radius: 5px;", "Options: ", options);
-    });
+    );  
 };
 
 // Run only once on startup / update

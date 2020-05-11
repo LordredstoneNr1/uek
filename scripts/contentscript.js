@@ -4,7 +4,6 @@ const universeLanguages = ["cs-CZ", "de-DE", "el-GR", "en-AU", "en-GB", "en-PH",
     "es-AR", "es-ES", "es-MX", "fr-FR", "hu-HU", "id-ID", "it-IT", "ja-JP", "ko-KR", "ms-MY", 
     "pl-PL", "pt-BR", "ro-RO", "ru-RU", "th-TH", "tr-TR", "vn-VN", "zh_cn", "zh_tw"];
     
-var options;    
 var open = false;
 var championList, authorList, regionList;
 var height, width, posLeft, posTop;
@@ -14,27 +13,6 @@ var stories_filteredSelection = [];
 var lists_currentList;
 var lists_sortKey = "custom";
 var lists_selectedStories = new Set();
-
-//some functions we'll need. These need to be acessible outside of main
-
-function request(url) {
-    console.debug("Requested " + url);
-    return new Promise((resolve, reject) => {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", url);
-        xhr.onload = function() {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                resolve(xhr.response);
-            } else {
-                reject(xhr.statusText);
-            }
-        }
-        xhr.onerror = function() {
-            reject(xhr.statusText);
-        }
-        xhr.send();
-    });
-}
 
 function changeVisibility() {
     
@@ -53,14 +31,7 @@ function changeVisibility() {
 
 // Execution chain starts here: Start main logic after Riot set up the window. Our data calls do not need the DOM, so we can do that while Riot works.
 function startup () {
-    // Promise wrapping seems strange, maybe put that somewhere else?
-    new Promise((resolve, reject) => chrome.storage.sync.get(null, function (items) {
-        if (chrome.runtime.lastError) {
-            reject(chrome.runtime.lastError.message);
-        } else {
-            resolve(items);
-        }
-    })).then(
+    getAsPromise().then(
         // Setting up options
         function (items) {
             if (items.options) {
@@ -73,7 +44,7 @@ function startup () {
                 console.log("%c Data ", "background: green; border-radius: 5px;", "Loaded your read stories");
             }
             console.debug(UnpackedStory.readStories);
-            unpackedLists = items;
+            unpackedLists = items; // save in a different variable
             return request("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json");
         }, 
         function (errorMsg) {
@@ -128,7 +99,7 @@ function startup () {
             console.log("%c Data ", "background: green; border-radius: 5px;", "Story data parsed successfully");
             console.debug(unpackedStories);
             
-            return unpackedLists;
+            return unpackedLists; // this is actually the stored items from sync
         }, 
         function (errorMsg) {
             console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: Unable to fetch story modules from Universe.", errorMsg);
@@ -138,7 +109,7 @@ function startup () {
         function (items) {
             for (entry in items) {
                 if (entry.startsWith("list: ")) {
-                    new StoryList(items[entry].data, [entry.substring(6), items[entry].deleteAfterRead, items[entry].suggest]);
+                    StoryList.unpack(entry);
                 }                    
             }
             unpackedLists = StoryList.unpackedLists; 
@@ -180,7 +151,7 @@ function startup () {
         // Ready for main call
         main,  
         function (errorMsg) {
-            console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: ", errorMsg);
+            console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: Error in main function.", errorMsg);
         }
     );
 }
@@ -189,7 +160,7 @@ function main(inject) {
 
     console.log("%c Startup ", "color: red; font-weight: bold;", "Started main");
     
-    // Some function definitions, I'd rather have them here if possible. only changeVisibility and request need to be outside.
+    // Some function definitions, I'd rather have them here if possible. only changeVisibility needs to be outside.
     
     function show(key) {
         document.getElementsByClassName("activeTab")[0].classList.remove("activeTab");
@@ -750,13 +721,7 @@ function main(inject) {
         }
        
         document.getElementById("uek-lists-refresh").onclick = function () {
-            new Promise((resolve, reject) => chrome.storage.sync.get(null, function (items) {
-                if (chrome.runtime.lastError) {
-                    reject(chrome.runtime.lastError.message);
-                } else {
-                    resolve(items);
-                }
-            })).then(
+           getAsPromise().then(
                 // Handle list data
                 function (items) {
                     StoryList.unpackedLists = {};
