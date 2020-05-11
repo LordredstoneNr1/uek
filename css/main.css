@@ -123,6 +123,7 @@ div#uek-main-body > div.no-padding {
 
 #uek-main-body form select {
     min-width: 50px;
+    padding: 1px 0;
 }
 
 /* Emulating Riots buttons */
