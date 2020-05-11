@@ -388,16 +388,15 @@ class UnpackedStory {
         
         //Override in case I don't like something
         if (!override_tags[this.slug]) {
+            
             //regular tags created from the champions and subtitle of the story
             obj['featured-champions'].forEach(function(champion) {
                 if (chrome.i18n.getMessage("champion_" + champion.slug) != champion.name) {
                     console.log("%c Translation missing ", "background-color: red; border-radius: 5px;", champion.name);
                 }
                 tags.champions.add(chrome.i18n.getMessage("champion_" + champion.slug));
-                
                 // Plain text version instead of faction slug
                 tags.regions.add(chrome.i18n.getMessage("region_" + champions_base[champion.slug]));
-                
             });  
             
             // We embark on our quest to find the author. It will be long and painful, but these people need to be credited.
@@ -430,7 +429,7 @@ class UnpackedStory {
                 }
             }
             
-            //Adding tags as defined in data.js (if present)
+            //Adding tags as defined in data.js (if present)                            
             if (add_tags[this.slug]) {
                 if (add_tags[this.slug].champions) {
                     add_tags[this.slug].champions.forEach(function (champion) {
@@ -439,12 +438,12 @@ class UnpackedStory {
                 }
                 if (add_tags[this.slug].regions) {
                     add_tags[this.slug].regions.forEach(function (region) {
-                        tags.regions.add(chrome.i18n.getMessage("champion_" + region));
+                        tags.regions.add(chrome.i18n.getMessage("region_" + region));
                     });
                 }
                 if (add_tags[this.slug].authors) {
                     add_tags[this.slug].authors.forEach(function (author) {
-                        tags.authors.add(chrome.i18n.getMessage("champion_" + author));
+                        tags.authors.add(author);
                     });
                 }
             }
@@ -547,5 +546,6 @@ StoryList.checkName = function (name) {
             return name + " (1)";
         }
     }
+    // else: unchanged
     return name;
 }

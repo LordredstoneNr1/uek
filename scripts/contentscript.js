@@ -443,8 +443,8 @@ function main(inject) {
     
     const parent = document.getElementById("riotbar-navbar");
     const navNode = injectDoc.getElementById("uek-link-element");
-    navNode.onclick = function() {changeVisibility();};
     parent.insertBefore(navNode, parent.lastElementChild);
+    navNode.onclick = function() {changeVisibility();};
     
     
     const mainNode = injectDoc.getElementById("uek-base-wrapper");
@@ -666,9 +666,10 @@ function main(inject) {
 			document.getElementById("uek-main-block-lists").classList.remove("half-hidden");
 		}
         
+        // generating element for each list
         const parent = document.getElementById("uek-lists-selection");
         parent.innerHTML = "";
-        Object.keys(unpackedLists).forEach( function (name) {
+        Object.keys(unpackedLists).forEach( name => {
             const element = document.createElement("option");
             element.innerHTML = name;
             element.value = name;
