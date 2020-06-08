@@ -257,7 +257,7 @@ function main(inject) {
             const row = document.createElement("tr");
             row.innerHTML = [
                 "<td>" + (i+1),
-                "<a href=\"" + story.url + "\">" + story.title + "</a>",
+                "<a href=\"" + story.url + "\\\">" + story.title + "</a>",
                 story.words,
                 story.tags.champions.join(", "),
                 story.tags.regions.join(", "),
@@ -361,12 +361,8 @@ function main(inject) {
                     } else {
                         lists_selectedStories.delete(story);
                     }
-                    console.log(lists_selectedStories);
                 }
-                row.onclick = function () {
-                    const checkbox = this.getElementsByTagName("input")[0];
-                    checkbox.checked = !checkbox.checked;
-                }
+                
             }
         } else {
             console.log("Trying to start 'generateListHTML' while 'lists_currentList' is undefined", unpackedLists);
@@ -653,7 +649,7 @@ function main(inject) {
         document.getElementById("uek-lists-name").onchange = function () {
             if (this.value != lists_currentList.displayName) {
                 const name = StoryList.checkName(this.value);
-                Array.from(document.getElementById("uek-lists-selection").children).find(a => a.value = lists_currentList.displayName).innerHTML = name;
+                Array.from(document.getElementById("uek-lists-selection").children).find(a => a.value = lists_currentList.displayName).innerHTML = name; // name was changed so we need to search like this
                 lists_currentList.displayName = name;
                 document.getElementById("uek-lists-title").innerHTML = name;
             }
@@ -757,7 +753,19 @@ function main(inject) {
             const allChecked = this.checked;
             Array.from(document.getElementById("uek-lists-table-body").getElementsByTagName("input")).forEach(function (el) {
                 el.checked = allChecked;
-           });
+                el.onchange();
+            });
+        }
+       
+        document.getElementById("uek-lists-source").onclick = function () {
+            if (!lists_selectedStories.size > 10) { // hardcoded limit for now
+                lists_selectedStories.forEach((story) => {
+                    chrome.runtime.sendMessage({
+                        "id": "open-tab",
+                        "url": "https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/story/" + story.slug + "/index.json", 
+                   }); 
+                });
+            }
        }
        
         /*
@@ -924,10 +932,12 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
                             } else if (message.linkURL.includes("comic")) {
                                 if (message.pageURL.includes("newest/")) {
                                     div = list[i].firstElementChild;
-                                } else {
+                                } else if (message.linkURL.includes("issue")) {
                                     div = list[i].firstElementChild.firstElementChild.firstElementChild;
                                 }
-                                url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
+                                if (div != null) {
+                                    url = parseURL(window.getComputedStyle(div).getPropertyValue("background-image"));
+                                }
                                 
                             } else if (message.linkURL.includes("story")) {
                                 if (message.pageURL.includes("newest/")) {
@@ -953,10 +963,51 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
                         }
                     }
                 }
+                if (url) { // could be undefined or null
+                    chrome.runtime.sendMessage({
+                        "id": "open-tab",
+                        "url": url
+                    });
+                }
+                break;
+            case "open-source":
+                const meeps = "https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/";
+                var slug;
+                var url;
                 
-                sendResponse({
-                    id: "extract-image-response",
-                    imageURL: url
+                if (message.source === "page") {
+                    url = message.pageURL;
+                } else if (message.source === "link") {
+                    url = message.linkURL;
+                }
+                if (!url.endsWith("/")) {
+                    url = url + "/";
+                }
+                // URL should be correct at this point
+                
+                if (url.includes("champion")) {
+                    slug = url.substring(url.indexOf("champion")).replace("champion", "champions");
+                } else if (url.includes("story")) {
+                    slug = url.substring(url.indexOf("story"));
+                } else if (url.includes("region")) {
+                    slug = url.substring(url.indexOf("region")).replace("region", "factions");
+                } else if (url.includes("race")) {
+                    slug = url.substring(url.indexOf("race")).replace("race", "races");
+                } else { // comics
+                    if (url.includes("issue")) {
+                        const parts = url.split("/");
+                        console.log(parts);
+                        if (!parts[parts.length-2].includes("issue")) { // last one will be an empty string, so we need to check the second-to-last one
+                            parts.pop(); // removes empty string
+                            parts[parts.length-1] = ""; // replaces page counter with an empty string
+                            url = parts.join("/");
+                        }
+                    }
+                  slug = url.substring(url.indexOf("comic")).replace("comic", "comics");  
+                } 
+                chrome.runtime.sendMessage({
+                    "id": "open-tab",
+                    "url": meeps + slug + "index.json"
                 });
                 break;
             default:

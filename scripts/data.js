@@ -153,25 +153,32 @@ const champions_base = {
 };
 
 const override_tags = {
+    "ambitions-embrace": {"champions": ["lux"], "regions": [], "authors": ["Michael Yichao"]},
     "at-the-edge-of-the-world": {"champions": ["zyra"], "authors": ["Ian St. Martin"], "regions":  ["noxus"]},
     "bilgewater-story": {"champions": ["twistedfate", "graves"],"regions": ["bilgewater"], "authors": ["Scott Hawkes", "George Krstic", "Anthony Reynolds", "John O'Bryan"]},
+    "out-of-time": {"champions": ["ezreal", "lucian", "pantheon", "fiora", "ekko"], "regions": [], "authors": ["Michael Yichao"]},
+    "pantheon-fallen-story": {"champions": ["pantheon"], "regions": ["mount_targon"], "authors": ["David Slagle"]},
     "popstar-interview":  {"champions": ["ahri", "kaisa", "akali", "evelynn"], "regions": [], "authors": ["Indu Reddy", "Jared Rosen"]},
     "popstars-lyrics": {"champions": ["ahri", "kaisa", "akali", "evelynn"], "regions": [], "authors": ["Jared Rosen"]},
     "trial-of-the-masks": {"champions": ["sivir"], "regions": [], "authors": ["Jared Rosen"]},
     "the-lure": {"champions": ["kayn", "sona"], "regions": [], "authors": ["Dan Abnett"]},
     "the-man-with-the-grinning-shadow": {"champions": ["lucian", "thresh", "alistar", "urgot", "karthus"], "regions": [], "authors": ["Jared Rosen"]},
+    "the-twilight-star": {"champions": ["lux", "poppy", "missfortune", "lulu", "jinx", "zoe"], "regions": [], "authors": ["Ariel Lawrence"]},
+    "volibear-color-story": {"champions": ["volibear"], "regions": ["freljord"], "authors": ["Anthony Reynolds", "Rayla Heide"]},
     "with-hell-before-them": {"champions": ["thresh", "Ashe", "Darius", "Hecarim"], "regions": [], "authors": ["Jared Rosen"]}
 };
 
 const add_tags = {
     "child-of-zaun": {"champions":["caitlyn", "vi"]},
-    "project-of-rats-and-cats-and-neon-mice": {"champions": ["jhin", "vi", "vayne"]},
-    "pajama-party": {"champions": ["lux", "ezreal", "missfortune", "soraka", "poppy", "lulu", "janna", "jinx"]},
     "mount-targon-story": {"regions": ["mount_targon"], "champions": ["leona", "diana", "zoe", "pantheon", "taric"]},
+    "pajama-party": {"champions": ["lux", "ezreal", "missfortune", "soraka", "poppy", "lulu", "janna", "jinx"]},
+    "perennial": {"champions": ["ahri"], "regions": ["ionia"]},
+    "project-of-rats-and-cats-and-neon-mice": {"champions": ["jhin", "vi", "vayne"]},
+    "rg-shurima-story": {"champions": ["sivir"]},
     "star-guardian-starfall": {"champions": ["lux", "ezreal", "missfortune", "soraka", "poppy", "lulu", "janna", "jinx", "ahri", "syndra"]},
+    "sisterhood-of-war-i": {"champions": ["riven"], "regions": ["noxus", "ionia"]},
     "the-legend-of-the-darkin": {"champions": ["kayn", "aatrox", "varus"]},
     "twilight-of-the-gods": {"champions": ["zoe", "kayn", "aatrox", "varus"]},
-    "rg-shurima-story": {"champions": ["sivir"]},
     "the-whispering-doodad": {"champions": ["draven"], "regions": ["noxus"]},
     "whatoncesailedfree": {"champions": ["jarvaniv"]},
     "where-icathia-once-stood": {"regions": ["void", "shurima"]},
@@ -321,7 +328,7 @@ class UnpackedStory {
         this.title = obj['title'];
         this.words = obj['word-count'];
         this.slug = obj['story-slug'];
-        this.timestamp = obj['release-date'];
+        this.timestamp = obj['release-date'] || null;
         this.imageURL = obj['background'].uri;
         this.getTags(obj);
         if (UnpackedStory.readStories.has(this.slug)) {
@@ -484,34 +491,11 @@ class StoryList {
 
     constructor(list, metaData) {
         this.displayName = StoryList.checkName(metaData[0]);
-        this.data = list.map(a => (Array.from(UnpackedStory.storyModules).find(b => b["slug"] == a)));
-        
-        if (metaData.length > 1) {
-            this.deleteAfterRead = metaData[1];
-        } else {
-            this.deleteAfterRead = false;
-        }
-
-        if (metaData.length > 2) {
-            this.suggest = metaData[2];
-        } else {
-            this.suggest = false;
-        }
-
-        if (metaData.length > 3) {
-            this.thumbnailURL = metaData[3];
-        } else if (this.data.lenght > 0) {
-            this.thumbnailURL = this.data[0].imageURL;
-        } else {
-            this.thumbnailURL = null;
-        }
-
-        /*if (metaData.length > 4) {
-            this.updates = metaData[4];
-        } else {
-            this.updates = "";
-        }
-        */
+        this.data = list.map(a => (Array.from(UnpackedStory.storyModules).find(b => b["slug"] == a))) || [];
+        this.deleteAfterRead = metaData[1] || false;
+        this.suggest = metaData[2] || false;
+        this.thumbnailURL = metaData[3] || (this.data[0].imageURL || null);
+//      this.updates = metaData[4] || "";
 
         StoryList.unpackedLists[this.displayName] = this;
     }

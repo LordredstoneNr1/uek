@@ -4,6 +4,7 @@ console.debug("Background script loaded");
 function update() {
     console.debug("Started update");
     var temp = null;
+    
     //Clear for Debug purposes, do not ship with this :D
     //chrome.storage.sync.clear();
     
@@ -128,7 +129,36 @@ chrome.runtime.onInstalled.addListener(function() {
         "documentUrlPatterns": [
             "*://universe.leagueoflegends.com/*/story/*",
             "*://universe.leagueoflegends.com/*/region/*",
-            "*://universe.leagueoflegends.com/*/comic/", 
+            "*://universe.leagueoflegends.com/*/comic/*", 
+            "*://universe.leagueoflegends.com/*/champion/*",
+            "*://universe.leagueoflegends.com/*/race/*" 
+        ]
+    });
+    chrome.contextMenus.create({
+        "id": "openSourceLink",
+        "parentId": "root",
+        "title": "Open link source page",
+        "contexts": ["link"],
+        "visible": true,
+        "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"],
+        "targetUrlPatterns": [
+            "*://universe.leagueoflegends.com/*/story/*", 
+            "*://universe.leagueoflegends.com/*/region/*",
+            "*://universe.leagueoflegends.com/*/comic/*", 
+            "*://universe.leagueoflegends.com/*/champion/*",
+            "*://universe.leagueoflegends.com/*/race/*" 
+        ]
+    });
+    chrome.contextMenus.create({
+        "id": "openSourcePage",
+        "parentId": "root",
+        "title": "Open page source",
+        "contexts": ["page"],
+        "visible": true,
+        "documentUrlPatterns": [
+            "*://universe.leagueoflegends.com/*/story/*",
+            "*://universe.leagueoflegends.com/*/region/*",
+            "*://universe.leagueoflegends.com/*/comic/*", 
             "*://universe.leagueoflegends.com/*/champion/*",
             "*://universe.leagueoflegends.com/*/race/*" 
         ]
@@ -188,15 +218,6 @@ chrome.runtime.onInstalled.addListener(function() {
                     linkURL: info.linkUrl,
                     //Send url along just in case
                     pageURL: info.pageUrl
-                },
-                function (response) {
-                  if (response && response.id === "extract-image-response") {
-                        chrome.tabs.create({
-                            "url": response.imageURL,
-                            "index": tab.index + 1,
-                            "openerTabId": tab.id
-                        });
-                    }
                 });
                 break;
             case "extractImagePage":
@@ -204,15 +225,22 @@ chrome.runtime.onInstalled.addListener(function() {
                     id: "extract-image",
                     source: "page",
                     pageURL: info.pageUrl
-                },
-                function (response) {
-                    if (response && response.id === "extract-image-response") {
-                        chrome.tabs.create({
-                            "url": response.imageURL,
-                            "index": tab.index + 1,
-                            "openerTabId": tab.id
-                        });
-                    }
+                });
+                break;
+            case "openSourceLink": 
+            chrome.tabs.sendMessage(tab.id, {
+                    id: "open-source",
+                    source: "link",
+                    linkURL: info.linkUrl,
+                    //Send url along just in case
+                    pageURL: info.pageUrl
+                });
+                break;
+            case "openSourcePage":
+                chrome.tabs.sendMessage(tab.id, {
+                    id: "open-source",
+                    source: "page",
+                    pageURL: info.pageUrl
                 });
                 break;
         } 
@@ -221,7 +249,6 @@ chrome.runtime.onInstalled.addListener(function() {
            list.add(info.linkUrl);
            list.save();
         }
-        console.log(StoryList.unpackedLists);
     });
     
     // Execution starts here
@@ -266,6 +293,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 });
             });
             break;
+        case "open-tab":
+            chrome.tabs.create({
+                "url": request.url,
+                "index": sender.tab.index +1,
+                "openerTabId": sender.tab.id
+            });
     }
     return true;
 });
