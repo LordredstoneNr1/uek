@@ -10,9 +10,6 @@ var height, width, posLeft, posTop;
 var unpackedStories, unpackedLists;
 var stories_sortKey = "title";
 var stories_filteredSelection = [];
-var lists_currentList;
-var lists_sortKey = "custom";
-var lists_selectedStories = new Set();
 
 function changeVisibility() {
     
@@ -39,12 +36,6 @@ function startup () {
                 console.log("%c Data ", "background: green; border-radius: 5px;", "Loaded options");
             }
             console.debug(options);
-            if (items.read) {
-                UnpackedStory.readStories = new Set(items.read);
-                console.log("%c Data ", "background: green; border-radius: 5px;", "Loaded your read stories");
-            }
-            console.debug(UnpackedStory.readStories);
-            unpackedLists = items; // save in a different variable
             return request("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json");
         }, 
         function (errorMsg) {
@@ -99,26 +90,10 @@ function startup () {
             console.log("%c Data ", "background: green; border-radius: 5px;", "Story data parsed successfully");
             console.debug(unpackedStories);
             
-            return unpackedLists; // this is actually the stored items from sync
-        }, 
-        function (errorMsg) {
-            console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: Unable to fetch story modules from Universe.", errorMsg);
-        }
-    ).then(
-        // Handle list data
-        function (listData) {
-            for (entry in listData) {
-                if (entry.startsWith("list: ")) {
-                    new StoryList(listData[entry].data, [entry.substring(6), listData[entry].deleteAfterRead, listData[entry].suggest]);
-                }                    
-            }
-            unpackedLists = StoryList.unpackedLists; 
-            console.log("%c Data ", "background: green; border-radius: 5px;", "List data parsed successfully");          
-            console.debug(unpackedLists);
             return request(chrome.runtime.getURL("html/inject.html"));
         }, 
         function (errorMsg) {
-            console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: Unable to parse list input.", errorMsg);
+            console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: Unable to fetch story modules from Universe.", errorMsg);
         }
     ).then(
         // Preparation / waiting
@@ -396,21 +371,6 @@ function main(inject) {
             generateStoryHTML();
         };
         
-        document.getElementById("uek-filter-save").onclick = function() {
-            const filters = ""; // fill later
-            const name = new StoryList(stories_filteredSelection.map(a => a.slug), ["New List", false, false, filters]).displayName;
-            // need to double-check name because it might not be the original (duplicates)
-            lists_currentList = unpackedLists[name];
-            const parent = document.getElementById("uek-lists-selection");
-            const element = document.createElement("option");
-            element.innerHTML = name;
-            element.value = name;
-            parent.appendChild(element);
-            parent.value = name;
-            generateListHTML();
-            show("lists");
-        };
-    
         //No need to set onclick for reset because that will reset the form by default
         
         //Same, resetting is default, but we also need to ask the background script to reload the stories
@@ -538,7 +498,6 @@ function main(inject) {
                 authorList = [];
                 regionList = [];
                 stories_sortKey = "title";
-                lists_sortKey = "custom";
                 startup();
             });
         }

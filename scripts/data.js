@@ -336,11 +336,6 @@ class UnpackedStory {
         this.timestamp = obj['release-date'] || null;
         this.imageURL = obj['background'].uri;
         this.getTags(obj);
-        if (UnpackedStory.readStories.has(this.slug)) {
-            this.read = true;
-        } else {
-            this.read = false;
-        }
         
         UnpackedStory.storyModules.add(this);
     }
@@ -473,10 +468,6 @@ class UnpackedStory {
                 }
             }
             
-            tags.authors.forEach(function(author){
-                StoryList.authorList.add(author);
-            });
-            
         } else {
             //Override
             tags.champions = override_tags[this.slug].champions.map(a => chrome.i18n.getMessage("champion_" + a));
@@ -490,64 +481,6 @@ class UnpackedStory {
     }
 }
 UnpackedStory.storyModules = new Set();
-UnpackedStory.readStories = new Set();
-
-class StoryList {
-
-    constructor(list, metaData) {
-        this.displayName = StoryList.checkName(metaData[0]);
-        this.data = list.map(a => (Array.from(UnpackedStory.storyModules).find(b => b["slug"] == a))) || [];
-        this.deleteAfterRead = metaData[1] || false;
-        this.suggest = metaData[2] || false;
-        this.thumbnailURL = metaData[3] || (this.data[0].imageURL || null);
-//      this.updates = metaData[4] || "";
-
-        StoryList.unpackedLists[this.displayName] = this;
-    }
-
-    add(url) {
-        var unpackedStory = Array.of(...UnpackedStory.storyModules).find( story => story.slug === url.substring(49, url.length-1) );
-        if (!this.data.includes(unpackedStory)) {
-           this.data.push(unpackedStory);
-        }
-    }
-
-    save() {
-        chrome.storage.sync.set(this.pack());
-        chrome.storage.sync.getBytesInUse(null, function (bytesInUse) {
-            console.log("%c Data ", "background: green; border-radius: 5px;", "Saved Data. Total bytes used: ", bytesInUse);
-        });
-    }
-
-    pack() {
-        const list = {};
-        list["list: " + this.displayName] = {
-            "data" : this.data.map(a => a.slug),
-            "deleteAfterRead": this.deleteAfterRead,
-            "suggest": this.suggest//,
-            //"updates": this.updates 
-        }
-        return list;
-    }
-    
-}
-StoryList.authorList = new Set();
-StoryList.unpackedLists = new Object();
-StoryList.checkName = function (name) {
-    if (Object.keys(StoryList.unpackedLists).includes(name)) {
-        console.log("%c Data ", "background: green; border-radius: 5px;", "Duplicate list: ", name);
-        const pattern = / \(\d+\)$/;
-        const pos = name.search(pattern);
-        if (pos != -1) {
-            const nr = name.substr(pos, name.length-1).toNumber();
-            return StoryList.checkName(name.replace(pattern, " (" + (nr+1) + ")"));
-        } else {
-            return name + " (1)";
-        }
-    }
-    // else: unchanged
-    return name;
-}
 
 // functions
 

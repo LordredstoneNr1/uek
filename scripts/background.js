@@ -2,14 +2,9 @@ console.debug("Background script loaded");
 
 //Setting up data
 function update() {
+    
     console.debug("Started update");
-    var temp = null;
     
-    //Clear for Debug purposes, do not ship with this :D
-    //chrome.storage.sync.clear();
-    
-    
-    // this sequence is deliberately chosen: requesting universe needs the locale found in options, and unpacking the lists needs the stories from universe.
     getAsPromise().then(
         function(items) {
             console.debug(items);
@@ -23,23 +18,7 @@ function update() {
                     chrome.storage.sync.set({"options": options, "read": new Array()});
                 });
             } else {
-                for (entry in items) {
-                    if (entry.startsWith("list: ")) {
-                        chrome.contextMenus.create({
-                            "id": entry,
-                            "parentId": "listsRoot",
-                            "title": entry.substring(6),
-                            "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
-                            "contexts": ["link"]
-                        }, function() {
-                            if (chrome.runtime.lastError) {
-                                console.debug("%c Expected ", "background: lime; color: black; border-radius: 5px;", "Error while creating context menu item " + entry + ": ", chrome.runtime.lastError.message);
-                            }
-                        });
-                    } 
-                };
                 options = items.options;
-                temp = items;
             }
             console.log("%c Data ", "background: green; border-radius: 5px;", "Options: ", options);
             return request("https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/explore2/index.json");
@@ -54,22 +33,10 @@ function update() {
                     new UnpackedStory(module);
                 }
             });
-            return temp;
-        },
-        function (errorMsg) {
-            console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: Unable to fetch story modules from Universe.", errorMsg);
-        }
-    ).then(
-        function (listData) {
-            for (entry in listData) {
-                if (entry.startsWith("list: ")) {
-                    new StoryList(listData[entry].data, [entry.substring(6), listData[entry].deleteAfterRead, listData[entry].suggest]);
-                }                    
-            }
             console.log("%c Startup ", "color: red; font-weight: bold;", "Initializing UEK");
         },
         function (errorMsg) {
-            console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: Unable to parse list input.", errorMsg);
+            console.log("%c Startup ", "color: red; font-weight: bold;", "Error while starting UEK: Unable to fetch story modules from Universe.", errorMsg);
         }
     );  
 };
@@ -91,20 +58,6 @@ chrome.runtime.onInstalled.addListener(function() {
         "contexts": ["page"],
         "visible": true,
         "documentUrlPatterns": ["*://universe.leagueoflegends.com/*"]
-    });
-    chrome.contextMenus.create({
-        "id": "listsRoot",
-        "parentId": "root",
-        "title": "Add to list...",
-        "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
-        "contexts": ["link"]
-    });
-    chrome.contextMenus.create({
-        "id": "listsNew",
-        "parentId": "listsRoot",
-        "title": "New List...",
-        "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
-        "contexts": ["link"]
     });
     chrome.contextMenus.create({
         "id": "extractImageLink",
@@ -169,12 +122,6 @@ chrome.runtime.onInstalled.addListener(function() {
         "title": "To GitHub Repository",
         "contexts": ["page", "browser_action"]
     });
-    chrome.contextMenus.create({
-        "id": "about",
-        "parentId": "root",
-        "title": "About...",
-        "contexts": ["page", "browser_action"]
-    });
     
     chrome.contextMenus.onClicked.addListener(function(info, tab) {
         console.debug("Context menu: ", info);
@@ -193,23 +140,11 @@ chrome.runtime.onInstalled.addListener(function() {
                     "openerTabId": tab.id
                 });
                 break;
-            case "about":
-                chrome.tabs.create({
-                    "url": chrome.runtime.getManifest().homepage_url,
-                    "index": tab.index + 1,
-                    "openerTabId": tab.id
-                });
-                break;
             case "open":
                 chrome.tabs.sendMessage(tab.id, {
                     id: "toggle-panel",
                     data: ""
                 });
-                break;
-            case "listsNew":
-                list = new StoryList([], ["New List", "delete", false]);
-                list.add(info.linkUrl);
-                list.save();
                 break;
             case "extractImageLink":
                 chrome.tabs.sendMessage(tab.id, {
@@ -244,11 +179,6 @@ chrome.runtime.onInstalled.addListener(function() {
                 });
                 break;
         } 
-        const list = StoryList.unpackedLists[info.menuItemId.substring(6)];
-        if (list != undefined) {
-           list.add(info.linkUrl);
-           list.save();
-        }
     });
     
     // Execution starts here
@@ -272,26 +202,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch (request.id) {
         case "update": 
             update();
-            break;
-        case "list-created":
-            chrome.contextMenus.create({
-                "id": request.name,
-                "parentId": "listsRoot",
-                "title": request.name.substring(6),
-                "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
-                "contexts": ["link"]
-            });
-            break;
-        case "list-renamed":
-            chrome.contextMenus.remove(request.old, function () {
-                chrome.contextMenus.create({
-                "id": request.name,
-                "parentId": "listsRoot",
-                "title": request.name.substring(6),
-                "targetUrlPatterns": ["*://universe.leagueoflegends.com/*/story/*"],
-                "contexts": ["link"]
-                });
-            });
             break;
         case "open-tab":
             chrome.tabs.create({
