@@ -1,8 +1,7 @@
 # UEK - Universe Enhancement Kit
 _The Universe Enhancement Kit: A Chrome Extension for the League of Legends Universe_
 
-The goal of this project is to provide a feature that has often been requested: Progress Tracking and Reading Lists on Universe.
-It is designed to be lightweight and fast, using pure JavaScript, HTML and CSS.
+Abandoned personal project. I still use this as overview for Universe, but cut a lot of features like lists and heavily taylored it to my own needs.
 
 Features:
   * Sort and filter all stories on Universe by 
