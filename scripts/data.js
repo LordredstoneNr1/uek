@@ -66,6 +66,7 @@ const champions_base = {
     "leblanc": "noxus",
     "leesin": "ionia",
     "leona": "mount_targon",
+    "lillia": "ionia",
     "lissandra": "freljord",
     "lucian": "runeterra",
     "lulu": "bandle_city",
@@ -143,6 +144,7 @@ const champions_base = {
     "xinzhao": "demacia",
     "yasuo": "ionia",
     "yorick": "shadow_isles",
+    "yone": "ionia",
     "yuumi": "bandle_city",
     "zac": "zaun",
     "zed": "ionia",
@@ -177,6 +179,8 @@ const add_tags = {
     "rg-shurima-story": {"champions": ["sivir"]},
     "star-guardian-starfall": {"champions": ["lux", "ezreal", "missfortune", "soraka", "poppy", "lulu", "janna", "jinx", "ahri", "syndra"]},
     "sisterhood-of-war-i": {"champions": ["riven"], "regions": ["noxus", "ionia"]},
+    "sisterhood-of-war-ii": {"champions": ["riven"], "regions": ["noxus", "ionia"]},
+    "sisterhood-of-war-iii": {"champions": ["riven"], "regions": ["noxus", "ionia"]},
     "the-legend-of-the-darkin": {"champions": ["kayn", "aatrox", "varus"]},
     "twilight-of-the-gods": {"champions": ["zoe", "kayn", "aatrox", "varus"]},
     "the-whispering-doodad": {"champions": ["draven"], "regions": ["noxus"]},
@@ -238,6 +242,7 @@ const authors_fallback = {
     "kled-color-story": ["Odin Austin Shafer"],
     "leblanc-color-story": ["L J Goulding"],
     "leesin-color-story": ["Graham McNeill"],
+    "legend-of-the-frozen-watchers": ["L J Goulding"],
     "leona-color-story": ["Graham McNeill"],
     "lucian-color-story": ["Anthony Reynolds"],
     "lux-color-story": ["Graham McNeill"],
@@ -557,7 +562,6 @@ function getAsPromise() {
 }
 
 function request(url) {
-    console.debug("Requested " + url);
     return new Promise((resolve, reject) => {
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url);
