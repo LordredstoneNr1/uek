@@ -14,9 +14,7 @@
                     <span class="uek-custom-separator"></span>
                     <span>
                         <a id="uek-main-link-stories" href="javascript:void(0)"></a>
-                        <a id="uek-main-link-lists" href="javascript:void(0)"></a>
                         <a id="uek-main-link-options" href="javascript:void(0)"></a>
-                        <a id="uek-main-link-about" href="javascript:void(0)"></a>
                     </span>
                 </div>
                 <div id="uek-main-body">
@@ -77,81 +75,11 @@
                         
                     </div>
                     
-                    <!-- 
-                    -----------------------------------
-                    --------------Lists----------------
-                    -----------------------------------
-                    -->
-                    <div id="uek-main-block-lists" class="no-padding half-hidden">
-                        <form id="uek-lists-window">
-                            <div id="uek-lists-overview"> <!-- Drag and Drop Area -->
-                                <h3 id="uek-lists-title"> Title </h3>
-                                <img id="uek-lists-thumbnail"> 
-								
-                                <button type="button" id="uek-lists-export" class="no-icon"><div><h6>Export List</h6></div></button>
-                                <button type="button" id="uek-lists-import" class="no-icon"><div><h6><label for="uek-lists-import-file">Import Lists</label><input type="file" id="uek-lists-import-file" hidden accept="application/json" multiple></h6></div></button><br>
-
-                            </div>
-                            <div id="uek-lists-options">
-                                <select id="uek-lists-selection"></select><input id="uek-lists-name" type="text" class="hidden"> </input><br>
-								
-                                <button type="button" id="uek-lists-new" class="icon-confirm"><div><h6>New</h6><div></div></div></button>
-                                <button type="button" id="uek-lists-rename" class="icon-options"><div><h6>Rename</h6><div></div></div></button>
-								<button type="button" id="uek-lists-save" class="icon-open"><div><h6>Save</h6><div></div></div></button>
-								<button type="button" id="uek-lists-refresh" class="icon-reload"><div><h6>Refresh</h6><div></div></div></button><br>
-								
-                                <div id="uek-lists-progress"> <div style="width: 50%;"> <p>80/160</p> </div> </div> <br>
-                                
-                                <label for="uek-lists-afterfinish">After finishing a story: </label>
-                                <select id="uek-lists-afterfinish"> 
-                                    <option> Mark it as read </option>
-                                    <option> Delete it from the list </option>
-                                </select><br>
-                                
-								<input type="checkbox" id="uek-lists-suggest">
-                                <label for="uek-lists-suggest">Suggest new stories from this list</label>
-                                <p>At the end of a story from this list, link to the next story.</p><br>
-								
-                                <label for="uek-lists-sort">Sort this list by </label>
-								<select id="uek-lists-sort"> </select><br>
-                                
-                                <input type="text"></input>
-                                
-                            </div>
-                            <hr>
-                            
-                            <div id="uek-lists-selected-story">
-                                <button type="button" id="uek-lists-source" class="no-icon-long"><div><h6>View Source (.json)</h6></div></button>
-                                <button type="button" id="uek-lists-set-thumbnail" class="no-icon-long"><div><h6>Set as thumbnail</h6></div></button>
-                                <button type="button" id="uek-lists-mark-read" class="no-icon-long"><div><h6>Mark as read/unread</h6></div></button>
-                                
-                                <button type="button" id="uek-lists-delete-story" class="no-icon"><div><h6>Delete</h6></div></button>
-                                <button type="button" id="uek-lists-add-to" class="no-icon"><div><h6>Add to: </h6></div></button>
-                                <select id ="uek-lists-add-list"></select><br>
-                            </div>
-                            
-                            
-                        </form>
-                            
-                        <table id="uek-lists-display"> 
-                            <thead id="uek-lists-table-heading">
-								<tr>
-                                <th><input type="checkbox" id="uek-lists-select-all"> </th>
-								<th>Title</th>
-								<th>Time to read</th>
-								<th>Champions</th>
-								<th>Regions</th>
-								</tr>
-							</thead>
-                            <tbody id="uek-lists-table-body">
-							
-                            </tbody>
-                        </table>
-                    </div>
+                    
                     
                     <!-- 
                     -----------------------------------
-                    -------------Options---------------
+                    -------------Config---------------
                     -----------------------------------
                     -->
                     <div id="uek-main-block-options" class="half-hidden">
@@ -187,58 +115,18 @@
                                 <p><output name="position" for="uek-options-top uek-options-left" id="uek-options-position"></output></p>
                             </div>
                             <p id="uek-options-window-text" class="hidden"></p>
-                            <hr>
-                               
-                            <input type="checkbox" id="uek-options-changelog">
-                            <label for="uek-options-changelog"></label>
-                            <p></p>
-                            
+                                                        
                             <hr>
                             <button type="button" id="uek-options-confirm" class="icon-confirm"><div><h6></h6><div></div></div></button>
                             <button type="button" id="uek-options-refresh" class="icon-reload"><div><h6></h6><div></div></div></button>
-                            <button type="button" id="uek-options-delete" class="no-icon" ><div><h6></h6></div></button><br>
-                            
-                            <label id="uek-options-delete-text" for="uek-options-delete-confirm" class="hidden"></label>
-                            <input type="text" id="uek-options-delete-confirm" class="hidden"><br>
-                            
-                            
+                                                        
                         </form>
+                        <hr> 
+                            <h3></h3>
+                            <p id="uek-about-legal">
+                            </p>
                     </div>
                     
-                    <!-- 
-                    -----------------------------------
-                    ---------------About---------------
-                    -----------------------------------
-                    -->
-                    <div id="uek-main-block-about" class="half-hidden">
-                        <h3 class="hidden"></h3>
-                        <ul id="uek-about-changelog" class="hidden">
-                            <li><b>v1.0.0 Initial Release</b><br>
-                            Some Text...
-                            </li>
-                        </ul>
-                        <h3></h3>
-                        <p id="uek-about-suggestions">
-                            <br><br>
-                            <a href="https://www.reddit.com/user/LordRedStone_Nr1" target="_blank">Reddit:</a> /u/LordRedStone_Nr1 <span class="uek-custom-separator"></span> 
-                            Discord: Fabian P. / LordRedStone#7732 <span class="uek-custom-separator"></span> 
-                            <a href="https://github.com/LordredstoneNr1/uek" target="_blank">GitHub: </a> LordredstoneNr1
-                        </p>
-                        <hr>
-                        <h3></h3>
-                        <p id="uek-about-credits">
-                        </p>
-                        <ul> 
-                            <li> fr: </li>
-                            <li> pt: </li>
-                            <li> de: </li>
-                            <li> ro: </li>
-                        </ul>
-                        <hr>
-                        <h3></h3>
-                        <p id="uek-about-legal">
-                        </p>
-                    </div>
                 </div>  
             </div>
             <div id="uek-base-toggle">

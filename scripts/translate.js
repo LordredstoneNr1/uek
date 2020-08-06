@@ -76,9 +76,7 @@ function translate() {
     { // Extension heading
         document.getElementById("uek-main-title").innerHTML = chrome.i18n.getMessage("info_title_version", [chrome.runtime.getManifest().version]);
         document.getElementById("uek-main-link-stories").innerHTML = chrome.i18n.getMessage("heading_stories");
-        document.getElementById("uek-main-link-lists").innerHTML = chrome.i18n.getMessage("heading_lists");
         document.getElementById("uek-main-link-options").innerHTML = chrome.i18n.getMessage("heading_options");
-        document.getElementById("uek-main-link-about").innerHTML = chrome.i18n.getMessage("heading_about");
     }
     
     { // Story Tab 
@@ -227,12 +225,8 @@ function translate() {
         }
         
     }
-
-    { // Lists Tab
-        // TODO
-    }
     
-    { // Options Tab
+    { // config Tab
         // Universe Languages + Suggestions
         document.getElementById("uek-options-locale").previousElementSibling.innerHTML = chrome.i18n.getMessage("options_universelocale");
         
@@ -251,30 +245,14 @@ function translate() {
         document.getElementById("uek-options-position").parentElement.insertAdjacentText("afterBegin", chrome.i18n.getMessage("options_currentPosition"));
         
         document.getElementById("uek-options-window-text").innerHTML = chrome.i18n.getMessage("options_refresh_text");
-        
-        document.getElementById("uek-options-changelog").nextElementSibling.innerHTML = chrome.i18n.getMessage("options_changelog");
-        document.getElementById("uek-options-changelog").nextElementSibling.nextElementSibling.innerHTML = chrome.i18n.getMessage("options_changelog_text");
-        
-        
+              
         document.getElementById("uek-options-confirm").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("options_confirm");
         document.getElementById("uek-options-refresh").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("options_refresh");
-        document.getElementById("uek-options-delete").firstElementChild.firstElementChild.innerHTML = chrome.i18n.getMessage("options_delete");
-        
-        document.getElementById("uek-options-delete-text").innerHTML = chrome.i18n.getMessage("options_delete_text");
-        
-    }
-    
-    { // About Tab
-        document.getElementById("uek-about-changelog").previousElementSibling.innerHTML = chrome.i18n.getMessage("about_changelog");
-        document.getElementById("uek-about-suggestions").previousElementSibling.innerHTML = chrome.i18n.getMessage("about_suggestions");
-        document.getElementById("uek-about-suggestions").insertAdjacentText("afterBegin", chrome.i18n.getMessage("about_suggestions_text"));
-        
-        document.getElementById("uek-about-credits").previousElementSibling.innerHTML = chrome.i18n.getMessage("about_credits");
-        document.getElementById("uek-about-credits").innerHTML = chrome.i18n.getMessage("about_credits_text");
-        document.getElementById("uek-about-credits").nextElementSibling.insertAdjacentText("afterBegin", chrome.i18n.getMessage("about_credits_translators"));
         
         document.getElementById("uek-about-legal").previousElementSibling.innerHTML = chrome.i18n.getMessage("about_legal");
         document.getElementById("uek-about-legal").innerHTML = chrome.i18n.getMessage("about_legal_text");
+        
     }
+    
     console.log("%c Translation ", "background-color: yellow; color: black; border-radius: 5px;", "Finished translation. Used locale is ", chrome.i18n.getMessage("info_universecode"));
 }

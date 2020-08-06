@@ -267,108 +267,7 @@ function main(inject) {
             target.appendChild(row);
         });
     }
-    
-    /* // Lists D&D
-    function dragStart(ev) {
-        this.id = "uek-lists-dragelement";
-        
-        ev.dataTransfer.setData("text/plain", "Drag text");
-    }
-        
-    function dragEnd(ev) {
-        this.id = "";
-        while (document.getElementById("uek-lists-previewelement") != null) {
-            document.getElementById("uek-lists-previewelement").remove();
-        }
-    }
-     
-    function dragEnter(ev) {
-        if (isValid) {
-            ev.stopPropagation();
-            const placeholder = document.getElementById("uek-lists-previewelement");
-            if (placeholder == null) {
-                placeholder = document.createElement("tr");
-                placeholder.innerHTML = "<td></td>";
-                placeholder.id = "uek-lists-previewelement";
-            }
-            this.parentElement.insertBefore(placeholder, this.nextElementSibling);
-        } else {
-          document.getElementById("uek-lists-previewelement").remove();
-        }
-    }
-     
-    function dragOver(ev) {
-        if (isValid) {
-            ev.preventDefault();
-        }
-    } 
-     
-    function dragLeave(ev) {
-        ev.stopPropagation();
-        console.log(this);
-    }
-    
-    function drop(ev) {
-         ev.preventDefault();
-    }
-    */
-   
-    async function generateListHTML() {
-        if (lists_currentList != undefined) {
-            const name = lists_currentList.displayName;
-            // List stuff
-        
-            document.getElementById("uek-lists-title").innerHTML = name;
-            document.getElementById("uek-lists-name").value = name;
-            
-            // story table
-            const target = document.getElementById("uek-lists-table-body");
-            target.innerHTML = "";
-            
-            const stories = lists_currentList.data;
-            
-            if (lists_sortKey.endsWith("reverse")) {
-                stories.forEach(function (story) {
-                    story.tags.champions.sort().reverse();
-                    story.tags.regions.sort().reverse();
-                    story.tags.authors.sort().reverse();
-                });
-                // b.compareTo(a) because it must be reversed here
-                stories.sort((a,b) => b.compareToWithKey(a, lists_sortKey.substring(0, lists_sortKey.indexOf("-reverse"))));
-            } else {
-                stories.forEach(function (story) {
-                    story.tags.champions.sort();
-                    story.tags.regions.sort();
-                    story.tags.authors.sort();
-                });
-                stories.sort((a,b) => a.compareToWithKey(b, lists_sortKey));
-            }
-            
-            for (i = 0; i < stories.length; i++) {
-                const row = document.createElement("tr");
-                const story = stories[i];
-                row.innerHTML = [
-                    "<td>" + "<input type=\"checkbox\" id=\"uek-select-story-" + i + "\">",
-                    story.title,
-                    Math.ceil(story.words / 260) + " min.",
-                    story.tags.champions.join(", "),
-                    story.tags.regions.join(", ") + "</td>"
-                ].join("</td>\n<td>");
-                target.appendChild(row);
-                document.getElementById("uek-select-story-" + i).onchange = function () {
-                    if (this.checked) {
-                        lists_selectedStories.add(story);
-                    } else {
-                        lists_selectedStories.delete(story);
-                    }
-                }
-                
-            }
-        } else {
-            console.log("Trying to start 'generateListHTML' while 'lists_currentList' is undefined", unpackedLists);
-        }
-    }
-    
+       
     function calculateHeight() {
         const heightConst = document.getElementById("uek-options-heightconst").value;
         const heightFactor = document.getElementById("uek-options-heightfactor").value;
@@ -438,9 +337,7 @@ function main(inject) {
         document.getElementById("uek-main-title").href = chrome.runtime.getManifest().homepage_url;
         
         document.getElementById("uek-main-link-stories").onclick = function() {show("stories");};
-        document.getElementById("uek-main-link-lists").onclick = function() {show("lists");};
         document.getElementById("uek-main-link-options").onclick = function() {show("options");};
-        document.getElementById("uek-main-link-about").onclick = function() {show("about");};
         console.debug("Header setup complete");
     }
    
@@ -606,190 +503,6 @@ function main(inject) {
         
     }
             
-    { // Lists tab
-        document.getElementById("uek-lists-table-body").setAttribute("style", "height: " + 
-        (document.getElementById("uek-main-block-lists").getBoundingClientRect().height 
-            - document.getElementById("uek-lists-window").getBoundingClientRect().height - 20 - 32) + "px;");
-    
-		// Layout fix
-		document.getElementById("uek-lists-thumbnail").onload = function () {
-			document.getElementById("uek-main-block-lists").classList.add("half-hidden");
-			document.getElementById("uek-main-block-lists").classList.remove("hidden");
-			document.getElementById("uek-lists-table-body").setAttribute("style", "height: " + 
-            (document.getElementById("uek-main-block-lists").getBoundingClientRect().height 
-                - document.getElementById("uek-lists-window").getBoundingClientRect().height - 20 - 32) + "px;");
-			document.getElementById("uek-main-block-lists").classList.add("hidden");
-            document.getElementById("uek-main-block-lists").classList.remove("half-hidden");
-		}
-		
-        // This is to handle cached images where the size is not correct in the onload event.
-		if (document.getElementById("uek-lists-thumbnail").complete) {
-			document.getElementById("uek-main-block-lists").classList.add("half-hidden");
-			document.getElementById("uek-main-block-lists").classList.remove("hidden");
-			document.getElementById("uek-lists-table-body").setAttribute("style", "height: " + 
-            (document.getElementById("uek-main-block-lists").getBoundingClientRect().height 
-                - document.getElementById("uek-lists-window").getBoundingClientRect().height - 20 - 32) + "px;");
-			document.getElementById("uek-main-block-lists").classList.add("hidden");
-			document.getElementById("uek-main-block-lists").classList.remove("half-hidden");
-		}
-        
-        // generating element for each list
-        const parent = document.getElementById("uek-lists-selection");
-        parent.innerHTML = "";
-        Object.keys(unpackedLists).forEach( name => {
-            const element = document.createElement("option");
-            element.innerHTML = name;
-            element.value = name;
-            parent.appendChild(element);
-            if (lists_currentList == undefined) {
-                lists_currentList = unpackedLists[name];
-            }
-        });
-        
-        document.getElementById("uek-lists-name").onchange = function () {
-            if (this.value != lists_currentList.displayName) {
-                const name = StoryList.checkName(this.value);
-                Array.from(document.getElementById("uek-lists-selection").children).find(a => a.value = lists_currentList.displayName).innerHTML = name; // name was changed so we need to search like this
-                lists_currentList.displayName = name;
-                document.getElementById("uek-lists-title").innerHTML = name;
-            }
-        }
-        
-		document.getElementById("uek-lists-export").onclick = function () {
-            const exportData = JSON.stringify(lists_currentList.pack());
-			const url = window.URL.createObjectURL(new Blob([exportData], {type: "application/json"}));
-			const link = document.createElement('a');
-			link.href = url;
-			link.download = document.getElementById("uek-lists-selection").value;
-			link.classList.add("hidden");
-			document.getElementById("uek-lists-overview").appendChild(link);
-			link.click();
-			setTimeout(function () {
-			  window.URL.revokeObjectURL(url);
-			  document.getElementById("uek-lists-overview").removeChild(link);
-			}, 0);
-		}
-		
-		document.getElementById("uek-lists-import").onclick = function (ev) {
-			const label = this.getElementsByTagName("label")[0];
-			if (ev.srcElement != label) {
-				label.click();
-			}
-		}
-		
-		document.getElementById("uek-lists-import-file").onchange = function () {
-			alert("Todo!"); // use packed lists for import/export to reduce filesizes
-            
-		}
-		
-        document.getElementById("uek-lists-selection").onchange = function () {
-            lists_currentList = unpackedLists[this.value];
-            generateListHTML();
-        }
-       
-        document.getElementById("uek-lists-new").onclick = function () {
-            const name = new StoryList(Array.from(lists_selectedStories).map(a => a.slug), ["New List"]).displayName; //["New List", false, false, null, ""]
-            const parent = document.getElementById("uek-lists-selection");
-            const element = document.createElement("option");
-            element.innerHTML = name;
-            element.value = name;
-            parent.appendChild(element);
-            parent.value = name;
-            lists_currentList = unpackedLists[name];
-            chrome.runtime.sendMessage({id: "list-created", name: "list: " + name});
-            lists_currentList.save();
-            generateListHTML();
-        }
-        
-        document.getElementById("uek-lists-rename").onclick = function () {
-            document.getElementById("uek-lists-name").classList.toggle("hidden");
-        }
-        
-        document.getElementById("uek-lists-save").onclick = function () {
-            Object.keys(unpackedLists).forEach( function(key) {
-                if (key != unpackedLists[key].displayName) {
-                    chrome.storage.sync.remove("list: " + key);
-                    //will be saved under a different name: Remove this version
-                    chrome.runtime.sendMessage({id: "list-renamed", old: "list: " + key, name: "list: " + unpackedLists[key].displayName});
-                }
-                unpackedLists[key].save();
-            });
-        }
-       
-        document.getElementById("uek-lists-refresh").onclick = function () {
-           getAsPromise().then(
-                // Handle list data
-                function (items) {
-                    StoryList.unpackedLists = {};
-                    for (entry in items) {
-                        if (entry.startsWith("list: ")) {
-                            new StoryList(items[entry].data, [entry.substring(6), items[entry].deleteAfterRead, items[entry].suggest]);
-                        }                    
-                    }
-                    unpackedLists = StoryList.unpackedLists; 
-                    console.log("%c Data ", "background: green; border-radius: 5px;", "List data parsed successfully");          
-                    console.debug(unpackedLists);
-                    
-                    const parent = document.getElementById("uek-lists-selection");
-                    parent.innerHTML = "";
-                    Object.keys(unpackedLists).forEach( function (name) {
-                        const element = document.createElement("option");
-                        element.innerHTML = name;
-                        element.value = name;
-                        parent.appendChild(element);
-                        if (lists_currentList == undefined) {
-                            lists_currentList = unpackedLists[name];
-                        }
-                    });
-                    generateListHTML();
-                }, 
-                function (errorMsg) {
-                    console.log("%c Startup ", "color: red; font-weight: bold;", "Error while restarting UEK: Unable to parse list input.", errorMsg);
-                }
-            );
-        }
-       
-        document.getElementById("uek-lists-select-all").onchange = function () {
-            const allChecked = this.checked;
-            Array.from(document.getElementById("uek-lists-table-body").getElementsByTagName("input")).forEach(function (el) {
-                el.checked = allChecked;
-                el.onchange();
-            });
-        }
-       
-        document.getElementById("uek-lists-source").onclick = function () {
-            if (!lists_selectedStories.size > 10) { // hardcoded limit for now
-                lists_selectedStories.forEach((story) => {
-                    chrome.runtime.sendMessage({
-                        "id": "open-tab",
-                        "url": "https://universe-meeps.leagueoflegends.com/v1/" + options.universeOverride.toLowerCase().replace("-", "_") + "/story/" + story.slug + "/index.json", 
-                   }); 
-                });
-            }
-       }
-       
-        /*
-        for (element of document.getElementById("uek-lists-display").getElementsByTagName("TR")) {
-             // if (element.getAttribute("data-type") === "list") {
-             if (element.parentElement.nodeName === "TBODY") {
-                 // Draggable
-                 element.draggable = true;
-                 element.ondragstart = dragStart;
-                 element.ondragend = dragEnd;
-             }
-             
-             //Droppable
-             element.ondragenter = dragEnter;
-             element.ondragover = dragOver;
-             element.ondragleave = dragLeave;
-             element.ondrop = drop;
-         } 
-		 */
-         
-        generateListHTML();
-        console.debug("List setup complete");
-    }
-
     { // Options tab
     
         document.getElementById("uek-options-heightfactor").value = options.heightFactor;
@@ -797,8 +510,7 @@ function main(inject) {
         document.getElementById("uek-options-widthfactor").value = options.widthFactor;
         document.getElementById("uek-options-widthconst").value = options.widthConst;
         document.getElementById("uek-options-left").value = options.posLeft;
-        document.getElementById("uek-options-top").value = options.posTop;
-        document.getElementById("uek-options-changelog").checked = options.changelog;  
+        document.getElementById("uek-options-top").value = options.posTop; 
     
         document.getElementById("uek-options-heightfactor").oninput = calculateHeight;
         document.getElementById("uek-options-heightconst").oninput = calculateHeight;
@@ -831,37 +543,14 @@ function main(inject) {
             });
         }
         
-        document.getElementById("uek-options-delete").onclick = function() {
-            document.getElementById("uek-options-delete-text").classList.toggle("hidden");
-            document.getElementById("uek-options-delete-confirm").classList.toggle("hidden");
-        };
-        
-        document.getElementById("uek-options-delete-confirm").onchange = function(e) {
-            if (e.srcElement.value === chrome.i18n.getMessage("options_delete_confirmation")) {
-                chrome.storage.sync.clear();
-                alert(chrome.i18n.getMessage("options_delete_alert"));
-            }
-        }
         console.debug("Options setup complete");
     }
-    
-    { // About Tab
-        if (options.changelog == true) {
-            document.getElementById("uek-about-changelog").classList.remove("hidden");
-            document.getElementById("uek-about-changelog").previousElementSibling.classList.remove("hidden");
-        }
-        document.getElementById("uek-about-suggestions").getElementsByTagName("a")[0].href = chrome.runtime.getManifest().homepage_url;
-        console.debug("About setup complete");
-    }
-    
     //Ready to show - quick switch for determining the landing page
     
     document.getElementById("uek-main-link-stories").classList.add("activeTab");
     
     //document.getElementById("uek-main-block-stories").classList.add("hidden");
-    document.getElementById("uek-main-block-lists").classList.add("hidden");
     document.getElementById("uek-main-block-options").classList.add("hidden");
-    document.getElementById("uek-main-block-about").classList.add("hidden");
     
     Array.from(document.getElementsByClassName("half-hidden")).forEach(function (element) {element.classList.remove("half-hidden")});
     console.debug("Showing window"); 
