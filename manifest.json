@@ -1,10 +1,9 @@
 {
     "manifest_version": 2,
-    "name": "__MSG_info_title__",
-    "short_name": "__MSG_info_title_short__",
-    "default_locale": "en",
-    "description": "__MSG_info_description__",
-    "version": "0.9.0",
+    "name": "Universe Enhancement Kit",
+    "short_name": "UEK",
+    "description": "Enhances my League Universe page by adding some functionality.",
+    "version": "1.0.0",
     "permissions": ["storage", "contextMenus"],
     "author": "Fabian Palitza - LordRedStone",
     "homepage_url": "https://www.reddit.com/r/loreofleague/",
@@ -35,7 +34,7 @@
             "matches": ["*://universe.leagueoflegends.com/*"],
             "exclude_matches": ["*://universe.leagueoflegends.com/css/*", "*://universe.leagueoflegends.com/images/*", "*://universe.leagueoflegends.com/icons/*", "*://universe.leagueoflegends.com/js/*"],
             "css": ["css/main.css"],
-            "js": ["scripts/data.js", "scripts/translate.js", "scripts/contentscript.js"]
+            "js": ["scripts/data.js", "scripts/contentscript.js"]
         }
     ],
     "web_accessible_resources": [

@@ -15,7 +15,7 @@ function update() {
                 
                 chrome.commands.getAll(function (commands) {
                     options.shortcut = commands[1].shortcut;
-                    chrome.storage.sync.set({"options": options, "read": new Array()});
+                    chrome.storage.sync.set({"options": options});
                 });
             } else {
                 options = items.options;

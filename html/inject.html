@@ -5,16 +5,16 @@
     </head>
     <body>
         <div data-link-id="uek" id="uek-link-element"  class="riotbar-navbar-navitem-container">
-            <a data-riotbar-link-id="uek" class="riotbar-navbar-link"></a>
+            <a data-riotbar-link-id="uek" class="riotbar-navbar-link">UEK</a>
         </div>
         <div id="uek-base-wrapper" class="half-hidden"> 
             <div id="uek-main-page">
                 <div id="uek-main-header">
-                    <a id="uek-main-title" class="title" target="_blank"></a>
+                    <a id="uek-main-title" class="title" target="_blank">Universe Enhancement Kit</a>
                     <span class="uek-custom-separator"></span>
                     <span>
-                        <a id="uek-main-link-stories" href="javascript:void(0)"></a>
-                        <a id="uek-main-link-options" href="javascript:void(0)"></a>
+                        <a id="uek-main-link-stories" href="javascript:void(0)">Main</a>
+                        <a id="uek-main-link-options" href="javascript:void(0)">Config</a>
                     </span>
                 </div>
                 <div id="uek-main-body">
@@ -25,46 +25,62 @@
                     -->
                     <div id="uek-main-block-stories" class="no-padding half-hidden">
                         <form id="uek-stories-filter">
-                            <p id="uek-stories-text"> </p>
                             <input id="uek-filter-title" type="checkbox">
-                            <label for="uek-filter-title"></label>
-                            <input id="uek-filter-title-text" type="search"><br>
+                            <label for="uek-filter-title">Filter by story title: </label>
+                            <input id="uek-filter-title-text" type="search" placeholder="Title"><br>
                             
                             <input id="uek-filter-champions" type="checkbox">
-                            <label for="uek-filter-champions"></label>
-                            <input id="uek-filter-champions-text" type="search" size="25"><br>
+                            <label for="uek-filter-champions">Filter by champion names: </label>
+                            <input id="uek-filter-champions-text" type="search" size="25" placeholder="Champions 1, Champion 2, ..."><br>
                             
                             <input id="uek-filter-regions" type="checkbox">
-                            <label for="uek-filter-regions"></label>
-                            <select id="uek-filter-regions-dropdown"></select><br>
+                            <label for="uek-filter-regions">Filter by champion region: </label>
+                            <select id="uek-filter-regions-dropdown"><option value="">All regions</option></select><br>
                             
                             <input id="uek-filter-authors" type="checkbox">
-                            <label for="uek-filter-authors"></label>
-                            <select id="uek-filter-authors-dropdown"></select><br>
+                            <label for="uek-filter-authors">Filter by author: </label>
+                            <select id="uek-filter-authors-dropdown"><option value="">All authors</option></select><br>
                             
                             <input id="uek-filter-type" type="checkbox">
-                            <label for="uek-filter-type"></label>
-                            <select id="uek-filter-type-universe-dropdown"></select>
-                            <select id="uek-filter-type-type-dropdown"></select><br>
+                            <label for="uek-filter-type">Filter by story type: </label>
+                            <select id="uek-filter-type-universe-dropdown">
+                                <option value="all" selected>All stories</option>
+                                <option value="main-universe">Main Universe only</option>
+                                <option value="alternate-universes">Alternate Universes only</option>
+                            </select>
+                            <select id="uek-filter-type-type-dropdown">
+                                <option value="all" selected>All stories</option>
+                                <option value="color-stories">Color stories only</option>
+                                <option value="long-stories">Long stories only</option>
+                            </select><br>
                             
                             <input id="uek-filter-words" type="checkbox">
-                            <label for="uek-filter-words"></label>
-                            <input type="number" id="uek-filter-words-min"  min="0" step="50" max="20000" value="1000">
-                            <input type="number" id="uek-filter-words-max"  min="0" step="50" max="20000" value="5000">
+                            <label for="uek-filter-words">Filter by story length: </label>
+                            Must have between <input type="number" id="uek-filter-words-min"  min="0" step="50" max="20000" value="1000"> and <input type="number" id="uek-filter-words-max"  min="0" step="50" max="20000" value="5000"> words.
+                            <br>
+                            
                             
                             <input id="uek-filter-date" type="checkbox">
-                            <label for="uek-filter-date"></label>
-                            <input type="date" id="uek-filter-date-min" min="2014-01-01" max="2020-12-31" value="2016-06-01">
-                            <input type="date" id="uek-filter-date-max" min="2014-01-01" max="2020-12-31" value="2017-01-01">
+                            <label for="uek-filter-date">Filter by release date: </label>
+                            Must have been released after <input type="date" id="uek-filter-date-min" min="2014-01-01" max="2020-12-31" value="2016-06-01"> , but before <input type="date" id="uek-filter-date-max" min="2014-01-01" max="2020-12-31" value="2017-01-01">.
+                            <br>
                             
-                            <button id="uek-filter-apply" type="button" class="icon-confirm"><div><h6></h6><div></div></div></button>
-                            <button id="uek-filter-reset" type="reset" class="icon-options"><div><h6></h6><div></div></div></button>
-                            <button id="uek-filter-reload" type="reset" class="icon-reload"><div><h6></h6><div></div></div></button>
+                            
+                            <button id="uek-filter-apply" type="button" class="icon-confirm"><div><h6>Apply</h6><div></div></div></button>
+                            <button id="uek-filter-reset" type="reset" class="icon-options"><div><h6>Reset</h6><div></div></div></button>
+                            <button id="uek-filter-reload" type="reset" class="icon-reload"><div><h6>Reload</h6><div></div></div></button>
                             
                         </form>
                         <table id="uek-stories-display">
                             <thead id="uek-stories-table-heading">
                                 <tr>
+                                <th>#</th>
+                                <th class="activeSort">Title</th>
+                                <th>Length</th>
+                                <th>Champions</th>
+                                <th>Regions</th>
+                                <th>Author</th>
+                                <th>Release Date</th>
                                 </tr>
                             </thead>
                             <tbody id="uek-stories-table-body"> 
@@ -83,46 +99,49 @@
                     -->
                     <div id="uek-main-block-options" class="half-hidden">
                         <form id="uek-options-form">
-                            <label for="uek-options-locale"></label>
+                            <label for="uek-options-locale">Select the language you want to use Universe in: </label>
                             <select id="uek-options-locale"></select><hr>
                             
                             <div>
-                                <label for="uek-options-heightfactor"></label>
+                                <label for="uek-options-heightfactor">Frame height (%):</label>
                                 <input type="number" id="uek-options-heightfactor" min="0" step="5" max="100"><br>
                                 
-                                <label for="uek-options-heightconst"></label>
+                                <label for="uek-options-heightconst">Frame height (px):"</label>
                                 <input type="number" id="uek-options-heightconst"  min="0" step="50" max="2160"><br>
-                                <p><output name="height" for="uek-options-heightfactor uek-options-heightconst" id="uek-options-height"></output></p>
+                                <p><output name="height" for="uek-options-heightfactor uek-options-heightconst" id="uek-options-height">Calculated height: </output></p>
                             </div>
                             
                             <div>                                
-                                <label for="uek-options-widthfactor"></label>
+                                <label for="uek-options-widthfactor">Frame width (%):</label>
                                 <input type="number" id="uek-options-widthfactor" min="0" step="5" max="100"><br>
                                 
-                                <label for="uek-options-widthconst"></label>
+                                <label for="uek-options-widthconst">Frame width (px):</label>
                                 <input type="number" id="uek-options-widthconst" min="0" step="50" max="3840"><br>
-                                <p><output name="width" for="uek-options-widthfactor uek-options-widthconst" id="uek-options-width"></output></p>
+                                <p><output name="width" for="uek-options-widthfactor uek-options-widthconst" id="uek-options-width">Calculated width: </output></p>
                             </div>   
                             
                             <div>
-                                <label for="uek-options-left"></label>
+                                <label for="uek-options-left">Position left (px):</label>
                                 <input type="number" id="uek-options-left"><br>
                                 
-                                <label for="uek-options-top"></label>
+                                <label for="uek-options-top">Position top (px):</label>
                                 <input type="number" id="uek-options-top"><br>
                                 
-                                <p><output name="position" for="uek-options-top uek-options-left" id="uek-options-position"></output></p>
+                                <p><output name="position" for="uek-options-top uek-options-left" id="uek-options-position">Current position: </output></p>
                             </div>
-                            <p id="uek-options-window-text" class="hidden"></p>
+                            <p id="uek-options-window-text" class="hidden">
+                                <i>Changes to the window size and position are only applied after the page has been refreshed. <br>Minimum window size is 750px X 650px.</i>
+                            </p>
                                                         
                             <hr>
-                            <button type="button" id="uek-options-confirm" class="icon-confirm"><div><h6></h6><div></div></div></button>
-                            <button type="button" id="uek-options-refresh" class="icon-reload"><div><h6></h6><div></div></div></button>
+                            <button type="button" id="uek-options-confirm" class="icon-confirm"><div><h6>Save</h6><div></div></div></button>
+                            <button type="button" id="uek-options-refresh" class="icon-reload"><div><h6>Refresh</h6><div></div></div></button>
                                                         
                         </form>
                         <hr> 
-                            <h3></h3>
-                            <p id="uek-about-legal">
+                            <h3>Legal Jibber Jabber</h3>
+                            <p id="uek-about-legal">The Universe Enhancement Kit was created under Riot Games' <a href='https://www.riotgames.com/en/legal' target='_blank'>"Legal Jibber Jabber"</a> policy using assets owned by Riot Games.<br>
+                            Riot Games does not endorse or sponsor this project.
                             </p>
                     </div>
                     

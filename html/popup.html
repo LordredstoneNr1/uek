@@ -2,15 +2,43 @@
 <html id="min-size">
     <head>
         <title>UEK Popup</title>
-        <link rel="stylesheet" type="text/css" href="popup.css">
+        <style type="text/css"> html#min-size {
+     min-height: 150px; 
+     min-width:400px;
+}
+
+h1#uek-popup-title {
+    text-align: center;
+}
+
+a#changelink:link {
+    color: #0000EE;
+}
+
+a#changelink:visited {
+    color: #0000EE;
+}</style>
     </head>
     <body>
-        <h1 id="uek-popup-title"></h1>
+        <h1 id="uek-popup-title">Universe Enhancement Kit v1.0</h1>
         <p>
-            <ul id="uek-popup-text"> 
+            <ul id="uek-popup-text"> Visit the <a id='universeLink' class='link' href='https://universe.leagueoflegends.com/en_US/'>Universe</a> and use one of the following to show the extension page:
+                <li><b id="shortcut"> [Ctrl] + [Shift] + [L] </b> (<a id="changeLink" class="link" href="javascript:void(0)">Change</a>)</li>
+                <li><b>Context Menu</b></li>
+                <li><b>Riots Menu</b></li>
+                <li>or just <b>Click the arrow</b></li>
             </ul>
-            
         </p>
-        <script src="popup.js"></script>
+        <p> Right click on this icon to hide it! </p>
+        <script type="text/javascript">
+            chrome.storage.sync.get("options", function(items) {
+                document.getElementById("shortcut").innerHTML = items.options.shortcut;
+            });
+            document.getElementById("changeLink").onclick = function() {
+            chrome.tabs.create({
+                    "url": "chrome://extensions/shortcuts",
+                });
+            };
+        </script>
     </body>
 </html>

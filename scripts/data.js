@@ -1,6 +1,6 @@
 console.debug("Data script loaded");
 
-// Data
+// Database - having a real table for champion slug, name, region ref and region name would be nice.
 const champions_base = {
     "aatrox": "runeterra",
     "ahri": "ionia",
@@ -153,6 +153,45 @@ const champions_base = {
     "zoe": "mount_targon",
     "zyra": "ixtal"
 };
+ 
+const regions = {
+    "bandle_city": "Bandle City",
+    "bilgewater": "Bilgewater",
+    "demacia": "Demacia",
+    "freljord": "Freljord",
+    "ionia": "Ionia",
+    "ixtal": "Ixtal",
+    "mount_targon": "Mt. Targon",
+    "noxus": "Noxus",
+    "piltover": "Piltover",
+    "runeterra": "Runeterra",
+    "shadow_isles": "Shadow Isles",
+    "shurima": "Shurima",
+    "void": "The Void",
+    "zaun": "Zaun"
+}
+
+// only put outliers here
+const champion_names = {
+    "aurelionsol": "Aurelion Sol",
+    "chogath": "Cho'gath",
+    "drmundo": "Dr. Mundo",
+    "jarvaniv": "Jarvan IV",
+    "kaisa": "Kai'sa",
+    "khazix": "Kha'Zix",
+    "kogmaw": "Kog'Maw",
+    "leblanc": "LeBlanc",
+    "leesin": "Lee Sin",
+    "masteryi": "Master Yi",
+    "missfortune": "Miss Fortune",
+    "monkeyking": "Wukong",
+    "nunu": "Nunu & Willump",
+    "reksai": "Rek'sai",
+    "tahmkench": "Tahm Kench",
+    "twistedfate": "Twisted Fate",
+    "velkoz": "Vel'Koz",
+    "xinzhao": "Xin Zhao"
+}
 
 const override_tags = {
     "ambitions-embrace": {"champions": ["lux"], "regions": [], "authors": ["Michael Yichao"]},
@@ -321,7 +360,7 @@ var options = {
     "posLeft": 15,
     "contextMenus": true,
     "changelog": true,
-    "universeOverride": chrome.i18n.getMessage("info_universecode")
+    "universeOverride": "en-US"
 };
 
 // Classes
@@ -411,19 +450,16 @@ class UnpackedStory {
             
             //regular tags created from the champions and subtitle of the story
             obj['featured-champions'].forEach(function(champion) {
-                if (chrome.i18n.getMessage("champion_" + champion.slug) != champion.name) {
-                    console.log("%c Translation missing ", "background-color: red; border-radius: 5px;", champion.name);
-                }
-                tags.champions.add(chrome.i18n.getMessage("champion_" + champion.slug));
+                tags.champions.add(Object.keys(champion_names).includes(champion.slug) ? champion_names[champion.slug] : upperletter(champion.slug));
                 // Plain text version instead of faction slug
-                tags.regions.add(chrome.i18n.getMessage("region_" + champions_base[champion.slug]));
+                tags.regions.add(regions[champions_base[champion.slug]]);
             });  
             
             // We embark on our quest to find the author. It will be long and painful, but these people need to be credited.
-            const beginnings = chrome.i18n.getMessage("info_subtitle_by").split(";");
-            if (obj.subtitle != null && beginnings.includes(obj.subtitle.substr(0, beginnings[0].length)) ) {
+            const beginning = "by "; // trailing space is intentional!
+            if (obj.subtitle != null && obj.subtitle.substr(0, 3).toLowerCase() === beginning ) {
                 
-                var author = obj.subtitle.substring(beginnings[0].length);
+                var author = obj.subtitle.substring(3);
                 //Transform Ian St Martin into Ian St. Martin. No regex or unicode for that, it's just for Ian and no one else.
                 if (author === "Ian St Martin") {
                     console.debug("Ian St Martin", " -> ", "Ian St. Martin");
@@ -453,12 +489,12 @@ class UnpackedStory {
             if (add_tags[this.slug]) {
                 if (add_tags[this.slug].champions) {
                     add_tags[this.slug].champions.forEach(function (champion) {
-                        tags.champions.add(chrome.i18n.getMessage("champion_" + champion));
+                        tags.champions.add(Object.keys(champion_names).includes(champion) ? champion_names[champion] : upperletter(champion));
                     });
                 }
                 if (add_tags[this.slug].regions) {
                     add_tags[this.slug].regions.forEach(function (region) {
-                        tags.regions.add(chrome.i18n.getMessage("region_" + region));
+                        tags.regions.add(regions[region]);
                     });
                 }
                 if (add_tags[this.slug].authors) {
@@ -470,8 +506,8 @@ class UnpackedStory {
             
         } else {
             //Override
-            tags.champions = override_tags[this.slug].champions.map(a => chrome.i18n.getMessage("champion_" + a));
-            tags.regions = override_tags[this.slug].regions.map(a => chrome.i18n.getMessage("region_" + a));
+            tags.champions = override_tags[this.slug].champions.map(champion => Object.keys(champion_names).includes(champion) ? champion_names[champion] : upperletter(champion));
+            tags.regions = override_tags[this.slug].regions.map(region => regions[region]);
             tags.authors = override_tags[this.slug].authors;
         }
         tags.champions = Array.from(tags.champions).sort();
@@ -483,6 +519,10 @@ class UnpackedStory {
 UnpackedStory.storyModules = new Set();
 
 // functions
+
+function upperletter(name) {
+   return name.substring(0, 1).toUpperCase() + name.substring(1);   
+}
 
 function getAsPromise() {
     return new Promise((resolve, reject) => chrome.storage.sync.get(null, function (items) {

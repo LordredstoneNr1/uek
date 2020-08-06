@@ -273,7 +273,6 @@ function main(inject) {
             options.posLeft = Number(document.getElementById("uek-options-left").value);
             options.posTop = Number(document.getElementById("uek-options-top").value);
             options.universeOverride = document.getElementById("uek-options-locale").value;
-            options.changelog = document.getElementById("uek-options-changelog").checked;
                             
             chrome.storage.sync.set({"options": options}, callback);
         });
@@ -291,9 +290,8 @@ function main(inject) {
     const mainNode = injectDoc.getElementById("uek-base-wrapper");
     document.body.appendChild(mainNode);
     
-    translate(); //async!
-    
     { // Window
+        
         width = options.widthConst + (options.widthFactor / 100 * window.innerWidth);
         if (width < 650) {width = 650; }
         height =  options.heightConst + (options.heightFactor / 100 * window.innerHeight);
@@ -465,12 +463,68 @@ function main(inject) {
             
     { // Options tab
     
+        //  generates preferred universe languages based on the browser languages
+        chrome.i18n.getAcceptLanguages(function (languages) {
+            var optElement = document.createElement("optgroup");
+            optElement.label = "Suggested";
+            
+            const suggestedLanguages = new Set();
+            suggestedLanguages.add(options.universeOverride.replace("_", "-"));
+            for (i = 0; i < languages.length; i++) {
+                // No need to suggest all english variants if en-US is already suggested
+                if (languages[i].length == 2 && Array.from(suggestedLanguages.values()).some(a => a.startsWith(languages[i]))) {
+                    continue;
+                }
+                var suggestions = universeLanguages.filter( a => a === languages[i] );
+                                
+                // No direct match, try second pass
+                if (suggestions.length == 0) {
+                    suggestions = universeLanguages.filter( a => a.substring(0, 2) === languages[i].substring(0,2));
+                } 
+                // Found something
+                if (suggestions.length > 0) {
+                    for (j = 0; j < suggestions.length; j++) {
+                        suggestedLanguages.add(suggestions[j]);
+                    }
+                }
+            }
+            
+            suggestedLanguages.forEach( function (suggestion) {
+                var childElement = document.createElement("option");
+                childElement.value = suggestion;
+                childElement.innerHTML = suggestion;
+                optElement.appendChild(childElement);
+            });
+            
+            document.getElementById("uek-options-locale").appendChild(optElement);
+            
+            optElement = document.createElement("optgroup");
+            optElement.label = "";
+            document.getElementById("uek-options-locale").appendChild(optElement);
+            
+            optElement = document.createElement("optgroup");
+            optElement.label = "All Languages";
+            
+            for (i = 0; i < universeLanguages.length; i++) {
+                var childElement = document.createElement("option");
+                childElement.value = universeLanguages[i];
+                childElement.innerHTML = universeLanguages[i];
+                optElement.appendChild(childElement);
+            }
+            
+            document.getElementById("uek-options-locale").appendChild(optElement);
+        });
+    
         document.getElementById("uek-options-heightfactor").value = options.heightFactor;
         document.getElementById("uek-options-heightconst").value = options.heightConst;
         document.getElementById("uek-options-widthfactor").value = options.widthFactor;
         document.getElementById("uek-options-widthconst").value = options.widthConst;
         document.getElementById("uek-options-left").value = options.posLeft;
         document.getElementById("uek-options-top").value = options.posTop; 
+    
+        document.getElementById("uek-options-height").value = Math.round(options.heightFactor / 100 * window.innerHeight + options.heightConst * 1) + "px";
+        document.getElementById("uek-options-width").value = Math.round(options.widthFactor / 100 * window.innerWidth + options.widthConst * 1) + "px";
+        document.getElementById("uek-options-position").value = "" + options.posLeft + " / " + options.posTop;
     
         document.getElementById("uek-options-heightfactor").oninput = calculateHeight;
         document.getElementById("uek-options-heightconst").oninput = calculateHeight;
